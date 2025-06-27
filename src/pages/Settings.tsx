@@ -62,18 +62,36 @@ export default function Settings() {
 
       if (profilesError) throw profilesError;
 
-      // Transform data to match User interface
-      const transformedUsers: User[] = (profilesData || []).map(user => {
-        return {
+      // For users without email in profiles, try to get it from auth metadata
+      const transformedUsers: User[] = [];
+      
+      for (const user of profilesData || []) {
+        let userEmail = user.email;
+        
+        // Si pas d'email dans le profil, essayer de le récupérer depuis les métadonnées
+        if (!userEmail) {
+          try {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            if (authUser?.id === user.user_id) {
+              userEmail = authUser.email || 'Email non disponible';
+            } else {
+              userEmail = 'Email non disponible';
+            }
+          } catch {
+            userEmail = 'Email non disponible';
+          }
+        }
+
+        transformedUsers.push({
           id: user.user_id,
-          email: user.email || 'Email non disponible',
+          email: userEmail,
           full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur',
           role: user.role || 'user',
           status: 'active' as const,
           created_at: user.created_at,
           tenant_id: user.organization_id
-        };
-      });
+        });
+      }
 
       console.log('Loaded users:', transformedUsers);
       setUsers(transformedUsers);
@@ -187,7 +205,7 @@ export default function Settings() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Créer le profil utilisateur directement
+        // Créer le profil utilisateur directement avec l'email
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -195,7 +213,7 @@ export default function Settings() {
             organization_id: profile?.organization_id,
             first_name: firstName,
             last_name: lastName,
-            email: email,
+            email: email, // Ajouter l'email explicitement
             role: role
           });
 

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Plus, Trash2, UserPlus } from 'lucide-react';
+import { Users, Plus, Trash2, UserPlus, Edit } from 'lucide-react';
 import { User } from '@/types/settings';
 
 interface UserManagementProps {
@@ -214,14 +213,23 @@ export function UserManagement({ users, roles, onCreateUser, onUpdateUserRole, o
                   {new Date(user.created_at).toLocaleDateString('fr-FR')}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onDeleteUser(user.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onDeleteUser(user.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
