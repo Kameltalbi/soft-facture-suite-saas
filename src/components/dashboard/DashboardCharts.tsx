@@ -51,7 +51,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
     currentYear: '#6A9C89',
     previousYear: '#64B5F6',
     product: '#6A9C89',
-    category: '#64B5F6',
+    category: ['#8B5CF6', '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#F97316'],
     paid: '#81C784',
     pending: '#FFB74D',
     overdue: '#E57373'
@@ -139,69 +139,23 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
         </CardContent>
       </Card>
 
-      {/* 2. Barres horizontales – CA par produit (Top 5) */}
+      {/* 2. Barres verticales – CA par produit/service */}
       <Card>
         <CardHeader>
-          <CardTitle>Top 5 produits</CardTitle>
-          <CardDescription>Par chiffre d'affaires (tri décroissant)</CardDescription>
+          <CardTitle>CA par produit/service</CardTitle>
+          <CardDescription>Chiffre d'affaires par produit et service</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart 
-              data={data.topProducts.slice(0, 5).sort((a, b) => b.revenue - a.revenue)} 
-              layout="horizontal"
-              margin={{ left: 80, right: 30, top: 20, bottom: 5 }}
+              data={data.topProducts}
+              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
-                type="number" 
-                stroke="#666"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-              />
-              <YAxis 
                 dataKey="name" 
-                type="category" 
-                stroke="#666" 
-                width={100}
-                tick={{ fontSize: 11 }}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: number) => [formatCurrency(value), 'CA']}
-              />
-              <Bar 
-                dataKey="revenue" 
-                fill={COLORS.product}
-                radius={[0, 4, 4, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* 3. Barres verticales – CA par catégorie */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Chiffre d'affaires par catégorie</CardTitle>
-          <CardDescription>Total CA par catégorie (période sélectionnée)</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart 
-              data={data.categorySales}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="category" 
                 stroke="#666"
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 11 }}
                 angle={-45}
                 textAnchor="end"
                 height={80}
@@ -221,11 +175,62 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 formatter={(value: number) => [formatCurrency(value), 'CA']}
               />
               <Bar 
-                dataKey="amount" 
-                fill={COLORS.category}
+                dataKey="revenue" 
+                fill={COLORS.product}
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* 3. Camembert – CA par catégorie */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Chiffre d'affaires par catégorie</CardTitle>
+          <CardDescription>Répartition du CA par catégorie</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={data.categorySales}
+                cx="50%"
+                cy="50%"
+                innerRadius={40}
+                outerRadius={100}
+                dataKey="amount"
+                label={({ category, percent, amount }) => 
+                  `${category}: ${(percent * 100).toFixed(1)}%`
+                }
+                labelLine={false}
+              >
+                {data.categorySales.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS.category[index % COLORS.category.length]} 
+                  />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                formatter={(value: number, name: string) => [formatCurrency(value), name]}
+              />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value, entry) => (
+                  <span style={{ color: entry.color }}>
+                    {value}
+                  </span>
+                )}
+              />
+            </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
