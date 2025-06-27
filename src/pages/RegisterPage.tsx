@@ -1,0 +1,333 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
+import { Upload, Eye, EyeOff } from 'lucide-react';
+
+interface RegisterFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  organizationName: string;
+  sector: string;
+  logo?: FileList;
+  acceptTerms: boolean;
+}
+
+const RegisterPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const form = useForm<RegisterFormData>({
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      organizationName: '',
+      sector: '',
+      acceptTerms: false,
+    },
+  });
+
+  const sectors = [
+    'Consulting',
+    'E-commerce',
+    'Services',
+    'Commerce de détail',
+    'BTP / Construction',
+    'Santé',
+    'Éducation',
+    'Finance',
+    'Technologie',
+    'Restauration',
+    'Immobilier',
+    'Autre'
+  ];
+
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = (data: RegisterFormData) => {
+    if (data.password !== data.confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!data.acceptTerms) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez accepter les conditions d'utilisation",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Simuler l'inscription
+    console.log('Données d\'inscription:', data);
+    toast({
+      title: "Compte créé avec succès !",
+      description: "Bienvenue dans Soft Facture",
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F7F9FA] flex items-center justify-center p-4">
+      <Card className="w-full max-w-xl mx-auto bg-white rounded-2xl shadow-md">
+        <CardHeader className="text-center space-y-2 pb-6">
+          <CardTitle className="text-2xl font-bold text-gray-900">
+            Créer mon compte Soft Facture
+          </CardTitle>
+          <p className="text-gray-600">
+            14 jours d'essai gratuit - Sans carte bancaire
+          </p>
+        </CardHeader>
+        
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  rules={{ required: "Le prénom est obligatoire" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prénom *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Votre prénom" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  rules={{ required: "Le nom est obligatoire" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Votre nom" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="email"
+                rules={{ 
+                  required: "L'email est obligatoire",
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: "Format d'email invalide"
+                  }
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email *</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="votre@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                rules={{ 
+                  required: "Le mot de passe est obligatoire",
+                  minLength: {
+                    value: 8,
+                    message: "Le mot de passe doit contenir au moins 8 caractères"
+                  }
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mot de passe *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input 
+                          type={showPassword ? "text" : "password"} 
+                          placeholder="Votre mot de passe"
+                          {...field} 
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                rules={{ required: "Confirmez votre mot de passe" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmer le mot de passe *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          placeholder="Confirmez votre mot de passe"
+                          {...field} 
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold text-gray-900 mb-4">Informations de votre organisation</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="organizationName"
+                  rules={{ required: "Le nom de l'organisation est obligatoire" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom de l'organisation *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nom de votre entreprise" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="sector"
+                  rules={{ required: "Le secteur d'activité est obligatoire" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Secteur d'activité *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionnez votre secteur" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {sectors.map((sector) => (
+                            <SelectItem key={sector} value={sector}>
+                              {sector}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-2">
+                  <Label>Logo (facultatif)</Label>
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors">
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain rounded-lg" />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-500">Ajouter un logo</span>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoChange}
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="terms" 
+                  checked={form.watch('acceptTerms')}
+                  onCheckedChange={(checked) => form.setValue('acceptTerms', checked as boolean)}
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  J'accepte les conditions d'utilisation
+                </label>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full bg-[#6A9C89] hover:bg-[#5c8876] text-white font-semibold py-3"
+              >
+                Créer mon compte
+              </Button>
+
+              <div className="text-center">
+                <p className="text-sm text-gray-600">
+                  Vous avez déjà un compte ?{' '}
+                  <Link to="/login" className="text-[#6A9C89] hover:underline font-medium">
+                    Connexion
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default RegisterPage;
