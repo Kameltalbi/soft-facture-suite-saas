@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { Sidebar } from '@/components/layout/Sidebar';
+import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Header } from '@/components/layout/Header';
 import { Dashboard } from '@/components/modules/Dashboard';
 import { Products } from '@/components/modules/Products';
@@ -12,6 +13,7 @@ import Stock from './Stock';
 import Settings from './Settings';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import Avoirs from './Avoirs';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -45,15 +47,22 @@ const Index = () => {
 
   return (
     <CurrencyProvider>
-      <div className="flex h-screen bg-neutral-50">
-        <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Header activeModule={activeModule} />
-          <main className="flex-1 overflow-y-auto">
-            {renderModule()}
-          </main>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <AppSidebar activeModule={activeModule} onModuleChange={setActiveModule} />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="flex-1">
+                <Header activeModule={activeModule} />
+              </div>
+            </header>
+            <main className="flex-1 overflow-y-auto p-4">
+              {renderModule()}
+            </main>
+          </SidebarInset>
         </div>
-      </div>
+      </SidebarProvider>
     </CurrencyProvider>
   );
 };
