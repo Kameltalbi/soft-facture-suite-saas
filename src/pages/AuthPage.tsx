@@ -111,7 +111,7 @@ const AuthPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/home')}
               className="absolute left-4 top-4"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -239,7 +239,10 @@ const AuthPage = () => {
                     <FormItem>
                       <FormLabel>Nom de l'organisation *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Nom de votre entreprise" {...field} />
+                        <Input 
+                          placeholder="Nom de votre entreprise" 
+                          {...field} 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
