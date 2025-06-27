@@ -10,7 +10,9 @@ import {
   ChevronLeft, 
   ChevronRight,
   FolderOpen,
-  Receipt
+  Receipt,
+  FileCheck,
+  Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -21,7 +23,10 @@ interface SidebarProps {
 
 const modules = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'sales', label: 'Ventes', icon: FileText },
+  { id: 'invoices', label: 'Factures', icon: FileText },
+  { id: 'quotes', label: 'Devis', icon: FileCheck },
+  { id: 'delivery-notes', label: 'Bons de livraison', icon: Truck },
+  { id: 'sales', label: 'Tous les documents', icon: Receipt },
   { id: 'products', label: 'Produits & Services', icon: Package },
   { id: 'categories', label: 'Catégories', icon: FolderOpen },
   { id: 'clients', label: 'Clients', icon: Users },

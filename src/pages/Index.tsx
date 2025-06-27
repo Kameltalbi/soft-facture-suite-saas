@@ -6,6 +6,9 @@ import { Dashboard } from '@/components/modules/Dashboard';
 import { Sales } from '@/components/modules/Sales';
 import { Products } from '@/components/modules/Products';
 import { Clients } from '@/components/modules/Clients';
+import Invoices from './Invoices';
+import Quotes from './Quotes';
+import DeliveryNotes from './DeliveryNotes';
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -14,6 +17,12 @@ const Index = () => {
     switch (activeModule) {
       case 'dashboard':
         return <Dashboard />;
+      case 'invoices':
+        return <Invoices />;
+      case 'quotes':
+        return <Quotes />;
+      case 'delivery-notes':
+        return <DeliveryNotes />;
       case 'sales':
         return <Sales />;
       case 'products':
