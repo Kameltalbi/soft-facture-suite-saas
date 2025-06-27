@@ -183,7 +183,9 @@ export const MinimalTemplate = ({
 
         {/* Client Section */}
         <View style={styles.clientSection}>
-          <Text style={styles.sectionTitle}>FACTURER À :</Text>
+          <Text style={styles.sectionTitle}>
+            {documentType === 'BON DE LIVRAISON' ? 'LIVRER À :' : 'FACTURER À :'}
+          </Text>
           <Text style={styles.clientInfo}>
             {client?.company || client?.name || 'Nom du client'}
           </Text>
