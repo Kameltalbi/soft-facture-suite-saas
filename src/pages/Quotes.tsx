@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye, Edit, Download, MoreHorizontal, FileText } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Plus, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,10 +15,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
 
 interface Quote {
   id: string;
@@ -118,9 +111,44 @@ export default function Quotes() {
     setShowQuoteModal(true);
   };
 
+  const handleViewQuote = (quote: Quote) => {
+    console.log('Viewing quote:', quote.number);
+  };
+
   const handleEditQuote = (quote: Quote) => {
     setEditingQuote(quote);
     setShowQuoteModal(true);
+  };
+
+  const handleDuplicateQuote = (quote: Quote) => {
+    const duplicatedQuote = {
+      ...quote,
+      id: Date.now().toString(),
+      number: `DEV-2024-${String(mockQuotes.length + 1).padStart(3, '0')}`,
+      date: new Date().toISOString().split('T')[0],
+      status: 'draft' as const
+    };
+    console.log('Duplicating quote:', duplicatedQuote);
+  };
+
+  const handleConvertToInvoice = (quote: Quote) => {
+    console.log('Converting quote to invoice:', quote.number);
+    // Logic to convert quote to invoice
+  };
+
+  const handleStatusChange = (quote: Quote, newStatus: Quote['status']) => {
+    console.log('Changing status of quote:', quote.number, 'to:', newStatus);
+    // Logic to update quote status
+  };
+
+  const handleDeleteQuote = (quote: Quote) => {
+    console.log('Deleting quote:', quote.number);
+    // Logic to delete quote
+  };
+
+  const handleEmailSent = (emailData: any) => {
+    console.log('Sending email:', emailData);
+    // Logic to send email
   };
 
   const getPDFData = (quote: Quote) => {
@@ -315,38 +343,17 @@ export default function Quotes() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditQuote(quote)}>
-                          <Eye size={16} className="mr-2" />
-                          Voir
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditQuote(quote)}>
-                          <Edit size={16} className="mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <FileText size={16} className="mr-2" />
-                          Convertir en facture
-                        </DropdownMenuItem>
-                        <PDFDownloadLink
-                          document={<TemplatedInvoicePDF {...getPDFData(quote)} template="modern" documentType="DEVIS" />}
-                          fileName={`${quote.number}.pdf`}
-                        >
-                          {({ loading }) => (
-                            <DropdownMenuItem disabled={loading}>
-                              <Download size={16} className="mr-2" />
-                              {loading ? 'Génération...' : 'Télécharger PDF'}
-                            </DropdownMenuItem>
-                          )}
-                        </PDFDownloadLink>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <QuoteActionsMenu
+                      quote={quote}
+                      pdfComponent={<TemplatedInvoicePDF {...getPDFData(quote)} template="modern" documentType="DEVIS" />}
+                      onView={() => handleViewQuote(quote)}
+                      onEdit={() => handleEditQuote(quote)}
+                      onDuplicate={() => handleDuplicateQuote(quote)}
+                      onConvertToInvoice={() => handleConvertToInvoice(quote)}
+                      onStatusChange={(status) => handleStatusChange(quote, status)}
+                      onDelete={() => handleDeleteQuote(quote)}
+                      onEmailSent={handleEmailSent}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
