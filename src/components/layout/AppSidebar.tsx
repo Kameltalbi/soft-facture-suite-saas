@@ -8,7 +8,7 @@ import {
   Folders, 
   Warehouse, 
   UsersRound, 
-  ReceiptRefund, 
+  Receipt, 
   Settings2
 } from 'lucide-react';
 
@@ -75,7 +75,7 @@ const menuItems = [
   { 
     id: 'credits', 
     label: 'Avoirs', 
-    icon: ReceiptRefund 
+    icon: Receipt 
   },
   { 
     id: 'settings', 
