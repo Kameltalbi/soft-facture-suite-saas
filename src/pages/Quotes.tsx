@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Search, FileText, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -272,15 +273,12 @@ const Quotes = () => {
 
                   // Convert to expected format for the actions menu
                   const convertedQuote = {
+                    id: quote.id,
                     number: quote.quote_number,
                     client: quote.clients?.name || '',
                     amount: quote.total_amount || 0,
                     validUntil: quote.valid_until || '',
-                    status: getQuoteStatus(quote.status),
-                    // Spread the rest of the quote data but ensure status is not overridden
-                    ...Object.fromEntries(
-                      Object.entries(quote).filter(([key]) => key !== 'status')
-                    )
+                    status: getQuoteStatus(quote.status)
                   };
 
                   // Prepare data for PDF
