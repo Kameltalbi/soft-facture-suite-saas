@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   FileText, 
@@ -42,7 +43,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: CheckCircle2,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      format: 'currency'
+      format: 'number'
     },
     {
       title: 'En attente',
@@ -50,7 +51,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: Clock4,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      format: 'currency'
+      format: 'number'
     },
     {
       title: 'En retard',
@@ -58,7 +59,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: AlertCircle,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      format: 'currency'
+      format: 'number'
     },
     {
       title: 'Total avoirs',
@@ -66,7 +67,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: Receipt,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      format: 'currency'
+      format: 'number'
     },
     {
       title: 'Chiffre d\'affaires TTC',
@@ -74,7 +75,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: BarChart2,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
-      format: 'currency'
+      format: 'number'
     },
     {
       title: 'Total TVA collectée',
@@ -82,20 +83,12 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: PercentCircle,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
-      format: 'currency'
+      format: 'number'
     },
   ];
 
   const formatValue = (value: number, format: string) => {
     if (loading) return '...';
-    
-    if (format === 'currency') {
-      return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'EUR',
-      }).format(value);
-    }
-    
     return value.toLocaleString('fr-FR');
   };
 
@@ -115,7 +108,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-primary">
                 {formatValue(kpi.value, kpi.format)}
               </div>
               <div className="flex items-center mt-2">
