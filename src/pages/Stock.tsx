@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,12 +35,12 @@ const Stock = () => {
     product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleStockEntry = (product) => {
+  const handleStockEntryClick = (product) => {
     setSelectedProduct(product);
     setShowEntryModal(true);
   };
 
-  const handleStockExit = (product) => {
+  const handleStockExitClick = (product) => {
     setSelectedProduct(product);
     setShowExitModal(true);
   };
@@ -86,12 +87,12 @@ const Stock = () => {
     stock_actuel: product.stock_quantity || 0
   }));
 
-  const handleStockEntry = (productId: string, quantity: number, comment: string) => {
+  const handleStockEntrySave = (productId: string, quantity: number, comment: string) => {
     console.log('Stock entry:', productId, quantity, comment);
     setShowEntryModal(false);
   };
 
-  const handleStockExit = (productId: string, quantity: number, reason: string, comment: string) => {
+  const handleStockExitSave = (productId: string, quantity: number, reason: string, comment: string) => {
     console.log('Stock exit:', productId, quantity, reason, comment);
     setShowExitModal(false);
   };
@@ -256,7 +257,7 @@ const Stock = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleStockEntry(product)}
+                                onClick={() => handleStockEntryClick(product)}
                               >
                                 <Plus size={16} className="mr-1" />
                                 Entrée
@@ -264,7 +265,7 @@ const Stock = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleStockExit(product)}
+                                onClick={() => handleStockExitClick(product)}
                                 disabled={(product.stock_quantity || 0) === 0}
                               >
                                 <TrendingDown size={16} className="mr-1" />
@@ -369,14 +370,14 @@ const Stock = () => {
           isOpen={showEntryModal}
           onClose={() => setShowEntryModal(false)}
           products={productsForModals}
-          onSave={handleStockEntry}
+          onSave={handleStockEntrySave}
         />
 
         <StockExitModal
           isOpen={showExitModal}
           onClose={() => setShowExitModal(false)}
           products={productsForModals}
-          onSave={handleStockExit}
+          onSave={handleStockExitSave}
         />
 
         <StockHistoryModal
