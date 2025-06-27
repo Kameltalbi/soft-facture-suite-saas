@@ -43,7 +43,6 @@ const BonsCommandePage = () => {
         }
       ],
       organisationId: 'org1',
-      dateCreationTimestamp: 1737000000,
       remise: 0
     },
     {
@@ -66,7 +65,6 @@ const BonsCommandePage = () => {
         }
       ],
       organisationId: 'org1',
-      dateCreationTimestamp: 1736913600,
       remise: 0
     },
     {
@@ -89,7 +87,6 @@ const BonsCommandePage = () => {
         }
       ],
       organisationId: 'org1',
-      dateCreationTimestamp: 1736828400,
       remise: 0
     },
     {
@@ -112,7 +109,6 @@ const BonsCommandePage = () => {
         }
       ],
       organisationId: 'org1',
-      dateCreationTimestamp: 1736748000,
       remise: 0
     }
   ]);
@@ -156,7 +152,7 @@ const BonsCommandePage = () => {
       'brouillon': 'secondary',
       'en_attente': 'default',
       'validee': 'default',
-      'livree': 'success',
+      'livree': 'default',
       'annulee': 'destructive'
     } as const;
 
