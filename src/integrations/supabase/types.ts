@@ -240,6 +240,47 @@ export type Database = {
           },
         ]
       }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          name: string
+          organization_id: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name: string
+          organization_id: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name?: string
+          organization_id?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "currencies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_note_items: {
         Row: {
           created_at: string | null
@@ -350,6 +391,100 @@ export type Database = {
             foreignKeyName: "delivery_notes_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_numberings: {
+        Row: {
+          created_at: string
+          document_type: string
+          format: string
+          id: string
+          next_number: number
+          organization_id: string
+          prefix: string
+          reset_frequency: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          format?: string
+          id?: string
+          next_number?: number
+          organization_id: string
+          prefix: string
+          reset_frequency?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          format?: string
+          id?: string
+          next_number?: number
+          organization_id?: string
+          prefix?: string
+          reset_frequency?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_numberings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_settings: {
+        Row: {
+          created_at: string
+          credit_template: string | null
+          delivery_note_template: string | null
+          footer_content: string | null
+          footer_display: string | null
+          id: string
+          invoice_template: string | null
+          organization_id: string
+          primary_currency: string | null
+          quote_template: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credit_template?: string | null
+          delivery_note_template?: string | null
+          footer_content?: string | null
+          footer_display?: string | null
+          id?: string
+          invoice_template?: string | null
+          organization_id: string
+          primary_currency?: string | null
+          quote_template?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credit_template?: string | null
+          delivery_note_template?: string | null
+          footer_content?: string | null
+          footer_display?: string | null
+          id?: string
+          invoice_template?: string | null
+          organization_id?: string
+          primary_currency?: string | null
+          quote_template?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
@@ -862,6 +997,41 @@ export type Database = {
           },
           {
             foreignKeyName: "quotes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          permissions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

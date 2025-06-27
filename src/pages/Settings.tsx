@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -10,84 +11,37 @@ import { RolePermissions } from '@/components/settings/RolePermissions';
 import { PdfTemplateSettings } from '@/components/settings/PdfTemplateSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
-import {
-  Organization,
-  Currency,
-  GlobalSettings,
-  DocumentNumbering,
-  User,
-  Role,
-  Permission
-} from '@/types/settings';
+import { Organization, User } from '@/types/settings';
 
-// Mock data for features not yet implemented with real data
-const mockCurrencies: Currency[] = [
-  { id: '1', code: 'TND', symbol: 'د.ت', name: 'Dinar Tunisien', is_primary: true, tenant_id: 'tenant1' },
-  { id: '2', code: 'EUR', symbol: '€', name: 'Euro', is_primary: false, tenant_id: 'tenant1' },
-];
-
-const mockNumberings: DocumentNumbering[] = [
-  { id: '1', document_type: 'invoice', prefix: 'FACT-', format: 'incremental', next_number: 1001, reset_frequency: 'yearly', tenant_id: 'tenant1' },
-  { id: '2', document_type: 'quote', prefix: 'DEVIS-', format: 'incremental', next_number: 2001, reset_frequency: 'yearly', tenant_id: 'tenant1' },
-  { id: '3', document_type: 'delivery_note', prefix: 'BON-', format: 'incremental', next_number: 3001, reset_frequency: 'yearly', tenant_id: 'tenant1' },
-  { id: '4', document_type: 'credit', prefix: 'AVOIR-', format: 'incremental', next_number: 4001, reset_frequency: 'yearly', tenant_id: 'tenant1' },
-];
-
+// Mock data for user management (not yet implemented with real data)
 const mockUsers: User[] = [
   { id: '1', email: 'admin@softfacture.tn', full_name: 'Admin Principal', role: 'Administrateur', status: 'active', created_at: '2024-01-01T00:00:00Z', tenant_id: 'tenant1' },
   { id: '2', email: 'comptable@softfacture.tn', full_name: 'Marie Dubois', role: 'Comptable', status: 'active', created_at: '2024-01-15T00:00:00Z', tenant_id: 'tenant1' },
   { id: '3', email: 'commercial@softfacture.tn', full_name: 'Ahmed Ben Ali', role: 'Commercial', status: 'pending', created_at: '2024-02-01T00:00:00Z', tenant_id: 'tenant1' },
 ];
 
-const mockRoles: Role[] = [
-  {
-    id: '1',
-    name: 'Administrateur',
-    permissions: {
-      dashboard: { read: true, write: true, delete: false },
-      invoices: { read: true, write: true, delete: true },
-      quotes: { read: true, write: true, delete: true },
-    },
-    tenant_id: 'tenant1'
-  },
-  {
-    id: '2',
-    name: 'Comptable',
-    permissions: {
-      dashboard: { read: true, write: false, delete: false },
-      invoices: { read: true, write: true, delete: false },
-      quotes: { read: true, write: false, delete: false },
-    },
-    tenant_id: 'tenant1'
-  }
-];
-
-const mockGlobalSettings: GlobalSettings = {
-  id: '1',
-  footer_content: 'Soft Facture SARL - 123 Avenue Habib Bourguiba, 1000 Tunis\nTél: +216 71 123 456 - Email: contact@softfacture.tn\nRIB: 12345678901234567890 - IBAN: TN59 1234 5678 9012 3456 7890',
-  footer_display: 'all',
-  primary_currency: 'TND',
-  invoice_template: 'classic',
-  quote_template: 'classic',
-  delivery_note_template: 'classic',
-  credit_template: 'classic',
-  tenant_id: 'tenant1'
-};
-
 export default function Settings() {
   const { toast } = useToast();
   const { organization, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('organization');
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // State management for mock data
-  const [currencies] = useState(mockCurrencies);
-  const [numberings] = useState(mockNumberings);
-  const [users] = useState(mockUsers);
-  const [roles] = useState(mockRoles);
-  const [globalSettings] = useState(mockGlobalSettings);
+  const [organizationLoading, setOrganizationLoading] = useState(true);
+  
+  const {
+    currencies,
+    globalSettings,
+    numberings,
+    roles,
+    loading: settingsLoading,
+    addCurrency,
+    setPrimaryCurrency,
+    saveGlobalSettings,
+    updateNumbering,
+    createRole,
+    updateRole
+  } = useSettings();
 
   useEffect(() => {
     if (organization) {
@@ -111,7 +65,7 @@ export default function Settings() {
       };
       setOrganizationData(convertedOrg);
     }
-    setLoading(false);
+    setOrganizationLoading(false);
   }, [organization]);
 
   const handleSaveOrganization = async (data: Partial<Organization>) => {
@@ -158,46 +112,11 @@ export default function Settings() {
     }
   };
 
-  const handleAddCurrency = (currency: Omit<Currency, 'id' | 'tenant_id'>) => {
-    console.log('Adding currency:', currency);
-    toast({
-      title: 'Succès',
-      description: 'Devise ajoutée avec succès.',
-    });
-  };
-
-  const handleSetPrimaryCurrency = (currencyId: string) => {
-    console.log('Setting primary currency:', currencyId);
-    toast({
-      title: 'Succès',
-      description: 'Devise principale mise à jour.',
-    });
-  };
-
-  const handleSaveGlobalSettings = (data: Partial<GlobalSettings>) => {
-    console.log('Saving global settings:', data);
-    toast({
-      title: 'Succès',
-      description: 'Paramètres globaux mis à jour avec succès.',
-    });
-  };
-
   const handleSavePdfTemplates = (data: any) => {
-    console.log('Saving PDF templates:', data);
-    toast({
-      title: 'Succès',
-      description: 'Templates PDF mis à jour avec succès.',
-    });
+    saveGlobalSettings(data);
   };
 
-  const handleUpdateNumbering = (id: string, data: Partial<DocumentNumbering>) => {
-    console.log('Updating numbering:', id, data);
-    toast({
-      title: 'Succès',
-      description: 'Numérotation mise à jour avec succès.',
-    });
-  };
-
+  // Mock handlers for user management (not yet implemented)
   const handleInviteUser = (email: string, role: string) => {
     console.log('Inviting user:', email, role);
     toast({
@@ -222,23 +141,7 @@ export default function Settings() {
     });
   };
 
-  const handleCreateRole = (name: string, permissions: Record<string, Permission>) => {
-    console.log('Creating role:', name, permissions);
-    toast({
-      title: 'Succès',
-      description: 'Rôle créé avec succès.',
-    });
-  };
-
-  const handleUpdateRole = (roleId: string, permissions: Record<string, Permission>) => {
-    console.log('Updating role:', roleId, permissions);
-    toast({
-      title: 'Succès',
-      description: 'Permissions mises à jour.',
-    });
-  };
-
-  if (loading) {
+  if (organizationLoading || settingsLoading) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-8">
@@ -285,25 +188,25 @@ export default function Settings() {
         <TabsContent value="currencies">
           <CurrencySettings
             currencies={currencies}
-            onAddCurrency={handleAddCurrency}
-            onSetPrimary={handleSetPrimaryCurrency}
+            onAddCurrency={addCurrency}
+            onSetPrimary={setPrimaryCurrency}
           />
         </TabsContent>
 
         <TabsContent value="footer">
           <FooterSettings
             settings={globalSettings}
-            onSave={handleSaveGlobalSettings}
+            onSave={saveGlobalSettings}
           />
         </TabsContent>
 
         <TabsContent value="templates">
           <PdfTemplateSettings
             settings={{
-              invoice_template: globalSettings.invoice_template || 'classic',
-              quote_template: globalSettings.quote_template || 'classic',
-              delivery_note_template: globalSettings.delivery_note_template || 'classic',
-              credit_template: globalSettings.credit_template || 'classic',
+              invoice_template: globalSettings?.invoice_template || 'classic',
+              quote_template: globalSettings?.quote_template || 'classic',
+              delivery_note_template: globalSettings?.delivery_note_template || 'classic',
+              credit_template: globalSettings?.credit_template || 'classic',
             }}
             onSave={handleSavePdfTemplates}
           />
@@ -312,13 +215,13 @@ export default function Settings() {
         <TabsContent value="numbering">
           <NumberingSettings
             numberings={numberings}
-            onUpdateNumbering={handleUpdateNumbering}
+            onUpdateNumbering={updateNumbering}
           />
         </TabsContent>
 
         <TabsContent value="users">
           <UserManagement
-            users={users}
+            users={mockUsers}
             roles={roles.map(r => r.name)}
             onInviteUser={handleInviteUser}
             onUpdateUserRole={handleUpdateUserRole}
@@ -329,8 +232,8 @@ export default function Settings() {
         <TabsContent value="roles">
           <RolePermissions
             roles={roles}
-            onCreateRole={handleCreateRole}
-            onUpdateRole={handleUpdateRole}
+            onCreateRole={createRole}
+            onUpdateRole={updateRole}
           />
         </TabsContent>
       </Tabs>
