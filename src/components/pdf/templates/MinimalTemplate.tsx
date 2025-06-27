@@ -173,7 +173,7 @@ export const MinimalTemplate = ({
             </Text>
           </View>
           <View>
-            <Text style={styles.documentTitle}>{documentType}</Text>
+            <Text style={styles.documentTitle}>{documentType || 'FACTURE'}</Text>
             <Text style={styles.documentNumber}>N° {invoiceData?.number}</Text>
             <Text style={styles.documentNumber}>
               Date: {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
