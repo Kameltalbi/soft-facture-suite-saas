@@ -75,11 +75,39 @@ export function useProducts() {
     }
   };
 
+  const updateProduct = async (productId: string, productData: Partial<Product>) => {
+    if (!organization?.id) return { error: 'Organization not found' };
+
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', productId)
+        .eq('organization_id', organization.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Refresh the products list
+      await fetchProducts();
+      
+      return { data, error: null };
+    } catch (err) {
+      console.error('Error updating product:', err);
+      return { 
+        data: null, 
+        error: err instanceof Error ? err.message : 'Erreur lors de la mise à jour du produit' 
+      };
+    }
+  };
+
   return {
     products,
     loading,
     error,
     fetchProducts,
-    createProduct
+    createProduct,
+    updateProduct
   };
 }

@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Save } from 'lucide-react';
+import { useCategories } from '@/hooks/useCategories';
+import { useProducts } from '@/hooks/useProducts';
 
 interface ProductModalProps {
   open: boolean;
@@ -16,50 +18,71 @@ interface ProductModalProps {
 }
 
 export function ProductModal({ open, onClose, product }: ProductModalProps) {
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { createProduct } = useProducts();
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: 'product' as 'product' | 'service',
     price: 0,
     unit: 'unité',
-    vatRate: 20,
     category: '',
-    stockTracking: false,
-    stock: 0
+    stock_quantity: 0,
+    sku: '',
+    active: true
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name || '',
         description: product.description || '',
-        type: product.type || 'product',
         price: product.price || 0,
         unit: product.unit || 'unité',
-        vatRate: product.vatRate || 20,
         category: product.category || '',
-        stockTracking: product.stockTracking || false,
-        stock: product.stock || 0
+        stock_quantity: product.stock_quantity || 0,
+        sku: product.sku || '',
+        active: product.active ?? true
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        type: 'product',
         price: 0,
         unit: 'unité',
-        vatRate: 20,
         category: '',
-        stockTracking: false,
-        stock: 0
+        stock_quantity: 0,
+        sku: '',
+        active: true
       });
     }
   }, [product, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Product data:', formData);
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      if (product) {
+        // Mode édition - à implémenter plus tard
+        console.log('Update product:', formData);
+      } else {
+        // Mode création
+        const result = await createProduct(formData);
+        if (result.error) {
+          console.error('Error creating product:', result.error);
+        } else {
+          console.log('Product created successfully');
+          onClose();
+        }
+      }
+    } catch (error) {
+      console.error('Error saving product:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const units = [
@@ -71,17 +94,6 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     'litre',
     'mètre',
     'lot'
-  ];
-
-  const categories = [
-    'Services',
-    'Informatique',
-    'Formation',
-    'Accessoires',
-    'Logiciels',
-    'Consultation',
-    'Design',
-    'Marketing'
   ];
 
   return (
@@ -109,27 +121,36 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
               </div>
 
               <div>
-                <Label htmlFor="type">Type</Label>
-                <Select value={formData.type} onValueChange={(value: 'product' | 'service') => setFormData({...formData, type: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="product">Produit</SelectItem>
-                    <SelectItem value="service">Service</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="sku">SKU</Label>
+                <Input
+                  id="sku"
+                  value={formData.sku}
+                  onChange={(e) => setFormData({...formData, sku: e.target.value})}
+                  placeholder="Code produit (optionnel)"
+                />
               </div>
 
               <div>
                 <Label htmlFor="category">Catégorie</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData({...formData, category: value})}
+                  disabled={categoriesLoading}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une catégorie" />
+                    <SelectValue placeholder={categoriesLoading ? "Chargement..." : "Sélectionner une catégorie"} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                      <SelectItem key={category.id} value={category.name}>
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span>{category.name}</span>
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -166,18 +187,14 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
               </div>
 
               <div>
-                <Label htmlFor="vatRate">Taux de TVA (%)</Label>
-                <Select value={formData.vatRate.toString()} onValueChange={(value) => setFormData({...formData, vatRate: parseFloat(value)})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">0% (Exonéré)</SelectItem>
-                    <SelectItem value="5.5">5.5% (Taux réduit)</SelectItem>
-                    <SelectItem value="10">10% (Taux intermédiaire)</SelectItem>
-                    <SelectItem value="20">20% (Taux normal)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="stock">Stock initial</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min="0"
+                  value={formData.stock_quantity}
+                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
+                />
               </div>
             </div>
           </div>
@@ -194,46 +211,30 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
             />
           </div>
 
-          {/* Stock Management */}
-          <div className="space-y-4 p-4 border rounded-lg bg-neutral-50">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="stockTracking" className="text-sm font-medium">
-                  Suivi des stocks
-                </Label>
-                <p className="text-xs text-neutral-500">
-                  Activer pour les produits physiques uniquement
-                </p>
-              </div>
-              <Switch
-                id="stockTracking"
-                checked={formData.stockTracking}
-                onCheckedChange={(checked) => setFormData({...formData, stockTracking: checked})}
-                disabled={formData.type === 'service'}
-              />
+          {/* Active Status */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-neutral-50">
+            <div>
+              <Label htmlFor="active" className="text-sm font-medium">
+                Produit actif
+              </Label>
+              <p className="text-xs text-neutral-500">
+                Les produits inactifs n'apparaissent pas dans les listes
+              </p>
             </div>
-
-            {formData.stockTracking && (
-              <div>
-                <Label htmlFor="stock">Stock initial</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({...formData, stock: parseInt(e.target.value) || 0})}
-                />
-              </div>
-            )}
+            <Switch
+              id="active"
+              checked={formData.active}
+              onCheckedChange={(checked) => setFormData({...formData, active: checked})}
+            />
           </div>
 
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-primary hover:bg-primary/90">
+            <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
               <Save size={16} className="mr-2" />
-              {product ? 'Modifier' : 'Créer'}
+              {isSubmitting ? 'Enregistrement...' : (product ? 'Modifier' : 'Créer')}
             </Button>
           </div>
         </form>
