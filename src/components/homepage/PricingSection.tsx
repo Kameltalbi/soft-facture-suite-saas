@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -118,7 +117,15 @@ export function PricingSection() {
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
-                  Paiements, gestion des commandes fournisseur
+                  Paiements
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
+                  Fournisseurs
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
+                  Bons de Commande fournisseurs
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
