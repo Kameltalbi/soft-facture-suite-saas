@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye, Edit, Download, MoreHorizontal, FileText } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Plus, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,9 +15,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
 
 interface DeliveryNote {
   id: string;
@@ -61,6 +55,49 @@ const mockDeliveryNotes: DeliveryNote[] = [
     client: 'Société Tech',
     amount: 980.00,
     status: 'sent'
+  },
+  {
+    id: '4',
+    number: 'BL-2024-004',
+    date: '2024-02-05',
+    client: 'Commerce Digital',
+    amount: 1800.75,
+    status: 'delivered',
+    deliveryDate: '2024-02-07'
+  },
+  {
+    id: '5',
+    number: 'BL-2024-005',
+    date: '2024-02-10',
+    client: 'Startup Innovation',
+    amount: 750.00,
+    status: 'draft'
+  },
+  {
+    id: '6',
+    number: 'BL-2024-006',
+    date: '2024-02-15',
+    client: 'Groupe Industriel SA',
+    amount: 4500.00,
+    status: 'sent'
+  },
+  {
+    id: '7',
+    number: 'BL-2024-007',
+    date: '2024-02-20',
+    client: 'Restaurant Le Gourmet',
+    amount: 980.00,
+    status: 'signed',
+    deliveryDate: '2024-02-22'
+  },
+  {
+    id: '8',
+    number: 'BL-2024-008',
+    date: '2024-02-25',
+    client: 'Cabinet Avocat & Associés',
+    amount: 5200.00,
+    status: 'delivered',
+    deliveryDate: '2024-02-27'
   }
 ];
 
@@ -115,9 +152,33 @@ export default function DeliveryNotes() {
     setShowDeliveryModal(true);
   };
 
+  const handleViewDelivery = (delivery: DeliveryNote) => {
+    console.log('Viewing delivery note:', delivery.number);
+  };
+
   const handleEditDelivery = (delivery: DeliveryNote) => {
     setEditingDelivery(delivery);
     setShowDeliveryModal(true);
+  };
+
+  const handleDuplicateDelivery = (delivery: DeliveryNote) => {
+    console.log('Duplicating delivery note:', delivery.number);
+  };
+
+  const handleMarkAsDelivered = (delivery: DeliveryNote) => {
+    console.log('Marking as delivered:', delivery.number);
+  };
+
+  const handleConvertToInvoice = (delivery: DeliveryNote) => {
+    console.log('Converting to invoice:', delivery.number);
+  };
+
+  const handleDeleteDelivery = (delivery: DeliveryNote) => {
+    console.log('Deleting delivery note:', delivery.number);
+  };
+
+  const handleEmailSent = (emailData: any) => {
+    console.log('Sending email:', emailData);
   };
 
   const getPDFData = (delivery: DeliveryNote) => {
@@ -317,38 +378,17 @@ export default function DeliveryNotes() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditDelivery(delivery)}>
-                          <Eye size={16} className="mr-2" />
-                          Voir
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditDelivery(delivery)}>
-                          <Edit size={16} className="mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <FileText size={16} className="mr-2" />
-                          Créer facture
-                        </DropdownMenuItem>
-                        <PDFDownloadLink
-                          document={<TemplatedInvoicePDF {...getPDFData(delivery)} template="minimal" documentType="BON DE LIVRAISON" />}
-                          fileName={`${delivery.number}.pdf`}
-                        >
-                          {({ loading }) => (
-                            <DropdownMenuItem disabled={loading}>
-                              <Download size={16} className="mr-2" />
-                              {loading ? 'Génération...' : 'Télécharger PDF'}
-                            </DropdownMenuItem>
-                          )}
-                        </PDFDownloadLink>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <DeliveryNoteActionsMenu
+                      deliveryNote={delivery}
+                      pdfComponent={<TemplatedInvoicePDF {...getPDFData(delivery)} template="minimal" documentType="BON DE LIVRAISON" />}
+                      onView={() => handleViewDelivery(delivery)}
+                      onEdit={() => handleEditDelivery(delivery)}
+                      onDuplicate={() => handleDuplicateDelivery(delivery)}
+                      onMarkAsDelivered={() => handleMarkAsDelivered(delivery)}
+                      onConvertToInvoice={() => handleConvertToInvoice(delivery)}
+                      onDelete={() => handleDeleteDelivery(delivery)}
+                      onEmailSent={handleEmailSent}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
