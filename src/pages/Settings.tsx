@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -8,6 +7,7 @@ import { FooterSettings } from '@/components/settings/FooterSettings';
 import { NumberingSettings } from '@/components/settings/NumberingSettings';
 import { UserManagement } from '@/components/settings/UserManagement';
 import { RolePermissions } from '@/components/settings/RolePermissions';
+import { PdfTemplateSettings } from '@/components/settings/PdfTemplateSettings';
 import { useToast } from '@/hooks/use-toast';
 import {
   Organization,
@@ -85,6 +85,10 @@ const mockGlobalSettings: GlobalSettings = {
   footer_content: 'Soft Facture SARL - 123 Avenue Habib Bourguiba, 1000 Tunis\nTél: +216 71 123 456 - Email: contact@softfacture.tn\nRIB: 12345678901234567890 - IBAN: TN59 1234 5678 9012 3456 7890',
   footer_display: 'all',
   primary_currency: 'TND',
+  invoice_template: 'classic',
+  quote_template: 'classic',
+  delivery_note_template: 'classic',
+  credit_template: 'classic',
   tenant_id: 'tenant1'
 };
 
@@ -129,6 +133,14 @@ export default function Settings() {
     toast({
       title: 'Succès',
       description: 'Paramètres globaux mis à jour avec succès.',
+    });
+  };
+
+  const handleSavePdfTemplates = (data: any) => {
+    console.log('Saving PDF templates:', data);
+    toast({
+      title: 'Succès',
+      description: 'Templates PDF mis à jour avec succès.',
     });
   };
 
@@ -190,10 +202,11 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="organization">Organisation</TabsTrigger>
           <TabsTrigger value="currencies">Devises</TabsTrigger>
           <TabsTrigger value="footer">Pied de page</TabsTrigger>
+          <TabsTrigger value="templates">Templates PDF</TabsTrigger>
           <TabsTrigger value="numbering">Numérotation</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="roles">Rôles</TabsTrigger>
@@ -218,6 +231,18 @@ export default function Settings() {
           <FooterSettings
             settings={globalSettings}
             onSave={handleSaveGlobalSettings}
+          />
+        </TabsContent>
+
+        <TabsContent value="templates">
+          <PdfTemplateSettings
+            settings={{
+              invoice_template: globalSettings.invoice_template || 'classic',
+              quote_template: globalSettings.quote_template || 'classic',
+              delivery_note_template: globalSettings.delivery_note_template || 'classic',
+              credit_template: globalSettings.credit_template || 'classic',
+            }}
+            onSave={handleSavePdfTemplates}
           />
         </TabsContent>
 

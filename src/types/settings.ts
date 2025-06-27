@@ -64,5 +64,9 @@ export interface GlobalSettings {
   footer_content: string;
   footer_display: 'all' | 'invoices_only' | 'none';
   primary_currency: string;
+  invoice_template?: string;
+  quote_template?: string;
+  delivery_note_template?: string;
+  credit_template?: string;
   tenant_id: string;
 }
