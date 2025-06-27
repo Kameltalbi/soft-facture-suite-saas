@@ -18,13 +18,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Eye, Edit, Trash2, MoreHorizontal, Mail, Phone } from 'lucide-react';
-import { Fournisseur } from '@/types/fournisseur';
+import { FournisseurDB } from '@/types/fournisseur';
 
 interface FournisseursTableProps {
-  fournisseurs: Fournisseur[];
-  onEdit: (fournisseur: Fournisseur) => void;
+  fournisseurs: FournisseurDB[];
+  onEdit: (fournisseur: FournisseurDB) => void;
   onDelete: (id: string) => void;
-  onView: (fournisseur: Fournisseur) => void;
+  onView: (fournisseur: FournisseurDB) => void;
 }
 
 export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: FournisseursTableProps) {
@@ -32,10 +32,10 @@ export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: Fo
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const getStatutBadge = (statut: 'actif' | 'inactif') => {
+  const getStatutBadge = (statut: 'active' | 'inactive' | null) => {
     return (
-      <Badge variant={statut === 'actif' ? 'default' : 'secondary'}>
-        {statut === 'actif' ? 'Actif' : 'Inactif'}
+      <Badge variant={statut === 'active' ? 'default' : 'secondary'}>
+        {statut === 'active' ? 'Actif' : 'Inactif'}
       </Badge>
     );
   };
@@ -65,35 +65,39 @@ export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: Fo
               <TableRow key={fournisseur.id} className="hover:bg-neutral-50">
                 <TableCell>
                   <div>
-                    <div className="font-medium text-neutral-900">{fournisseur.nom}</div>
-                    {fournisseur.matriculeFiscal && (
+                    <div className="font-medium text-neutral-900">{fournisseur.name}</div>
+                    {fournisseur.vat_number && (
                       <div className="text-xs text-neutral-400">
-                        Matricule: {fournisseur.matriculeFiscal}
+                        Matricule: {fournisseur.vat_number}
                       </div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="font-medium">{fournisseur.contactPrincipal.nom}</div>
-                    <div className="flex items-center text-sm text-neutral-600">
-                      <Mail size={12} className="mr-1" />
-                      {fournisseur.contactPrincipal.email}
-                    </div>
-                    <div className="flex items-center text-sm text-neutral-600">
-                      <Phone size={12} className="mr-1" />
-                      {fournisseur.contactPrincipal.telephone}
-                    </div>
+                    <div className="font-medium">{fournisseur.contact_name || 'N/A'}</div>
+                    {fournisseur.email && (
+                      <div className="flex items-center text-sm text-neutral-600">
+                        <Mail size={12} className="mr-1" />
+                        {fournisseur.email}
+                      </div>
+                    )}
+                    {fournisseur.phone && (
+                      <div className="flex items-center text-sm text-neutral-600">
+                        <Phone size={12} className="mr-1" />
+                        {fournisseur.phone}
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{fournisseur.secteurActivite}</Badge>
+                  <Badge variant="outline">{fournisseur.business_sector || 'N/A'}</Badge>
                 </TableCell>
                 <TableCell>
-                  {getStatutBadge(fournisseur.statut)}
+                  {getStatutBadge(fournisseur.status)}
                 </TableCell>
                 <TableCell className="text-sm text-neutral-600">
-                  {formatDate(fournisseur.dateAjout)}
+                  {formatDate(fournisseur.created_at)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
