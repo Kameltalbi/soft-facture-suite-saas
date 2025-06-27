@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ interface BonCommandeModalProps {
 
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
   const { exportToPDF } = useBonCommandePDF();
-  const [formData, setFormData<{
+  const [formData, setFormData] = useState<{
     numero: string;
     fournisseurId: string;
     dateCommande: Date;
