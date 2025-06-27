@@ -10,7 +10,8 @@ import {
   UsersRound, 
   Receipt, 
   Settings2,
-  BarChart3
+  BarChart3,
+  Building2
 } from 'lucide-react';
 
 import {
@@ -72,6 +73,11 @@ const menuItems = [
     id: 'clients', 
     label: 'Clients', 
     icon: UsersRound 
+  },
+  { 
+    id: 'fournisseurs', 
+    label: 'Fournisseurs', 
+    icon: Building2 
   },
   { 
     id: 'credits', 
