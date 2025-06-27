@@ -46,6 +46,19 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
     }
   };
 
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'superadmin':
+        return <Badge className="bg-red-100 text-red-800">Super Admin</Badge>;
+      case 'admin':
+        return <Badge className="bg-blue-100 text-blue-800">Admin</Badge>;
+      case 'user':
+        return <Badge className="bg-gray-100 text-gray-800">Utilisateur</Badge>;
+      default:
+        return <Badge variant="outline">{role}</Badge>;
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -99,7 +112,9 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
                     <SelectContent>
                       {roles.map((role) => (
                         <SelectItem key={role} value={role}>
-                          {role}
+                          {role === 'superadmin' ? 'Super Admin' : 
+                           role === 'admin' ? 'Admin' : 
+                           role === 'user' ? 'Utilisateur' : role}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -136,21 +151,26 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
                 <TableCell className="font-medium">{user.full_name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  <Select
-                    value={user.role}
-                    onValueChange={(value) => onUpdateUserRole(user.id, value)}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    {getRoleBadge(user.role)}
+                    <Select
+                      value={user.role}
+                      onValueChange={(value) => onUpdateUserRole(user.id, value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roles.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role === 'superadmin' ? 'Super Admin' : 
+                             role === 'admin' ? 'Admin' : 
+                             role === 'user' ? 'Utilisateur' : role}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </TableCell>
                 <TableCell>{getStatusBadge(user.status)}</TableCell>
                 <TableCell>

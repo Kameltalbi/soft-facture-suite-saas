@@ -38,7 +38,7 @@ export default function Settings() {
     updateRole
   } = useSettings();
 
-  // Load users from the organization
+  // Load users from the organization with emails
   const loadUsers = async () => {
     if (!profile?.organization_id) {
       setUsersLoading(false);
@@ -46,7 +46,8 @@ export default function Settings() {
     }
 
     try {
-      const { data, error } = await supabase
+      // First get users from profiles table
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -59,19 +60,32 @@ export default function Settings() {
         `)
         .eq('organization_id', profile.organization_id);
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
+
+      // Then get auth users to get emails
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.warn('Could not fetch auth users for emails:', authError);
+      }
 
       // Transform data to match User interface
-      const transformedUsers: User[] = (data || []).map(user => ({
-        id: user.user_id,
-        email: '', // We'll need to get this from auth.users but it's protected
-        full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur',
-        role: user.role || 'user',
-        status: 'active' as const, // Default to active since they're in profiles
-        created_at: user.created_at,
-        tenant_id: user.organization_id
-      }));
+      const transformedUsers: User[] = (profilesData || []).map(user => {
+        // Find corresponding auth user for email
+        const authUser = authUsers?.users?.find(au => au.id === user.user_id);
+        
+        return {
+          id: user.user_id,
+          email: authUser?.email || 'Email non disponible',
+          full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur',
+          role: user.role || 'user',
+          status: 'active' as const,
+          created_at: user.created_at,
+          tenant_id: user.organization_id
+        };
+      });
 
+      console.log('Loaded users:', transformedUsers);
       setUsers(transformedUsers);
     } catch (error) {
       console.error('Error loading users:', error);
@@ -316,7 +330,7 @@ export default function Settings() {
         <TabsContent value="users">
           <UserManagement
             users={users}
-            roles={roles.map(r => r.name)}
+            roles={['user', 'admin', 'superadmin']}
             onInviteUser={handleInviteUser}
             onUpdateUserRole={handleUpdateUserRole}
             onDeleteUser={handleDeleteUser}
