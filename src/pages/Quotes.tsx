@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
 
 interface Quote {
   id: string;
@@ -111,7 +111,8 @@ export default function Quotes() {
       showDiscount: false,
       showAdvance: false,
       currency: 'EUR',
-      amountInWords: true
+      amountInWords: true,
+      footer_content: 'Soft Facture SARL - Merci pour votre confiance'
     };
 
     return generateInvoicePDF(
@@ -260,7 +261,7 @@ export default function Quotes() {
                           Convertir en facture
                         </DropdownMenuItem>
                         <PDFDownloadLink
-                          document={<InvoicePDF {...getPDFData(quote)} />}
+                          document={<TemplatedInvoicePDF {...getPDFData(quote)} template="modern" documentType="DEVIS" />}
                           fileName={`${quote.number}.pdf`}
                         >
                           {({ loading }) => (

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,8 +20,8 @@ import {
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
 
 interface DeliveryNote {
   id: string;
@@ -109,7 +108,8 @@ export default function DeliveryNotes() {
       showDiscount: false,
       showAdvance: false,
       currency: 'EUR',
-      amountInWords: false
+      amountInWords: false,
+      footer_content: 'Soft Facture SARL - Merci pour votre confiance'
     };
 
     return generateInvoicePDF(
@@ -263,7 +263,7 @@ export default function DeliveryNotes() {
                           Créer facture
                         </DropdownMenuItem>
                         <PDFDownloadLink
-                          document={<InvoicePDF {...getPDFData(delivery)} />}
+                          document={<TemplatedInvoicePDF {...getPDFData(delivery)} template="minimal" documentType="BON DE LIVRAISON" />}
                           fileName={`${delivery.number}.pdf`}
                         >
                           {({ loading }) => (

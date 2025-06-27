@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,8 +20,8 @@ import {
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
 
 interface Invoice {
   id: string;
@@ -106,7 +105,8 @@ export default function Invoices() {
       showDiscount: false,
       showAdvance: false,
       currency: 'EUR',
-      amountInWords: true
+      amountInWords: true,
+      footer_content: 'Soft Facture SARL - Merci pour votre confiance'
     };
 
     return generateInvoicePDF(
@@ -249,7 +249,7 @@ export default function Invoices() {
                           Modifier
                         </DropdownMenuItem>
                         <PDFDownloadLink
-                          document={<InvoicePDF {...getPDFData(invoice)} />}
+                          document={<TemplatedInvoicePDF {...getPDFData(invoice)} template="classic" documentType="FACTURE" />}
                           fileName={`${invoice.number}.pdf`}
                         >
                           {({ loading }) => (
