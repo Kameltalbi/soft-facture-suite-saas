@@ -103,14 +103,16 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" className="border-r border-gray-200 bg-[#F6F7F9]">
       <SidebarHeader className="border-b border-gray-200 px-6 py-4 bg-[#F6F7F9]">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6A9C89] text-white">
-            <span className="text-sm font-bold">SF</span>
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold text-foreground">Soft Facture</span>
-              <span className="text-xs text-muted-foreground">Gestion commerciale</span>
+        <div className="flex items-center justify-center">
+          {!isCollapsed ? (
+            <img 
+              src="/lovable-uploads/f37e617b-8bbf-4d56-a0ee-52cf7a0f9b1a.png" 
+              alt="Soft Facture Logo" 
+              className="h-20 w-auto"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6A9C89] text-white">
+              <span className="text-sm font-bold">SF</span>
             </div>
           )}
         </div>
