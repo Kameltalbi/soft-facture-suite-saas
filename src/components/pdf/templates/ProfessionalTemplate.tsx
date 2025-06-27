@@ -6,15 +6,15 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     fontSize: 10,
-    paddingTop: 50,
+    paddingTop: 30,
     paddingLeft: 50,
     paddingRight: 50,
-    paddingBottom: 70,
+    paddingBottom: 50,
     backgroundColor: '#ffffff',
   },
   headerSection: {
     flexDirection: 'row',
-    marginBottom: 40,
+    marginBottom: 25,
     alignItems: 'flex-start',
   },
   leftHeader: {
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   billToSection: {
-    marginBottom: 30,
-    padding: 20,
+    marginBottom: 20,
+    padding: 15,
     backgroundColor: '#F7FAFC',
     border: '1pt solid #E2E8F0',
   },
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: '#2D3748',
-    marginBottom: 10,
+    marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -76,8 +76,8 @@ const styles = StyleSheet.create({
   },
   documentInfoSection: {
     flexDirection: 'row',
-    marginBottom: 30,
-    padding: 15,
+    marginBottom: 20,
+    padding: 12,
     backgroundColor: '#EDF2F7',
     border: '1pt solid #CBD5E0',
   },
@@ -98,13 +98,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tableContainer: {
-    marginBottom: 25,
+    marginBottom: 20,
     border: '1pt solid #CBD5E0',
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#2D3748',
-    padding: 12,
+    padding: 10,
   },
   tableHeaderText: {
     color: '#ffffff',
@@ -116,15 +116,15 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     borderBottom: '1pt solid #E2E8F0',
-    padding: 12,
-    minHeight: 40,
+    padding: 10,
+    minHeight: 35,
   },
   tableRowAlt: {
     flexDirection: 'row',
     borderBottom: '1pt solid #E2E8F0',
     backgroundColor: '#F7FAFC',
-    padding: 12,
-    minHeight: 40,
+    padding: 10,
+    minHeight: 35,
   },
   cellText: {
     fontSize: 9,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   col5: { width: '18%', textAlign: 'right', fontWeight: 'bold' },
   summarySection: {
     alignItems: 'flex-end',
-    marginTop: 20,
+    marginTop: 15,
   },
   summaryBox: {
     width: '50%',
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 12,
+    padding: 10,
     borderBottom: '1pt solid #E2E8F0',
   },
   summaryLabel: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 12,
     backgroundColor: '#2D3748',
   },
   totalLabel: {
@@ -175,42 +175,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
   },
-  notesSection: {
-    marginTop: 40,
-    padding: 20,
-    backgroundColor: '#F0FFF4',
-    border: '1pt solid #9AE6B4',
-  },
-  notesHeader: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#22543D',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  notesText: {
-    fontSize: 9,
-    color: '#2F855A',
-    lineHeight: 1.5,
-  },
-  paymentTerms: {
-    marginTop: 30,
-    padding: 15,
-    backgroundColor: '#FFFBEB',
-    border: '1pt solid #F6E05E',
-  },
-  paymentTitle: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#744210',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  paymentText: {
-    fontSize: 8,
-    color: '#975A16',
-    lineHeight: 1.4,
-  },
   footer: {
     position: 'absolute',
     bottom: 30,
@@ -220,17 +184,8 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: '#A0AEC0',
     borderTop: '1pt solid #E2E8F0',
-    paddingTop: 15,
+    paddingTop: 10,
     lineHeight: 1.4,
-  },
-  watermark: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%) rotate(-45deg)',
-    fontSize: 80,
-    color: '#F7FAFC',
-    zIndex: -1,
   },
 });
 
@@ -331,20 +286,6 @@ export const ProfessionalTemplate = ({
             </Text>
           </View>
         </View>
-      </View>
-
-      {invoiceData.notes && (
-        <View style={styles.notesSection}>
-          <Text style={styles.notesHeader}>Notes importantes</Text>
-          <Text style={styles.notesText}>{invoiceData.notes}</Text>
-        </View>
-      )}
-
-      <View style={styles.paymentTerms}>
-        <Text style={styles.paymentTitle}>Conditions de paiement</Text>
-        <Text style={styles.paymentText}>
-          Paiement à réception de facture. En cas de retard de paiement, des pénalités de 3 fois le taux d'intérêt légal seront appliquées.
-        </Text>
       </View>
 
       <Text style={styles.footer}>
