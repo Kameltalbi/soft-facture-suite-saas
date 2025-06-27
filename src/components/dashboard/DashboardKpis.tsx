@@ -1,11 +1,10 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   FileText, 
   CheckCircle2, 
   Clock4, 
   AlertCircle, 
-  ReceiptRefund, 
+  Receipt, 
   BarChart2, 
   PercentCircle,
   TrendingUp,
@@ -64,7 +63,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
     {
       title: 'Total avoirs',
       value: data.totalCredits,
-      icon: ReceiptRefund,
+      icon: Receipt,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
       format: 'currency'
