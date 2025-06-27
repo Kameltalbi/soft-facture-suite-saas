@@ -47,9 +47,30 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   
   // Mock clients for search
   const mockClients = [
-    { id: '1', name: 'Client Premium', company: 'Premium Corp', address: '123 Rue de la Paix, 75001 Paris', email: 'contact@premium.fr' },
-    { id: '2', name: 'Entreprise ABC', company: 'ABC Solutions', address: '456 Avenue République, 69000 Lyon', email: 'info@abc.fr' },
-    { id: '3', name: 'Société Tech', company: 'Tech Innovation', address: '789 Boulevard Tech, 31000 Toulouse', email: 'hello@tech.fr' }
+    { 
+      id: '1', 
+      name: 'Client Premium', 
+      company: 'Premium Corp', 
+      address: '123 Rue de la Paix\n75001 Paris\nFrance', 
+      email: 'contact@premium.fr',
+      phone: '01 23 45 67 89'
+    },
+    { 
+      id: '2', 
+      name: 'Entreprise ABC', 
+      company: 'ABC Solutions', 
+      address: '456 Avenue République\n69000 Lyon\nFrance', 
+      email: 'info@abc.fr',
+      phone: '04 78 90 12 34'
+    },
+    { 
+      id: '3', 
+      name: 'Société Tech', 
+      company: 'Tech Innovation', 
+      address: '789 Boulevard Tech\n31000 Toulouse\nFrance', 
+      email: 'hello@tech.fr',
+      phone: '05 61 23 45 67'
+    }
   ];
   
   // Mock products for search
@@ -106,6 +127,12 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     setDeliveryItems(deliveryItems.filter(item => item.id !== id));
   };
   
+  const handleClientSelect = (client: any) => {
+    setSelectedClient(client);
+    setClientSearch('');
+    setDeliveryAddress(client.address); // Automatically populate delivery address with client's address
+  };
+  
   const getStatusBadge = (status: DeliveryItem['status']) => {
     const variants = {
       pending: { label: 'En attente', variant: 'secondary' as const },
@@ -148,8 +175,12 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex items-center space-x-4">
-                  {organization?.logo_url && (
+                  {organization?.logo_url ? (
                     <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
+                  ) : (
+                    <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                      <Package className="h-8 w-8 text-gray-400" />
+                    </div>
                   )}
                   <div>
                     <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
@@ -217,37 +248,45 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                 </div>
                 
                 {clientSearch && !selectedClient && (
-                  <div className="border rounded-lg max-h-48 overflow-y-auto">
+                  <div className="border rounded-lg max-h-48 overflow-y-auto bg-white z-10">
                     {filteredClients.map((client) => (
                       <div
                         key={client.id}
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setClientSearch('');
-                          setDeliveryAddress(client.address);
-                        }}
+                        onClick={() => handleClientSelect(client)}
                       >
                         <div className="font-medium">{client.company}</div>
                         <div className="text-sm text-gray-600">{client.name}</div>
-                        <div className="text-sm text-gray-500">{client.address}</div>
+                        <div className="text-sm text-gray-500">{client.email}</div>
+                        <div className="text-xs text-gray-400 mt-1 whitespace-pre-line">{client.address}</div>
                       </div>
                     ))}
                   </div>
                 )}
                 
                 {selectedClient && (
-                  <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold">{selectedClient.company}</h4>
-                        <p className="text-sm text-gray-600">{selectedClient.name}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.email}</p>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-green-800">{selectedClient.company}</h4>
+                        <p className="text-sm text-green-700">{selectedClient.name}</p>
+                        <p className="text-sm text-green-600">{selectedClient.email}</p>
+                        {selectedClient.phone && (
+                          <p className="text-sm text-green-600">{selectedClient.phone}</p>
+                        )}
+                        <div className="text-sm text-green-600 mt-2 whitespace-pre-line">
+                          <strong>Adresse :</strong><br />
+                          {selectedClient.address}
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setSelectedClient(null)}
+                        onClick={() => {
+                          setSelectedClient(null);
+                          setDeliveryAddress('');
+                        }}
+                        className="text-green-700 hover:text-green-800"
                       >
                         Changer
                       </Button>
@@ -261,9 +300,12 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                     id="deliveryAddress"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Adresse de livraison..."
+                    placeholder="Adresse de livraison (sera remplie automatiquement lors de la sélection du client)..."
                     className="w-full h-20 p-3 border rounded-md resize-none mt-1"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    L'adresse sera automatiquement remplie avec l'adresse du client sélectionné
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -296,7 +338,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
             </CardHeader>
             <CardContent>
               {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
+                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto bg-white">
                   {filteredProducts.map((product) => (
                     <div
                       key={product.id}
