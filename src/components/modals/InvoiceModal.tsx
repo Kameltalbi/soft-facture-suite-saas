@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Settings, Plus, Trash2, Save, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { InvoicePDF } from '@/components/pdf/InvoicePDF';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface InvoiceModalProps {
   open: boolean;
@@ -27,9 +29,11 @@ interface LineItem {
 }
 
 export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
+  const { generateInvoicePDF } = usePDFGeneration();
+
   const [invoiceData, setInvoiceData] = useState({
-    number: 'FAC-2024-002',
-    date: new Date().toISOString().split('T')[0],
+    number: document?.number || 'FAC-2024-002',
+    date: document?.date || new Date().toISOString().split('T')[0],
     dueDate: '',
     clientId: '',
     subject: '',
@@ -100,11 +104,7 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
 
   const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
 
-  const numberToWords = (num: number): string => {
-    // Simplified French number to words conversion
-    if (num === 0) return 'zéro';
-    return `${Math.floor(num)} euros et ${Math.round((num % 1) * 100)} centimes`;
-  };
+  const pdfData = generateInvoicePDF(invoiceData, lineItems, settings);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -113,16 +113,27 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
           <DialogTitle className="text-xl font-semibold">
             {document ? 'Modifier la facture' : 'Nouvelle facture'}
           </DialogTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSettings(!showSettings)}
-          >
-            <Settings size={16} />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <PDFDownloadLink
+              document={<InvoicePDF {...pdfData} />}
+              fileName={`facture-${invoiceData.number}.pdf`}
+            >
+              {({ loading }) => (
+                <Button variant="outline" size="sm" disabled={loading}>
+                  {loading ? 'Génération...' : 'Aperçu PDF'}
+                </Button>
+              )}
+            </PDFDownloadLink>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSettings(!showSettings)}
+            >
+              <Settings size={16} />
+            </Button>
+          </div>
         </DialogHeader>
 
-        {/* Settings Panel */}
         {showSettings && (
           <Card className="mb-4">
             <CardHeader>
@@ -183,7 +194,6 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Document Info */}
           <div className="space-y-4">
             <Card>
               <CardHeader>
@@ -249,7 +259,6 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
             </Card>
           </div>
 
-          {/* Right Column - Line Items */}
           <div className="space-y-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
@@ -351,7 +360,6 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
               </CardContent>
             </Card>
 
-            {/* Totals */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Totaux</CardTitle>
@@ -375,7 +383,10 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
                 {settings.amountInWords && (
                   <div className="text-sm text-neutral-600 mt-2">
                     <strong>Montant en lettres:</strong><br />
-                    {numberToWords(totalTTC)}
+                    {(() => {
+                      if (totalTTC === 0) return 'zéro';
+                      return `${Math.floor(totalTTC)} euros et ${Math.round((totalTTC % 1) * 100)} centimes`;
+                    })()}
                   </div>
                 )}
               </CardContent>
@@ -391,10 +402,17 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
             <Save size={16} className="mr-2" />
             Enregistrer en brouillon
           </Button>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Send size={16} className="mr-2" />
-            Enregistrer et envoyer
-          </Button>
+          <PDFDownloadLink
+            document={<InvoicePDF {...pdfData} />}
+            fileName={`facture-${invoiceData.number}.pdf`}
+          >
+            {({ loading }) => (
+              <Button className="bg-primary hover:bg-primary/90" disabled={loading}>
+                <Send size={16} className="mr-2" />
+                {loading ? 'Génération...' : 'Télécharger PDF'}
+              </Button>
+            )}
+          </PDFDownloadLink>
         </div>
       </DialogContent>
     </Dialog>

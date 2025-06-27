@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { InvoicePDF } from '@/components/pdf/InvoicePDF';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface Document {
   id: string;
@@ -85,6 +87,7 @@ const statusLabels = {
 };
 
 export function Sales() {
+  const { generateInvoicePDF } = usePDFGeneration();
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
@@ -102,6 +105,40 @@ export function Sales() {
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document);
     setShowInvoiceModal(true);
+  };
+
+  const getPDFData = (document: Document) => {
+    const mockLineItems = [
+      {
+        id: '1',
+        description: 'Service de consultation',
+        quantity: 1,
+        unitPrice: document.amount,
+        vatRate: 20,
+        discount: 0,
+        total: document.amount
+      }
+    ];
+
+    const mockSettings = {
+      showVat: true,
+      showDiscount: false,
+      showAdvance: false,
+      currency: 'EUR',
+      amountInWords: true
+    };
+
+    return generateInvoicePDF(
+      {
+        number: document.number,
+        date: document.date,
+        clientId: '1',
+        subject: `${documentTypes[document.type].label} pour ${document.client}`,
+        notes: 'Merci pour votre confiance.'
+      },
+      mockLineItems,
+      mockSettings
+    );
   };
 
   return (
@@ -245,10 +282,17 @@ export function Sales() {
                           <Edit size={16} className="mr-2" />
                           Modifier
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Download size={16} className="mr-2" />
-                          Télécharger PDF
-                        </DropdownMenuItem>
+                        <PDFDownloadLink
+                          document={<InvoicePDF {...getPDFData(document)} />}
+                          fileName={`${document.number}.pdf`}
+                        >
+                          {({ loading }) => (
+                            <DropdownMenuItem disabled={loading}>
+                              <Download size={16} className="mr-2" />
+                              {loading ? 'Génération...' : 'Télécharger PDF'}
+                            </DropdownMenuItem>
+                          )}
+                        </PDFDownloadLink>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
