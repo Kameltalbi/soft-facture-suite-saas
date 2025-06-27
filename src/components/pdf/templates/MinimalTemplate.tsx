@@ -6,22 +6,22 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     fontSize: 10,
-    paddingTop: 80,
+    paddingTop: 40,
     paddingLeft: 80,
     paddingRight: 80,
-    paddingBottom: 80,
+    paddingBottom: 40,
     backgroundColor: '#ffffff',
   },
   header: {
-    marginBottom: 60,
+    marginBottom: 30,
     textAlign: 'center',
   },
   title: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: 'normal',
     color: '#000000',
-    marginBottom: 20,
-    letterSpacing: 8,
+    marginBottom: 10,
+    letterSpacing: 6,
     textTransform: 'uppercase',
   },
   documentNumber: {
@@ -32,12 +32,12 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: '#000000',
-    marginVertical: 40,
+    marginVertical: 20,
   },
   addressSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 60,
+    marginBottom: 30,
   },
   addressBlock: {
     width: '40%',
@@ -47,23 +47,23 @@ const styles = StyleSheet.create({
     color: '#000000',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   addressText: {
     fontSize: 10,
     color: '#000000',
-    lineHeight: 1.6,
+    lineHeight: 1.4,
     marginBottom: 3,
   },
   companyName: {
     fontSize: 12,
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   documentDetails: {
-    marginBottom: 60,
-    paddingVertical: 20,
+    marginBottom: 30,
+    paddingVertical: 15,
   },
   detailsGrid: {
     flexDirection: 'row',
@@ -77,20 +77,20 @@ const styles = StyleSheet.create({
     color: '#666666',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 5,
+    marginBottom: 4,
   },
   detailValue: {
     fontSize: 10,
     color: '#000000',
   },
   table: {
-    marginBottom: 40,
+    marginBottom: 25,
   },
   tableHeader: {
     flexDirection: 'row',
     borderBottom: '2pt solid #000000',
-    paddingBottom: 15,
-    marginBottom: 20,
+    paddingBottom: 10,
+    marginBottom: 15,
   },
   headerCell: {
     fontSize: 8,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 15,
+    paddingVertical: 10,
     borderBottom: '1pt solid #E0E0E0',
   },
   cellText: {
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   col4: { width: '10%', textAlign: 'center' },
   col5: { width: '15%', textAlign: 'right' },
   totalsSection: {
-    marginTop: 60,
+    marginTop: 30,
     alignItems: 'flex-end',
   },
   totalsTable: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 6,
     borderBottom: '1pt solid #E0E0E0',
   },
   totalLabel: {
@@ -138,9 +138,9 @@ const styles = StyleSheet.create({
   grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 15,
+    paddingVertical: 12,
     borderTop: '2pt solid #000000',
-    marginTop: 10,
+    marginTop: 8,
   },
   grandTotalLabel: {
     fontSize: 12,
@@ -155,8 +155,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   notes: {
-    marginTop: 80,
-    paddingTop: 30,
+    marginTop: 40,
+    paddingTop: 20,
     borderTop: '1pt solid #E0E0E0',
   },
   notesTitle: {
@@ -164,16 +164,16 @@ const styles = StyleSheet.create({
     color: '#666666',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: 15,
+    marginBottom: 10,
   },
   notesText: {
     fontSize: 9,
     color: '#000000',
-    lineHeight: 1.6,
+    lineHeight: 1.4,
   },
   footer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 30,
     left: 80,
     right: 80,
     textAlign: 'center',
