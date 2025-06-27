@@ -139,7 +139,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
             {/* Pricing and Units */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="price">Prix unitaire (€) *</Label>
+                <Label htmlFor="price">Prix unitaire *</Label>
                 <Input
                   id="price"
                   type="number"
