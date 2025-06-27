@@ -1,4 +1,5 @@
 
+
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -6,8 +7,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-start">
-          <div className="flex items-center mr-16">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <h1 className="text-2xl font-bold text-[#6A9C89]">Soft Facture</h1>
           </div>
           
@@ -27,7 +28,7 @@ export function Header() {
             </Link>
           </nav>
           
-          <div className="md:hidden ml-auto">
+          <div className="md:hidden">
             <Link to="/login">
               <Button 
                 className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
@@ -42,3 +43,4 @@ export function Header() {
     </header>
   );
 }
+
