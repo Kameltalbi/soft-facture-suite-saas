@@ -1,11 +1,44 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from 'react';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
+import { Dashboard } from '@/components/modules/Dashboard';
+import { Sales } from '@/components/modules/Sales';
+import { Products } from '@/components/modules/Products';
+import { Clients } from '@/components/modules/Clients';
 
 const Index = () => {
+  const [activeModule, setActiveModule] = useState('dashboard');
+
+  const renderModule = () => {
+    switch (activeModule) {
+      case 'dashboard':
+        return <Dashboard />;
+      case 'sales':
+        return <Sales />;
+      case 'products':
+        return <Products />;
+      case 'clients':
+        return <Clients />;
+      case 'categories':
+        return <div className="p-6"><h1 className="text-2xl font-bold">Catégories</h1><p>Module en cours de développement</p></div>;
+      case 'credits':
+        return <div className="p-6"><h1 className="text-2xl font-bold">Avoirs</h1><p>Module en cours de développement</p></div>;
+      case 'settings':
+        return <div className="p-6"><h1 className="text-2xl font-bold">Paramètres</h1><p>Module en cours de développement</p></div>;
+      default:
+        return <Dashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="flex h-screen bg-neutral-50">
+      <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header activeModule={activeModule} />
+        <main className="flex-1 overflow-y-auto">
+          {renderModule()}
+        </main>
       </div>
     </div>
   );
