@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -167,19 +168,49 @@ export default function Settings() {
   };
 
   // User management handlers
-  const handleInviteUser = async (email: string, role: string) => {
+  const handleCreateUser = async (email: string, password: string, firstName: string, lastName: string, role: string) => {
     try {
-      // This would typically involve sending an invitation email
-      // For now, we'll just show a success message
-      console.log('Inviting user:', email, role);
-      toast({
-        title: 'Succès',
-        description: 'Invitation envoyée avec succès.',
+      // Créer l'utilisateur avec Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName
+        }
       });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        // Créer le profil utilisateur
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            organization_id: profile?.organization_id,
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            role: role
+          });
+
+        if (profileError) throw profileError;
+
+        // Recharger la liste des utilisateurs
+        await loadUsers();
+
+        toast({
+          title: 'Succès',
+          description: 'Utilisateur créé avec succès.',
+        });
+      }
     } catch (error) {
+      console.error('Error creating user:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de l\'envoi de l\'invitation.',
+        description: 'Erreur lors de la création de l\'utilisateur.',
         variant: 'destructive',
       });
     }
@@ -215,12 +246,20 @@ export default function Settings() {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase
+      // Supprimer d'abord le profil
+      const { error: profileError } = await supabase
         .from('profiles')
         .delete()
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Supprimer l'utilisateur de l'auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      
+      if (authError) {
+        console.warn('Could not delete auth user:', authError);
+      }
 
       // Update local state
       setUsers(users.filter(user => user.id !== userId));
@@ -321,7 +360,7 @@ export default function Settings() {
           <UserManagement
             users={users}
             roles={['user', 'admin', 'superadmin']}
-            onInviteUser={handleInviteUser}
+            onCreateUser={handleCreateUser}
             onUpdateUserRole={handleUpdateUserRole}
             onDeleteUser={handleDeleteUser}
           />

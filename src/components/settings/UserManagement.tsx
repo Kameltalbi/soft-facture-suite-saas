@@ -8,28 +8,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Plus, Mail, Trash2 } from 'lucide-react';
+import { Users, Plus, Trash2, UserPlus } from 'lucide-react';
 import { User } from '@/types/settings';
 
 interface UserManagementProps {
   users: User[];
   roles: string[];
-  onInviteUser: (email: string, role: string) => void;
+  onCreateUser: (email: string, password: string, firstName: string, lastName: string, role: string) => void;
   onUpdateUserRole: (userId: string, role: string) => void;
   onDeleteUser: (userId: string) => void;
 }
 
-export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, onDeleteUser }: UserManagementProps) {
+export function UserManagement({ users, roles, onCreateUser, onUpdateUserRole, onDeleteUser }: UserManagementProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [inviteData, setInviteData] = useState({
+  const [userData, setUserData] = useState({
     email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
     role: '',
   });
 
-  const handleInvite = (e: React.FormEvent) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    onInviteUser(inviteData.email, inviteData.role);
-    setInviteData({ email: '', role: '' });
+    onCreateUser(userData.email, userData.password, userData.firstName, userData.lastName, userData.role);
+    setUserData({ email: '', password: '', firstName: '', lastName: '', role: '' });
     setIsDialogOpen(false);
   };
 
@@ -38,7 +41,7 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
       case 'active':
         return <Badge className="bg-green-100 text-green-800">Actif</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800">Invitation en attente</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
       case 'inactive':
         return <Badge variant="secondary">Inactif</Badge>;
       default:
@@ -67,7 +70,7 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
           Utilisateurs de l'organisation
         </CardTitle>
         <CardDescription>
-          Gérez les utilisateurs et leurs rôles dans votre organisation
+          Créez et gérez les utilisateurs et leurs rôles dans votre organisation
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -80,31 +83,65 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Inviter un utilisateur
+                <UserPlus className="h-4 w-4 mr-2" />
+                Créer un utilisateur
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Inviter un nouvel utilisateur</DialogTitle>
+                <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleInvite} className="space-y-4">
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Prénom</Label>
+                    <Input
+                      id="firstName"
+                      value={userData.firstName}
+                      onChange={(e) => setUserData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Prénom"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Nom</Label>
+                    <Input
+                      id="lastName"
+                      value={userData.lastName}
+                      onChange={(e) => setUserData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Nom"
+                      required
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Adresse email</Label>
                   <Input
                     id="email"
                     type="email"
-                    value={inviteData.email}
-                    onChange={(e) => setInviteData(prev => ({ ...prev, email: e.target.value }))}
+                    value={userData.email}
+                    onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="utilisateur@exemple.com"
                     required
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={userData.password}
+                    onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Mot de passe"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="role">Rôle</Label>
                   <Select
-                    value={inviteData.role}
-                    onValueChange={(value) => setInviteData(prev => ({ ...prev, role: value }))}
+                    value={userData.role}
+                    onValueChange={(value) => setUserData(prev => ({ ...prev, role: value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez un rôle" />
@@ -125,8 +162,8 @@ export function UserManagement({ users, roles, onInviteUser, onUpdateUserRole, o
                     Annuler
                   </Button>
                   <Button type="submit">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Envoyer l'invitation
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer l'utilisateur
                   </Button>
                 </div>
               </form>
