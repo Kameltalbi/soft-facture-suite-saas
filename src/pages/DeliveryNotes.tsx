@@ -382,7 +382,7 @@ export default function DeliveryNotes() {
                       pdfComponent={<TemplatedInvoicePDF {...getPDFData(delivery)} template="minimal" documentType="BON DE LIVRAISON" />}
                       onView={() => handleViewDelivery(delivery)}
                       onEdit={() => handleEditDelivery(delivery)}
-                      onDuplicate(() => handleDuplicateDelivery(delivery)}
+                      onDuplicate={() => handleDuplicateDelivery(delivery)}
                       onMarkAsDelivered={() => handleMarkAsDelivered(delivery)}
                       onConvertToInvoice={() => handleConvertToInvoice(delivery)}
                       onDelete={() => handleDeleteDelivery(delivery)}
