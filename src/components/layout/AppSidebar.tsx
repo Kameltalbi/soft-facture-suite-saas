@@ -55,6 +55,11 @@ const menuItems = [
     icon: Truck 
   },
   { 
+    id: 'bons-commande', 
+    label: 'Bons de commande', 
+    icon: Receipt 
+  },
+  { 
     id: 'products', 
     label: 'Produits & Services', 
     icon: Package 

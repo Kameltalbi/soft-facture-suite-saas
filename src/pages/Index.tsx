@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Header } from '@/components/layout/Header';
@@ -16,6 +15,7 @@ import Fournisseurs from './Fournisseurs';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import Avoirs from './Avoirs';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import BonsCommandePage from './BonsCommandePage';
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -30,6 +30,8 @@ const Index = () => {
         return <Quotes />;
       case 'delivery-notes':
         return <DeliveryNotes />;
+      case 'bons-commande':
+        return <BonsCommandePage />;
       case 'products':
         return <Products />;
       case 'categories':
