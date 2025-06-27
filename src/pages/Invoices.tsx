@@ -471,7 +471,11 @@ export default function Invoices() {
       <InvoiceModal
         open={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
-        document={editingInvoice}
+        invoice={editingInvoice}
+        onSave={(data) => {
+          console.log('Saving invoice:', data);
+          setShowInvoiceModal(false);
+        }}
       />
     </div>
   );

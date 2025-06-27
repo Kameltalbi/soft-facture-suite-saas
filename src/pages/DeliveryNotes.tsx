@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { InvoiceModal } from '@/components/modals/InvoiceModal';
+import { DeliveryNoteModal } from '@/components/modals/DeliveryNoteModal';
 import { DeliveryNotePDF } from '@/components/pdf/deliveryNotes/DeliveryNotePDF';
 import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
@@ -412,11 +412,14 @@ export default function DeliveryNotes() {
       </Card>
 
       {/* Modal */}
-      <InvoiceModal
+      <DeliveryNoteModal
         open={showDeliveryModal}
         onClose={() => setShowDeliveryModal(false)}
-        document={editingDelivery}
-        documentType="delivery"
+        deliveryNote={editingDelivery}
+        onSave={(data) => {
+          console.log('Saving delivery note:', data);
+          setShowDeliveryModal(false);
+        }}
       />
     </div>
   );

@@ -412,8 +412,11 @@ export function Sales() {
       <InvoiceModal
         open={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
-        document={editingDocument}
-        documentType={currentDocumentType}
+        invoice={editingDocument}
+        onSave={(data) => {
+          console.log('Saving document:', data);
+          setShowInvoiceModal(false);
+        }}
       />
     </div>
   );

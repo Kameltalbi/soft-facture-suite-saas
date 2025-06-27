@@ -376,7 +376,7 @@ const QuotesPage = () => {
 
         {/* Modal */}
         <QuoteModal
-          isOpen={isModalOpen}
+          open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           quote={selectedQuote}
           onSave={(data) => {
