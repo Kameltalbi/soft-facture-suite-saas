@@ -19,7 +19,7 @@ export const TemplatedInvoicePDF = ({
 }: TemplatedInvoicePDFProps) => {
   const templateProps = { 
     ...props, 
-    documentType: documentType || 'FACTURE' // S'assurer que le documentType est bien passé
+    documentType // Assurer que documentType est bien passé
   };
   
   switch (template) {

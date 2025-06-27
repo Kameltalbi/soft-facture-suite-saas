@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
@@ -173,7 +172,7 @@ export const MinimalTemplate = ({
             </Text>
           </View>
           <View>
-            <Text style={styles.documentTitle}>{documentType || 'FACTURE'}</Text>
+            <Text style={styles.documentTitle}>{documentType}</Text>
             <Text style={styles.documentNumber}>N° {invoiceData?.number}</Text>
             <Text style={styles.documentNumber}>
               Date: {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
