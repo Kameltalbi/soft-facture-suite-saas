@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface Currency {
   code: string;
@@ -12,15 +12,19 @@ interface CurrencyContextType {
   setCurrency: (currency: Currency) => void;
 }
 
-const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
-
 const defaultCurrency: Currency = {
-  code: 'TND',
-  symbol: 'TND',
-  name: 'Dinar Tunisien'
+  code: 'EUR',
+  symbol: '€',
+  name: 'Euro'
 };
 
-export function CurrencyProvider({ children }: { children: React.ReactNode }) {
+const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
+
+interface CurrencyProviderProps {
+  children: ReactNode;
+}
+
+export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) => {
   const [currency, setCurrency] = useState<Currency>(defaultCurrency);
 
   return (
@@ -28,12 +32,12 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       {children}
     </CurrencyContext.Provider>
   );
-}
+};
 
-export function useCurrency() {
+export const useCurrency = () => {
   const context = useContext(CurrencyContext);
   if (context === undefined) {
     throw new Error('useCurrency must be used within a CurrencyProvider');
   }
   return context;
-}
+};
