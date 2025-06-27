@@ -92,7 +92,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
     <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader className="border-b px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6A9C89] text-white">
             <span className="text-sm font-bold">SF</span>
           </div>
           {!isCollapsed && (
@@ -121,9 +121,9 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                       onClick={() => onModuleChange(item.id)}
                       isActive={isActive}
                       tooltip={isCollapsed ? item.label : undefined}
-                      className="h-10 px-3 font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:shadow-sm"
+                      className="h-10 px-3 font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-[#6A9C89] data-[active=true]:text-white data-[active=true]:shadow-sm"
                     >
-                      <Icon className="h-5 w-5 stroke-[1.5px]" />
+                      <Icon className={`h-5 w-5 stroke-[1.5px] ${isActive ? 'text-white' : 'text-[#6A9C89]'}`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
