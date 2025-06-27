@@ -6,19 +6,19 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     fontSize: 10,
-    paddingTop: 40,
+    paddingTop: 30,
     paddingLeft: 40,
     paddingRight: 40,
-    paddingBottom: 60,
+    paddingBottom: 40,
     backgroundColor: '#ffffff',
   },
   header: {
     backgroundColor: '#2563EB',
-    padding: 25,
-    marginBottom: 30,
+    padding: 20,
+    marginBottom: 25,
     marginLeft: -40,
     marginRight: -40,
-    marginTop: -40,
+    marginTop: -30,
     position: 'relative',
   },
   headerAccent: {
@@ -30,20 +30,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#1D4ED8',
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 8,
+    marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 3,
+    letterSpacing: 2,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#E0E7FF',
   },
   mainContent: {
     flexDirection: 'row',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   leftColumn: {
     width: '50%',
@@ -54,29 +54,29 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#2563EB',
-    marginBottom: 10,
+    marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   companyName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#1F2937',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   address: {
     fontSize: 9,
     color: '#6B7280',
-    lineHeight: 1.5,
+    lineHeight: 1.4,
     marginBottom: 2,
   },
   documentInfo: {
     backgroundColor: '#F3F4F6',
-    padding: 20,
-    marginBottom: 25,
+    padding: 15,
+    marginBottom: 20,
     borderLeft: '4pt solid #2563EB',
   },
   infoGrid: {
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     width: '50%',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   infoLabel: {
     fontSize: 8,
@@ -94,37 +94,37 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   infoValue: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#1F2937',
     fontWeight: 'bold',
   },
   table: {
-    marginBottom: 20,
+    marginBottom: 15,
     border: '1pt solid #E5E7EB',
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#2563EB',
-    padding: 12,
+    padding: 10,
   },
   headerText: {
     color: '#ffffff',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottom: '1pt solid #E5E7EB',
-    padding: 12,
-    minHeight: 35,
+    padding: 10,
+    minHeight: 30,
   },
   tableRowEven: {
     flexDirection: 'row',
     borderBottom: '1pt solid #E5E7EB',
     backgroundColor: '#F9FAFB',
-    padding: 12,
-    minHeight: 35,
+    padding: 10,
+    minHeight: 30,
   },
   col1: { width: '45%', fontSize: 9, color: '#374151' },
   col2: { width: '12%', fontSize: 9, textAlign: 'center', color: '#374151' },
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   col5: { width: '15%', fontSize: 9, textAlign: 'right', color: '#374151', fontWeight: 'bold' },
   totalSection: {
     alignItems: 'flex-end',
-    marginTop: 25,
+    marginTop: 15,
   },
   totalBox: {
     width: '45%',
@@ -143,53 +143,34 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 10,
+    padding: 8,
     borderBottom: '1pt solid #E5E7EB',
   },
   totalLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#6B7280',
   },
   totalValue: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#374151',
     fontWeight: 'bold',
   },
   grandTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 15,
+    padding: 12,
     backgroundColor: '#2563EB',
   },
   grandTotalLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#ffffff',
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   grandTotalValue: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#ffffff',
     fontWeight: 'bold',
-  },
-  notes: {
-    marginTop: 30,
-    padding: 20,
-    backgroundColor: '#F0F9FF',
-    border: '1pt solid #0EA5E9',
-    borderRadius: 4,
-  },
-  notesTitle: {
-    fontSize: 10,
-    color: '#0EA5E9',
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  notesText: {
-    fontSize: 9,
-    color: '#374151',
-    lineHeight: 1.4,
   },
   footer: {
     position: 'absolute',
@@ -200,7 +181,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#9CA3AF',
     borderTop: '1pt solid #E5E7EB',
-    paddingTop: 15,
+    paddingTop: 10,
   },
 });
 
@@ -310,13 +291,6 @@ export const ModernTemplate = ({
           </View>
         </View>
       </View>
-
-      {invoiceData.notes && (
-        <View style={styles.notes}>
-          <Text style={styles.notesTitle}>Notes</Text>
-          <Text style={styles.notesText}>{invoiceData.notes}</Text>
-        </View>
-      )}
 
       <Text style={styles.footer}>
         {settings.footer_content}
