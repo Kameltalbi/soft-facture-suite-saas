@@ -1,79 +1,65 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Download, FileText } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { ReportFilters } from '@/components/reports/ReportFilters';
-import { InvoiceReport } from '@/components/reports/InvoiceReport';
-import { ProductRevenueReport } from '@/components/reports/ProductRevenueReport';
-import { MonthlyRevenueReport } from '@/components/reports/MonthlyRevenueReport';
-import { YearComparisonReport } from '@/components/reports/YearComparisonReport';
-import { ProductRankingReport } from '@/components/reports/ProductRankingReport';
-import { ClientRevenueReport } from '@/components/reports/ClientRevenueReport';
+import { FileText, Package, TrendingUp, Calendar, Trophy, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Reports = () => {
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [periodType, setPeriodType] = useState<'monthly' | 'custom'>('monthly');
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-
-  const getCurrentPeriod = () => {
-    if (periodType === 'monthly') {
-      return {
-        start: new Date(selectedYear, selectedMonth - 1, 1),
-        end: new Date(selectedYear, selectedMonth, 0)
-      };
-    }
-    return {
-      start: startDate,
-      end: endDate
-    };
-  };
+  const navigate = useNavigate();
 
   const reports = [
     {
       id: 'invoices',
-      title: 'Factures du mois/période',
-      description: 'Liste détaillée des factures avec statuts et montants',
-      component: InvoiceReport
+      title: 'Factures du mois',
+      description: 'Liste détaillée des factures avec statuts et montants pour la période sélectionnée',
+      icon: FileText,
+      color: 'bg-blue-500',
+      route: '/reports/invoices'
     },
     {
       id: 'product-revenue',
-      title: 'Chiffre d\'affaires par produit',
-      description: 'CA généré par chaque produit/service sur la période',
-      component: ProductRevenueReport
+      title: 'CA par produit/service',
+      description: 'Chiffre d\'affaires généré par chaque produit et service sur la période',
+      icon: Package,
+      color: 'bg-green-500',
+      route: '/reports/product-revenue'
     },
     {
       id: 'monthly-revenue',
-      title: 'CA mensuel sur l\'année',
-      description: 'Évolution du chiffre d\'affaires mois par mois',
-      component: MonthlyRevenueReport
+      title: 'CA mensuel annuel',
+      description: 'Évolution du chiffre d\'affaires mois par mois avec graphique de tendance',
+      icon: TrendingUp,
+      color: 'bg-purple-500',
+      route: '/reports/monthly-revenue'
     },
     {
       id: 'year-comparison',
-      title: 'CA vs année précédente',
-      description: 'Comparaison avec l\'année N-1',
-      component: YearComparisonReport
+      title: 'Comparaison annuelle',
+      description: 'CA vs année précédente avec analyse des écarts et tendances',
+      icon: Calendar,
+      color: 'bg-orange-500',
+      route: '/reports/year-comparison'
     },
     {
       id: 'product-ranking',
       title: 'Classement des produits',
-      description: 'Produits classés par CA décroissant',
-      component: ProductRankingReport
+      description: 'Top des produits classés par chiffre d\'affaires décroissant avec performance',
+      icon: Trophy,
+      color: 'bg-yellow-500',
+      route: '/reports/product-ranking'
     },
     {
       id: 'client-revenue',
       title: 'CA par client',
-      description: 'Chiffre d\'affaires généré par client',
-      component: ClientRevenueReport
+      description: 'Revenus générés par chaque client avec analyse du portefeuille',
+      icon: Users,
+      color: 'bg-red-500',
+      route: '/reports/client-revenue'
     }
   ];
+
+  const handleCardClick = (route: string) => {
+    navigate(route);
+  };
 
   return (
     <div className="space-y-6">
@@ -81,61 +67,44 @@ const Reports = () => {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Rapports</h1>
           <p className="text-muted-foreground">
-            Générez et téléchargez vos rapports d'activité
+            Sélectionnez un rapport pour analyser vos données commerciales
           </p>
         </div>
       </div>
 
-      <ReportFilters
-        periodType={periodType}
-        setPeriodType={setPeriodType}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
-        selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
-        startDate={startDate}
-        setStartDate={setStartDate}
-        endDate={endDate}
-        setEndDate={setEndDate}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {reports.map((report) => {
-          const ReportComponent = report.component;
+          const Icon = report.icon;
           return (
-            <Card key={report.id} className="h-fit">
+            <Card 
+              key={report.id} 
+              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+              onClick={() => handleCardClick(report.route)}
+            >
               <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{report.title}</CardTitle>
-                    <CardDescription>{report.description}</CardDescription>
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-lg ${report.color}`}>
+                    <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      CSV
-                    </Button>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{report.title}</CardTitle>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <ReportComponent period={getCurrentPeriod()} />
+                <CardDescription className="text-sm leading-relaxed">
+                  {report.description}
+                </CardDescription>
               </CardContent>
             </Card>
           );
         })}
+      </div>
+
+      <div className="mt-8 p-4 bg-muted/50 rounded-lg">
+        <p className="text-sm text-muted-foreground text-center">
+          💡 Cliquez sur une carte pour accéder au rapport détaillé avec filtres et options d'export
+        </p>
       </div>
     </div>
   );
