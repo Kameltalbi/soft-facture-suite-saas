@@ -15,183 +15,117 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
 import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActionsMenu';
-import { BonCommandeFournisseur } from '@/types/bonCommande';
+import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 
 const BonsCommandePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
+  const [selectedBonCommande, setSelectedBonCommande] = useState(null);
 
-  // Enhanced mock data with more realistic entries
-  const [bonsCommande] = useState<BonCommandeFournisseur[]>([
-    {
-      id: '1',
-      numero: 'BC-2025-0001',
-      fournisseurId: 'fournisseur-alpha-001',
-      fournisseurNom: 'Fournisseur Alpha',
-      dateCommande: '2025-01-15',
-      dateCreation: '2025-01-15',
-      statut: 'en_attente',
-      montantHT: 1500.00,
-      montantTTC: 1800.00,
-      remarques: 'Veuillez confirmer la réception de ce bon de commande.',
-      lignes: [
-        {
-          id: '1',
-          designation: 'Ordinateur portable',
-          quantite: 2,
-          prixUnitaireHT: 750.00,
-          tva: 20,
-          totalHT: 1500.00
-        }
-      ],
-      organisationId: 'org1',
-      remise: 0
-    },
-    {
-      id: '2',
-      numero: 'BC-2025-0002',
-      fournisseurId: 'fournisseur-beta-002',
-      fournisseurNom: 'Fournisseur Beta',
-      dateCommande: '2025-01-14',
-      dateCreation: '2025-01-14',
-      statut: 'validee',
-      montantHT: 900.00,
-      montantTTC: 1080.00,
-      remarques: 'Livraison prévue sous 5 jours ouvrables.',
-      lignes: [
-        {
-          id: '2',
-          designation: 'Imprimante multifonction',
-          quantite: 1,
-          prixUnitaireHT: 900.00,
-          tva: 20,
-          totalHT: 900.00
-        }
-      ],
-      organisationId: 'org1',
-      remise: 0
-    },
-    {
-      id: '3',
-      numero: 'BC-2025-0003',
-      fournisseurId: 'fournisseur-gamma-003',
-      fournisseurNom: 'Fournisseur Gamma',
-      dateCommande: '2025-01-13',
-      dateCreation: '2025-01-13',
-      statut: 'livree',
-      montantHT: 3000.00,
-      montantTTC: 3600.00,
-      remarques: 'Facture à envoyer après la livraison.',
-      lignes: [
-        {
-          id: '3',
-          designation: 'Mobilier de bureau',
-          quantite: 3,
-          prixUnitaireHT: 1000.00,
-          tva: 20,
-          totalHT: 3000.00
-        }
-      ],
-      organisationId: 'org1',
-      remise: 0
-    },
-    {
-      id: '4',
-      numero: 'BC-2025-0004',
-      fournisseurId: 'fournisseur-delta-004',
-      fournisseurNom: 'Fournisseur Delta',
-      dateCommande: '2025-01-12',
-      dateCreation: '2025-01-12',
-      statut: 'brouillon',
-      montantHT: 600.00,
-      montantTTC: 720.00,
-      remarques: 'Bon de commande en attente de validation.',
-      lignes: [
-        {
-          id: '4',
-          designation: 'Fournitures de bureau',
-          quantite: 6,
-          prixUnitaireHT: 100.00,
-          tva: 20,
-          totalHT: 600.00
-        }
-      ],
-      organisationId: 'org1',
-      remise: 0
-    }
-  ]);
+  const { purchaseOrders, loading, createPurchaseOrder } = usePurchaseOrders();
 
   const handleCreateBonCommande = () => {
     setSelectedBonCommande(null);
     setIsModalOpen(true);
   };
 
-  const handleViewBonCommande = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Viewing bon de commande:', bonCommande.numero);
+  const handleViewBonCommande = (bonCommande) => {
+    console.log('Viewing bon de commande:', bonCommande.purchase_order_number);
   };
 
-  const handleEditBonCommande = (bonCommande: BonCommandeFournisseur) => {
+  const handleEditBonCommande = (bonCommande) => {
     setSelectedBonCommande(bonCommande);
     setIsModalOpen(true);
   };
 
-  const handleDuplicateBonCommande = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Duplicating bon de commande:', bonCommande.numero);
+  const handleDuplicateBonCommande = (bonCommande) => {
+    console.log('Duplicating bon de commande:', bonCommande.purchase_order_number);
   };
 
-  const handleConvertToDelivery = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Converting bon de commande to delivery:', bonCommande.numero);
+  const handleConvertToDelivery = (bonCommande) => {
+    console.log('Converting bon de commande to delivery:', bonCommande.purchase_order_number);
   };
 
-  const handleDeleteBonCommande = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Deleting bon de commande:', bonCommande.numero);
+  const handleDeleteBonCommande = (bonCommande) => {
+    console.log('Deleting bon de commande:', bonCommande.purchase_order_number);
   };
 
-  const handleEmailSent = (emailData: any) => {
+  const handleEmailSent = (emailData) => {
     console.log('Sending email:', emailData);
   };
 
-  const handleStatusChange = (bonCommande: BonCommandeFournisseur, newStatus: BonCommandeFournisseur['statut']) => {
-    console.log('Changing status for bon de commande:', bonCommande.numero, 'to:', newStatus);
+  const handleStatusChange = (bonCommande, newStatus) => {
+    console.log('Changing status for bon de commande:', bonCommande.purchase_order_number, 'to:', newStatus);
   };
 
-  const getStatutBadge = (statut: BonCommandeFournisseur['statut']) => {
+  const handleSaveBonCommande = async (data) => {
+    console.log('Saving bon de commande:', data);
+    setIsModalOpen(false);
+  };
+
+  const getStatutBadge = (statut) => {
     const variants = {
-      'brouillon': 'secondary',
-      'en_attente': 'default',
-      'validee': 'default',
-      'livree': 'default',
-      'annulee': 'destructive'
-    } as const;
+      'draft': 'secondary',
+      'pending': 'default',
+      'confirmed': 'default',
+      'delivered': 'default',
+      'cancelled': 'destructive'
+    };
 
     const labels = {
-      'brouillon': 'Brouillon',
-      'en_attente': 'En attente',
-      'validee': 'Validée',
-      'livree': 'Livrée',
-      'annulee': 'Annulée'
+      'draft': 'Brouillon',
+      'pending': 'En attente',
+      'confirmed': 'Confirmé',
+      'delivered': 'Livré',
+      'cancelled': 'Annulé'
     };
 
     return (
       <Badge variant={variants[statut] || 'secondary'}>
-        {labels[statut]}
+        {labels[statut] || statut}
       </Badge>
     );
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount) => {
     return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
   };
 
-  const filteredBonsCommande = bonsCommande.filter(bonCommande =>
-    bonCommande.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bonCommande.fournisseurNom.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBonsCommande = purchaseOrders.filter(bonCommande =>
+    bonCommande.purchase_order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    bonCommande.suppliers?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Convert purchase orders to the expected format
+  const convertedBonsCommande = filteredBonsCommande.map(po => ({
+    id: po.id,
+    numero: po.purchase_order_number,
+    fournisseurId: po.supplier_id,
+    fournisseurNom: po.suppliers?.name,
+    dateCommande: po.date,
+    dateCreation: po.created_at,
+    statut: po.status,
+    montantHT: po.subtotal,
+    montantTTC: po.total_amount,
+    remarques: po.notes,
+    lignes: po.purchase_order_items || [],
+    organisationId: po.organization_id,
+    remise: po.discount || 0
+  }));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F7F9FA] p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Chargement des bons de commande...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -236,7 +170,7 @@ const BonsCommandePage = () => {
           <CardHeader>
             <CardTitle>Liste des bons de commande</CardTitle>
             <CardDescription>
-              {filteredBonsCommande.length} bon(s) de commande trouvé(s)
+              {convertedBonsCommande.length} bon(s) de commande trouvé(s)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -253,7 +187,7 @@ const BonsCommandePage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBonsCommande.map((bonCommande) => (
+                {convertedBonsCommande.map((bonCommande) => (
                   <TableRow key={bonCommande.id} className="hover:bg-neutral-50">
                     <TableCell>
                       <div className="flex items-center">
@@ -291,10 +225,10 @@ const BonsCommandePage = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredBonsCommande.length === 0 && (
+                {convertedBonsCommande.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
-                      Aucun bon de commande trouvé
+                      {purchaseOrders.length === 0 ? 'Aucun bon de commande trouvé. Créez votre premier bon de commande !' : 'Aucun bon de commande ne correspond à votre recherche'}
                     </TableCell>
                   </TableRow>
                 )}
@@ -308,10 +242,7 @@ const BonsCommandePage = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           bonCommande={selectedBonCommande}
-          onSave={(data) => {
-            console.log('Sauvegarde du bon de commande:', data);
-            setIsModalOpen(false);
-          }}
+          onSave={handleSaveBonCommande}
         />
       </div>
     </div>

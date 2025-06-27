@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { Plus, Search, FileText } from 'lucide-react';
+import { Plus, Search, FileText, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,251 +14,131 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
-import { QuoteActionsMenu } from '@/components/quote/QuoteActionsMenu';
-import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
-import { Quote } from '@/types/quote';
+import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-const QuotesPage = () => {
-  const { user } = useAuth();
-  
+const Quotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const { organization } = useAuth();
 
-  // Enhanced mock data with more realistic entries
-  const [quotes] = useState<Quote[]>([
-    {
-      id: '1',
-      numero: 'Devis-2025-0001',
-      clientNom: 'Client ABC',
-      dateCreation: '2025-01-15',
-      dateValidite: '2025-02-15',
-      statut: 'en_attente',
-      montantHT: 1200.00,
-      montantTTC: 1440.00,
-      objet: 'Proposition de services informatiques',
-      remarques: 'Merci de valider ce devis avant la date de validité.',
-      lignes: [
-        {
-          id: '1',
-          designation: 'Prestation de conseil',
-          quantite: 20,
-          prixUnitaireHT: 60.00,
-          tva: 20,
-          totalHT: 1200.00
-        }
-      ],
-      organisationId: 'org1',
-      dateCreationTimestamp: 1737000000
+  // Fetch quotes from Supabase
+  const { data: quotes = [], isLoading } = useQuery({
+    queryKey: ['quotes', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('quotes')
+        .select(`
+          *,
+          clients (
+            name,
+            company
+          ),
+          quote_items (*)
+        `)
+        .eq('organization_id', organization.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
-    {
-      id: '2',
-      numero: 'Devis-2025-0002',
-      clientNom: 'Client XYZ',
-      dateCreation: '2025-01-14',
-      dateValidite: '2025-02-14',
-      statut: 'validee',
-      montantHT: 850.00,
-      montantTTC: 1020.00,
-      objet: 'Fourniture de matériel de bureau',
-      remarques: 'Conditions de paiement : 30 jours net.',
-      lignes: [
-        {
-          id: '2',
-          designation: 'Papier A4 ramette',
-          quantite: 10,
-          prixUnitaireHT: 85.00,
-          tva: 20,
-          totalHT: 850.00
-        }
-      ],
-      organisationId: 'org1',
-      dateCreationTimestamp: 1736913600
-    },
-    {
-      id: '3',
-      numero: 'Devis-2025-0003',
-      clientNom: 'Client PQR',
-      dateCreation: '2025-01-13',
-      dateValidite: '2025-02-13',
-      statut: 'acceptee',
-      montantHT: 2500.00,
-      montantTTC: 3000.00,
-      objet: 'Installation de système de sécurité',
-      remarques: 'Garantie de 1 an sur l\'installation.',
-      lignes: [
-        {
-          id: '3',
-          designation: 'Caméra de surveillance HD',
-          quantite: 5,
-          prixUnitaireHT: 500.00,
-          tva: 20,
-          totalHT: 2500.00
-        }
-      ],
-      organisationId: 'org1',
-      dateCreationTimestamp: 1736828400
-    },
-    {
-      id: '4',
-      numero: 'Devis-2025-0004',
-      clientNom: 'Client LMN',
-      dateCreation: '2025-01-12',
-      dateValidite: '2025-02-12',
-      statut: 'brouillon',
-      montantHT: 450.00,
-      montantTTC: 540.00,
-      objet: 'Maintenance de parc informatique',
-      remarques: 'Contrat de maintenance trimestriel.',
-      lignes: [
-        {
-          id: '4',
-          designation: 'Heures de maintenance',
-          quantite: 3,
-          prixUnitaireHT: 150.00,
-          tva: 20,
-          totalHT: 450.00
-        }
-      ],
-      organisationId: 'org1',
-      dateCreationTimestamp: 1736748000
-    }
-  ]);
+    enabled: !!organization?.id
+  });
 
   const handleCreateQuote = () => {
     setSelectedQuote(null);
     setIsModalOpen(true);
   };
 
-  const handleViewQuote = (quote: Quote) => {
-    console.log('Viewing quote:', quote.numero);
+  const handleViewQuote = (quote) => {
+    console.log('Viewing quote:', quote.quote_number);
   };
 
-  const handleEditQuote = (quote: Quote) => {
+  const handleEditQuote = (quote) => {
     setSelectedQuote(quote);
     setIsModalOpen(true);
   };
 
-  const handleConvertToInvoice = (quote: Quote) => {
-    console.log('Converting quote to invoice:', quote.numero);
+  const handleDuplicateQuote = (quote) => {
+    console.log('Duplicating quote:', quote.quote_number);
   };
 
-  const handleDuplicateQuote = (quote: Quote) => {
-    console.log('Duplicating quote:', quote.numero);
+  const handleConvertToInvoice = (quote) => {
+    console.log('Converting quote to invoice:', quote.quote_number);
   };
 
-  const handleDeleteQuote = (quote: Quote) => {
-    console.log('Deleting quote:', quote.numero);
+  const handleDeleteQuote = (quote) => {
+    console.log('Deleting quote:', quote.quote_number);
   };
 
-  const handleEmailSent = (emailData: any) => {
+  const handleEmailSent = (emailData) => {
     console.log('Sending email:', emailData);
   };
 
-  const handleStatusChange = (quote: Quote, newStatus: string) => {
-    console.log('Changing status for quote:', quote.numero, 'to:', newStatus);
+  const handleStatusChange = (quote, newStatus) => {
+    console.log('Changing status for quote:', quote.quote_number, 'to:', newStatus);
   };
 
-  const getStatutBadge = (statut: Quote['statut']) => {
+  const getStatutBadge = (statut) => {
     const variants = {
-      'brouillon': 'secondary',
-      'en_attente': 'default',
-      'validee': 'default',
-      'acceptee': 'default',
-      'refusee': 'destructive',
-      'annulee': 'destructive'
-    } as const;
+      'draft': 'secondary',
+      'pending': 'default',
+      'accepted': 'default',
+      'rejected': 'destructive',
+      'expired': 'secondary'
+    };
 
     const labels = {
-      'brouillon': 'Brouillon',
-      'en_attente': 'En attente',
-      'validee': 'Validée',
-      'acceptee': 'Acceptée',
-      'refusee': 'Refusée',
-      'annulee': 'Annulée'
+      'draft': 'Brouillon',
+      'pending': 'En attente',
+      'accepted': 'Accepté',
+      'rejected': 'Refusé',
+      'expired': 'Expiré'
     };
 
     return (
       <Badge variant={variants[statut] || 'secondary'}>
-        {labels[statut]}
+        {labels[statut] || statut}
       </Badge>
     );
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount) => {
     return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
   };
 
   const filteredQuotes = quotes.filter(quote =>
-    quote.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    quote.clientNom.toLowerCase().includes(searchTerm.toLowerCase())
+    quote.quote_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    quote.clients?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    quote.clients?.company?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Informations de l'entreprise pour le PDF
-  const company = {
-    name: user?.user_metadata?.company_name || 'Mon Entreprise',
-    logo: user?.user_metadata?.avatar_url,
-    address: user?.user_metadata?.company_address,
-    email: user?.email,
-    phone: user?.user_metadata?.company_phone,
+  // Calculate statistics
+  const stats = {
+    total: quotes.length,
+    pending: quotes.filter(q => q.status === 'pending').length,
+    accepted: quotes.filter(q => q.status === 'accepted').length,
+    totalValue: quotes.reduce((sum, q) => sum + (q.total_amount || 0), 0)
   };
 
-  // Convert Quote to QuoteActionsMenu format
-  const convertQuoteFormat = (quote: Quote) => ({
-    id: quote.id,
-    number: quote.numero,
-    client: quote.clientNom,
-    amount: quote.montantTTC,
-    status: quote.statut === 'brouillon' ? 'draft' as const :
-            quote.statut === 'en_attente' ? 'sent' as const :
-            quote.statut === 'acceptee' ? 'accepted' as const :
-            quote.statut === 'refusee' ? 'rejected' as const :
-            'expired' as const,
-    validUntil: quote.dateValidite
-  });
-
-  const getPDFData = (quote: Quote) => {
-    const client = {
-      name: quote.clientNom,
-      company: quote.clientNom,
-      address: '',
-      email: ''
-    };
-
-    const settings = {
-      currency: '€',
-      showVat: true,
-      amountInWords: false,
-      footer_content: 'Soft Facture - Merci pour votre confiance'
-    };
-
-    return {
-      quoteData: {
-        number: quote.numero,
-        date: quote.dateCreation,
-        validUntil: quote.dateValidite,
-        subject: quote.objet,
-        notes: quote.remarques
-      },
-      lineItems: quote.lignes.map(ligne => ({
-        id: ligne.id,
-        description: ligne.designation,
-        quantity: ligne.quantite,
-        unitPrice: ligne.prixUnitaireHT,
-        vatRate: ligne.tva,
-        discount: 0,
-        total: ligne.totalHT
-      })),
-      client,
-      company,
-      settings
-    };
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F9FA] p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Chargement des devis...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -266,7 +147,7 @@ const QuotesPage = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">Devis</h1>
-            <p className="text-neutral-600">Gérez vos devis</p>
+            <p className="text-neutral-600">Gérez vos devis et propositions commerciales</p>
           </div>
           <Button 
             onClick={handleCreateQuote}
@@ -275,6 +156,57 @@ const QuotesPage = () => {
             <Plus size={20} className="mr-2" />
             Créer un devis
           </Button>
+        </div>
+
+        {/* Statistiques */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-neutral-600">Total devis</p>
+                  <p className="text-2xl font-bold text-neutral-900">{stats.total}</p>
+                </div>
+                <FileText className="h-8 w-8 text-[#6A9C89]" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-neutral-600">En attente</p>
+                  <p className="text-2xl font-bold text-orange-600">{stats.pending}</p>
+                </div>
+                <Clock className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-neutral-600">Acceptés</p>
+                  <p className="text-2xl font-bold text-success">{stats.accepted}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-success" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-neutral-600">Valeur totale</p>
+                  <p className="text-2xl font-bold text-neutral-900">{formatCurrency(stats.totalValue)}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-[#6A9C89]" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filtres */}
@@ -311,8 +243,8 @@ const QuotesPage = () => {
                 <TableRow>
                   <TableHead>Numéro</TableHead>
                   <TableHead>Client</TableHead>
-                  <TableHead>Date Création</TableHead>
-                  <TableHead>Date Validité</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Validité</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Montant HT</TableHead>
                   <TableHead>Montant TTC</TableHead>
@@ -325,38 +257,41 @@ const QuotesPage = () => {
                     <TableCell>
                       <div className="flex items-center">
                         <FileText size={16} className="mr-2 text-[#6A9C89]" />
-                        <span className="font-medium">{quote.numero}</span>
+                        <span className="font-medium">{quote.quote_number}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">{quote.clientNom}</span>
+                      <div>
+                        <span className="font-medium">{quote.clients?.name}</span>
+                        {quote.clients?.company && (
+                          <div className="text-sm text-neutral-500">{quote.clients.company}</div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {formatDate(quote.dateCreation)}
+                      {formatDate(quote.date)}
                     </TableCell>
                     <TableCell>
-                      {formatDate(quote.dateValidite)}
+                      {quote.valid_until ? formatDate(quote.valid_until) : 'N/A'}
                     </TableCell>
                     <TableCell>
-                      {getStatutBadge(quote.statut)}
+                      {getStatutBadge(quote.status)}
                     </TableCell>
                     <TableCell>
-                      {formatCurrency(quote.montantHT)}
+                      {formatCurrency(quote.subtotal || 0)}
                     </TableCell>
                     <TableCell>
-                      {formatCurrency(quote.montantTTC)}
+                      {formatCurrency(quote.total_amount || 0)}
                     </TableCell>
-                    {/* Actions pour chaque devis */}
                     <TableCell className="text-right">
                       <QuoteActionsMenu
-                        quote={convertQuoteFormat(quote)}
-                        pdfComponent={<QuotePDF {...getPDFData(quote)} />}
+                        quote={quote}
                         onView={() => handleViewQuote(quote)}
                         onEdit={() => handleEditQuote(quote)}
-                        onConvertToInvoice={() => handleConvertToInvoice(quote)}
                         onDuplicate={() => handleDuplicateQuote(quote)}
+                        onConvertToInvoice={() => handleConvertToInvoice(quote)}
+                        onStatusChange={(status) => handleStatusChange(quote, status)}
                         onDelete={() => handleDeleteQuote(quote)}
-                        onStatusChange={(newStatus) => handleStatusChange(quote, newStatus)}
                         onEmailSent={handleEmailSent}
                       />
                     </TableCell>
@@ -365,7 +300,7 @@ const QuotesPage = () => {
                 {filteredQuotes.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
-                      Aucun devis trouvé
+                      {quotes.length === 0 ? 'Aucun devis trouvé. Créez votre premier devis !' : 'Aucun devis ne correspond à votre recherche'}
                     </TableCell>
                   </TableRow>
                 )}
@@ -376,7 +311,7 @@ const QuotesPage = () => {
 
         {/* Modal */}
         <QuoteModal
-          open={isModalOpen}
+          isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           quote={selectedQuote}
           onSave={(data) => {
@@ -389,4 +324,4 @@ const QuotesPage = () => {
   );
 };
 
-export default QuotesPage;
+export default Quotes;

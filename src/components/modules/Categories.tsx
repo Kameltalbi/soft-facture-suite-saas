@@ -1,10 +1,9 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Filter, Tag, Package, Wrench } from 'lucide-react';
+import { Plus, Search, Tag, Palette, Hash, Calendar } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -13,276 +12,174 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { CategoryModal } from '@/components/modals/CategoryModal';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { useCategories } from '@/hooks/useCategories';
 
-interface Category {
-  id: string;
-  nom: string;
-  description: string;
-  type: 'produit' | 'service';
-  visible_public: boolean;
-  usage_count: number;
-  tenant_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-const mockCategories: Category[] = [
-  {
-    id: '1',
-    nom: 'Services',
-    description: 'Prestations de service générales',
-    type: 'service',
-    visible_public: true,
-    usage_count: 3,
-    tenant_id: 'tenant1',
-    created_at: '2024-01-15T10:00:00Z',
-    updated_at: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    nom: 'Informatique',
-    description: 'Matériel informatique et accessoires',
-    type: 'produit',
-    visible_public: true,
-    usage_count: 2,
-    tenant_id: 'tenant1',
-    created_at: '2024-01-16T10:00:00Z',
-    updated_at: '2024-01-16T10:00:00Z'
-  },
-  {
-    id: '3',
-    nom: 'Formation',
-    description: 'Formations techniques et professionnelles',
-    type: 'service',
-    visible_public: false,
-    usage_count: 1,
-    tenant_id: 'tenant1',
-    created_at: '2024-01-17T10:00:00Z',
-    updated_at: '2024-01-17T10:00:00Z'
-  },
-  {
-    id: '4',
-    nom: 'Accessoires',
-    description: 'Accessoires et petits équipements',
-    type: 'produit',
-    visible_public: true,
-    usage_count: 1,
-    tenant_id: 'tenant1',
-    created_at: '2024-01-18T10:00:00Z',
-    updated_at: '2024-01-18T10:00:00Z'
-  }
-];
-
-export function Categories() {
-  const { toast } = useToast();
+const Categories = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categories, setCategories] = useState<Category[]>(mockCategories);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const { categories, loading, createCategory } = useCategories();
 
-  // Filtrage des catégories
-  const filteredCategories = categories.filter(category => {
-    const matchesSearch = 
-      category.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = typeFilter === 'all' || category.type === typeFilter;
-    
-    return matchesSearch && matchesType;
-  });
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    category.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Statistiques
-  const stats = {
-    total: categories.length,
-    produits: categories.filter(c => c.type === 'produit').length,
-    services: categories.filter(c => c.type === 'service').length,
-    publiques: categories.filter(c => c.visible_public).length
-  };
-
-  const handleNewCategory = () => {
+  const handleAddCategory = () => {
     setEditingCategory(null);
-    setShowCategoryModal(true);
+    setShowModal(true);
   };
 
-  const handleEditCategory = (category: Category) => {
+  const handleEditCategory = (category) => {
     setEditingCategory(category);
-    setShowCategoryModal(true);
+    setShowModal(true);
   };
 
-  const handleSaveCategory = (categoryData: any) => {
-    if (editingCategory) {
-      // Mode édition
-      setCategories(prev => 
-        prev.map(cat => 
-          cat.id === editingCategory.id 
-            ? { ...cat, ...categoryData, updated_at: new Date().toISOString() }
-            : cat
-        )
-      );
-      toast({
-        title: "Catégorie modifiée",
-        description: `La catégorie "${categoryData.nom}" a été modifiée avec succès.`,
-      });
-    } else {
-      // Mode création
-      const newCategory: Category = {
-        id: Date.now().toString(),
-        ...categoryData,
-        usage_count: 0,
-        tenant_id: 'tenant1',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      setCategories(prev => [...prev, newCategory]);
-      toast({
-        title: "Catégorie créée",
-        description: `La catégorie "${categoryData.nom}" a été créée avec succès.`,
-      });
+  const handleSaveCategory = async (data) => {
+    await createCategory(data);
+    setShowModal(false);
+  };
+
+  const handleDeleteCategory = (id) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+      console.log('Deleting category:', id);
     }
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    if (!category) return;
-
-    if (category.usage_count > 0) {
-      toast({
-        title: "Suppression impossible",
-        description: `Cette catégorie est utilisée par ${category.usage_count} élément(s). Veuillez d'abord modifier ces éléments.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setCategories(prev => prev.filter(c => c.id !== categoryId));
-    toast({
-      title: "Catégorie supprimée",
-      description: `La catégorie "${category.nom}" a été supprimée avec succès.`,
-    });
+  const handleViewCategory = (category) => {
+    console.log('Viewing category:', category);
   };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR');
+  };
+
+  const stats = {
+    totalCategories: categories.length,
+    activeCategories: categories.filter(c => c.active).length,
+    colors: new Set(categories.map(c => c.color)).size,
+    recentCategories: categories.filter(c => {
+      const createdDate = new Date(c.created_at);
+      const now = new Date();
+      const diffTime = Math.abs(now - createdDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays <= 7;
+    }).length
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Chargement des catégories...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
-      {/* En-tête */}
+    <div className="p-6 space-y-6 bg-[#F7F9FA] min-h-screen">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Gestion des catégories</h1>
-          <p className="text-neutral-600 mt-1">Organisez vos produits et services par catégories</p>
+          <h1 className="text-3xl font-bold tracking-tight">Catégories</h1>
+          <p className="text-muted-foreground">
+            Organisez vos produits par catégories
+          </p>
         </div>
 
-        <Button 
-          onClick={handleNewCategory}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus size={16} className="mr-2" />
-          Nouvelle catégorie
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-80">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+            <Input
+              placeholder="Rechercher une catégorie..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white border-neutral-200"
+            />
+          </div>
+
+          <Button 
+            onClick={handleAddCategory}
+            className="bg-[#6A9C89] hover:bg-[#5a8473]"
+          >
+            <Plus size={16} className="mr-2" />
+            Ajouter une catégorie
+          </Button>
+        </div>
       </div>
 
-      {/* Statistiques rapides */}
+      {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Total</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.total}</p>
+                <p className="text-sm text-neutral-600">Total catégories</p>
+                <p className="text-2xl font-bold text-neutral-900">{stats.totalCategories}</p>
               </div>
-              <Tag className="h-8 w-8 text-primary" />
+              <Tag className="h-8 w-8 text-[#6A9C89]" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Produits</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.produits}</p>
+                <p className="text-sm text-neutral-600">Catégories actives</p>
+                <p className="text-2xl font-bold text-success">{stats.activeCategories}</p>
               </div>
-              <Package className="h-8 w-8 text-blue-600" />
+              <Hash className="h-8 w-8 text-success" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Services</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.services}</p>
+                <p className="text-sm text-neutral-600">Couleurs utilisées</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.colors}</p>
               </div>
-              <Wrench className="h-8 w-8 text-green-600" />
+              <Palette className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Publiques</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.publiques}</p>
+                <p className="text-sm text-neutral-600">Nouvelles (7j)</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.recentCategories}</p>
               </div>
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-purple-600 font-bold">👁</span>
-              </div>
+              <Calendar className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtres */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Recherche */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-              <Input
-                placeholder="Rechercher une catégorie..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-neutral-200"
-              />
-            </div>
-
-            {/* Filtre par type */}
-            <div className="w-full sm:w-48">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="bg-white border-neutral-200">
-                  <SelectValue placeholder="Filtrer par type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les types</SelectItem>
-                  <SelectItem value="produit">Produits</SelectItem>
-                  <SelectItem value="service">Services</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Tableau des catégories */}
       <Card>
-        <CardHeader>
-          <CardTitle>Catégories ({filteredCategories.length})</CardTitle>
-          <CardDescription>
-            Gérez les catégories de vos produits et services
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nom</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Utilisation</TableHead>
-                <TableHead>Visibilité</TableHead>
+                <TableHead>Couleur</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Date de création</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -290,116 +187,87 @@ export function Categories() {
               {filteredCategories.map((category) => (
                 <TableRow key={category.id} className="hover:bg-neutral-50">
                   <TableCell>
-                    <div className="font-medium text-neutral-900">{category.nom}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-neutral-500 max-w-xs truncate">
-                      {category.description || 'Aucune description'}
+                    <div className="flex items-center">
+                      <div 
+                        className="w-4 h-4 rounded-full mr-3"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span className="font-medium text-neutral-900">{category.name}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={category.type === 'produit' ? 'default' : 'secondary'}>
-                      {category.type === 'produit' ? 'Produit' : 'Service'}
+                    <span className="text-sm text-neutral-600">
+                      {category.description || 'Aucune description'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <div 
+                        className="w-6 h-6 rounded border mr-2"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span className="text-sm font-mono">{category.color}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={category.active ? 'default' : 'secondary'}>
+                      {category.active ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-sm font-medium">{category.usage_count}</span>
-                      <span className="text-xs text-neutral-500">élément(s)</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {category.visible_public ? (
-                      <Badge variant="outline" className="text-green-700 border-green-200">
-                        Publique
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-neutral-500">
-                        Privée
-                      </Badge>
-                    )}
+                    <span className="text-sm text-neutral-600">
+                      {formatDate(category.created_at)}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditCategory(category)}
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Êtes-vous sûr de vouloir supprimer la catégorie "{category.nom}" ?
-                              {category.usage_count > 0 && (
-                                <span className="text-destructive block mt-2">
-                                  ⚠️ Cette catégorie est utilisée par {category.usage_count} élément(s). 
-                                  La suppression sera bloquée.
-                                </span>
-                              )}
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteCategory(category.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Supprimer
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewCategory(category)}>
+                          <Eye size={16} className="mr-2" />
+                          Voir les détails
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditCategory(category)}>
+                          <Edit size={16} className="mr-2" />
+                          Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteCategory(category.id)}
+                          className="text-destructive"
+                        >
+                          <Trash2 size={16} className="mr-2" />
+                          Supprimer
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredCategories.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
+                    {categories.length === 0 ? 'Aucune catégorie trouvée. Ajoutez votre première catégorie !' : 'Aucune catégorie ne correspond à votre recherche'}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
-
-          {filteredCategories.length === 0 && (
-            <div className="text-center py-8">
-              <Tag className="mx-auto h-12 w-12 text-neutral-400" />
-              <h3 className="mt-2 text-sm font-medium text-neutral-900">Aucune catégorie</h3>
-              <p className="mt-1 text-sm text-neutral-500">
-                {searchTerm || typeFilter !== 'all' 
-                  ? 'Aucune catégorie ne correspond à vos critères de recherche.'
-                  : 'Commencez par créer une nouvelle catégorie.'
-                }
-              </p>
-              {(!searchTerm && typeFilter === 'all') && (
-                <div className="mt-6">
-                  <Button onClick={handleNewCategory}>
-                    <Plus size={16} className="mr-2" />
-                    Nouvelle catégorie
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Modal de catégorie */}
-      <CategoryModal 
-        isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
-        category={editingCategory}
+      {/* Modal */}
+      <CategoryModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
         onSave={handleSaveCategory}
-        onDelete={handleDeleteCategory}
+        category={editingCategory}
       />
     </div>
   );
-}
+};
+
+export default Categories;

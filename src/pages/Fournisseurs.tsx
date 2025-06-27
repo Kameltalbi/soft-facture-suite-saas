@@ -64,7 +64,13 @@ const Fournisseurs = () => {
   };
 
   if (loading) {
-    return <div className="p-6">Chargement...</div>;
+    return (
+      <div className="min-h-screen bg-[#F7F9FA] p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Chargement des fournisseurs...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
