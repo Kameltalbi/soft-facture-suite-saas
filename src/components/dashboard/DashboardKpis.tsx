@@ -15,8 +15,9 @@ import {
   Package,
   TriangleAlert,
   Star,
-  Users
+  PieChart
 } from 'lucide-react';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface KpiData {
   totalInvoices: number;
@@ -30,7 +31,7 @@ interface KpiData {
   pendingOrders: number;
   lowStockProducts: number;
   topProduct: { name: string; revenue: number };
-  topClient: { name: string; revenue: number };
+  categorySales: Array<{ name: string; value: number; color: string }>;
 }
 
 interface DashboardKpisProps {
@@ -58,11 +59,40 @@ const MiniBarChart = ({ value, max }: { value: number; max: number }) => (
   </div>
 );
 
+const MiniPieChart = ({ data }: { data: Array<{ name: string; value: number; color: string }> }) => (
+  <div className="w-20 h-20">
+    <ResponsiveContainer width="100%" height="100%">
+      <RechartsPieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={12}
+          outerRadius={30}
+          dataKey="value"
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Pie>
+        <Tooltip 
+          contentStyle={{
+            backgroundColor: 'white',
+            border: '1px solid #E2E8F0',
+            borderRadius: '8px',
+            fontSize: '11px'
+          }}
+          formatter={(value: number) => [`${value.toLocaleString('fr-FR')} €`, 'CA']}
+        />
+      </RechartsPieChart>
+    </ResponsiveContainer>
+  </div>
+);
+
 export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
   const { currency } = useCurrency();
   
   const sparklineData = [12, 19, 15, 25, 22, 30, 28];
-  const clientSparklineData = [8, 12, 18, 15, 22, 25, 20];
   
   const kpis = [
     {
@@ -191,18 +221,16 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       miniBar: true
     },
     {
-      title: 'Top client du mois',
-      value: data.topClient.revenue,
-      label: data.topClient.name,
-      icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      title: 'CA par catégorie',
+      value: data.categorySales.reduce((sum, cat) => sum + cat.value, 0),
+      icon: PieChart,
+      color: 'text-[#648B78]',
+      bgColor: 'bg-green-50',
       cardBg: 'bg-white',
       format: 'currency',
-      evolution: '+24.8%',
+      evolution: '+15.4%',
       evolutionPositive: true,
-      sparkline: clientSparklineData,
-      sparklineColor: '#3B82F6'
+      miniPie: data.categorySales
     }
   ];
 
@@ -284,11 +312,14 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
                     {kpi.sparkline && (
                       <SparklineChart 
                         data={kpi.sparkline} 
-                        color={kpi.sparklineColor || '#648B78'} 
+                        color={'#648B78'} 
                       />
                     )}
                     {kpi.miniBar && (
                       <MiniBarChart value={kpi.value} max={50000} />
+                    )}
+                    {kpi.miniPie && (
+                      <MiniPieChart data={kpi.miniPie} />
                     )}
                   </div>
                 </div>

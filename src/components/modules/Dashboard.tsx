@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
@@ -20,7 +19,12 @@ const generateMockData = (year: number, month: number) => {
     pendingOrders: 12,
     lowStockProducts: 8,
     topProduct: { name: 'Consultation Web', revenue: 45000 },
-    topClient: { name: 'TechCorp SARL', revenue: 32000 }
+    categorySales: [
+      { name: 'Services', value: 85000, color: '#648B78' },
+      { name: 'Produits', value: 45000, color: '#F59E0B' },
+      { name: 'Formation', value: 32000, color: '#EF4444' },
+      { name: 'Conseil', value: 28000, color: '#10B981' }
+    ]
   };
 
   const chartData = {
