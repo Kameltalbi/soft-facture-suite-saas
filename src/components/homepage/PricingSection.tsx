@@ -70,7 +70,7 @@ export function PricingSection() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center mb-6">
-                <p className="text-gray-600">1 utilisateur</p>
+                <p className="text-gray-600">3 utilisateurs</p>
               </div>
               <ul className="space-y-3">
                 <li className="flex items-center">
@@ -109,7 +109,7 @@ export function PricingSection() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center mb-6">
-                <p className="text-gray-600">Tout le plan Essentiel +</p>
+                <p className="text-gray-600">5 utilisateurs - Tout le plan Essentiel +</p>
               </div>
               <ul className="space-y-3">
                 <li className="flex items-center">
