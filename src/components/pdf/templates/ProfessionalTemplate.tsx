@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -18,11 +17,19 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   leftHeader: {
-    width: '60%',
+    width: '50%',
   },
   rightHeader: {
-    width: '40%',
+    width: '50%',
     alignItems: 'flex-end',
+  },
+  logoContainer: {
+    marginBottom: 15,
+  },
+  logo: {
+    width: 55,
+    height: 41,
+    objectFit: 'contain',
   },
   companyName: {
     fontSize: 18,
@@ -210,6 +217,11 @@ export const ProfessionalTemplate = ({
     <Page size="A4" style={styles.page}>
       <View style={styles.headerSection}>
         <View style={styles.leftHeader}>
+          {company.logo && (
+            <View style={styles.logoContainer}>
+              <Image style={styles.logo} src={company.logo} />
+            </View>
+          )}
           <Text style={styles.companyName}>{company.name}</Text>
           <Text style={styles.companyDetails}>{company.address}</Text>
           <Text style={styles.companyDetails}>Téléphone : {company.phone}</Text>

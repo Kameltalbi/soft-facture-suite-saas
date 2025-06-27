@@ -1,5 +1,6 @@
 
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LineItem {
   id: string;
@@ -21,6 +22,8 @@ interface InvoiceData {
 }
 
 export const usePDFGeneration = () => {
+  const { organization } = useAuth();
+
   const generateInvoicePDF = (
     invoiceData: InvoiceData,
     lineItems: LineItem[],
@@ -34,18 +37,19 @@ export const usePDFGeneration = () => {
       email: 'contact@abc-solutions.fr'
     };
 
-    const mockCompany = {
-      name: 'Soft Facture',
-      address: '456 Avenue de la République, 69000 Lyon',
-      email: 'contact@softfacture.fr',
-      phone: '04 72 00 00 00'
+    const companyData = {
+      name: organization?.name || 'Soft Facture',
+      address: organization?.address || '456 Avenue de la République, 69000 Lyon',
+      email: organization?.email || 'contact@softfacture.fr',
+      phone: organization?.phone || '04 72 00 00 00',
+      logo: organization?.logo_url
     };
 
     return {
       invoiceData,
       lineItems,
       client: mockClient,
-      company: mockCompany,
+      company: companyData,
       settings
     };
   };

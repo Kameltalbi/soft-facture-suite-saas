@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -20,6 +19,23 @@ const styles = StyleSheet.create({
     marginRight: -40,
     marginTop: -30,
     position: 'relative',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logoSection: {
+    width: '20%',
+  },
+  logo: {
+    width: 50,
+    height: 37,
+    objectFit: 'contain',
+  },
+  titleSection: {
+    width: '60%',
+    alignItems: 'center',
   },
   headerAccent: {
     position: 'absolute',
@@ -206,8 +222,20 @@ export const ModernTemplate = ({
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
         <View style={styles.headerAccent} />
-        <Text style={styles.title}>{documentType}</Text>
-        <Text style={styles.subtitle}>N° {invoiceData.number}</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.logoSection}>
+            {company.logo && (
+              <Image style={styles.logo} src={company.logo} />
+            )}
+          </View>
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>{documentType}</Text>
+            <Text style={styles.subtitle}>N° {invoiceData.number}</Text>
+          </View>
+          <View style={styles.logoSection}>
+            {/* Espace pour équilibrer le layout */}
+          </View>
+        </View>
       </View>
 
       <View style={styles.mainContent}>

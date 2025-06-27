@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
@@ -17,6 +16,25 @@ const styles = StyleSheet.create({
     borderBottom: '2pt solid #8B4513',
     paddingBottom: 20,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  logoSection: {
+    width: '25%',
+    alignItems: 'flex-start',
+  },
+  logo: {
+    width: 60,
+    height: 45,
+    objectFit: 'contain',
+  },
+  titleSection: {
+    width: '50%',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -25,6 +43,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textTransform: 'uppercase',
     letterSpacing: 2,
+  },
+  ornament: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#8B4513',
+    marginBottom: 10,
   },
   companyInfo: {
     flexDirection: 'row',
@@ -173,8 +197,20 @@ export const ClassicTemplate = ({
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
-        <Text style={styles.ornament}>❦ ❦ ❦</Text>
-        <Text style={styles.title}>{documentType}</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.logoSection}>
+            {company.logo && (
+              <Image style={styles.logo} src={company.logo} />
+            )}
+          </View>
+          <View style={styles.titleSection}>
+            <Text style={styles.ornament}>❦ ❦ ❦</Text>
+            <Text style={styles.title}>{documentType}</Text>
+          </View>
+          <View style={styles.logoSection}>
+            {/* Espace pour équilibrer le layout */}
+          </View>
+        </View>
       </View>
 
       <View style={styles.companyInfo}>
