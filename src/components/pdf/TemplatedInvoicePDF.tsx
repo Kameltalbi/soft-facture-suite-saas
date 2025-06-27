@@ -14,17 +14,20 @@ interface TemplatedInvoicePDFProps {
 
 export const TemplatedInvoicePDF = ({ 
   template = 'classic',
+  documentType = 'FACTURE',
   ...props 
 }: TemplatedInvoicePDFProps) => {
+  const templateProps = { ...props, documentType };
+  
   switch (template) {
     case 'modern':
-      return <ModernTemplate {...props} />;
+      return <ModernTemplate {...templateProps} />;
     case 'minimal':
-      return <MinimalTemplate {...props} />;
+      return <MinimalTemplate {...templateProps} />;
     case 'professional':
-      return <ProfessionalTemplate {...props} />;
+      return <ProfessionalTemplate {...templateProps} />;
     case 'classic':
     default:
-      return <ClassicTemplate {...props} />;
+      return <ClassicTemplate {...templateProps} />;
   }
 };
