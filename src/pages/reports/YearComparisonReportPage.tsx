@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ReportFilters } from '@/components/reports/ReportFilters';
 import { YearComparisonReport } from '@/components/reports/YearComparisonReport';
 import { useReportExport } from '@/hooks/useReportExport';
 
 const YearComparisonReportPage = () => {
+  const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [periodType, setPeriodType] = useState<'monthly' | 'custom'>('monthly');
@@ -58,7 +60,12 @@ const YearComparisonReportPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={() => window.history.back()}>
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/reports')}
+          style={{ borderColor: '#D96C4F', color: '#D96C4F' }}
+          className="hover:bg-[#D96C4F] hover:text-white"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Retour
         </Button>
