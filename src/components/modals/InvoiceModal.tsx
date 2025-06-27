@@ -47,14 +47,14 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   
   // Mock clients for search
   const mockClients = [
-    { id: '1', name: 'Client Premium', company: 'Premium Corp', address: '123 Rue de la Paix, 75001 Paris', email: 'contact@premium.fr' },
-    { id: '2', name: 'Entreprise ABC', company: 'ABC Solutions', address: '456 Avenue République, 69000 Lyon', email: 'info@abc.fr' },
-    { id: '3', name: 'Société Tech', company: 'Tech Innovation', address: '789 Boulevard Tech, 31000 Toulouse', email: 'hello@tech.fr' }
+    { id: '1', name: 'Client ABC', company: 'ABC SARL', address: 'Espace Tunis immeuble H. Bureau B3-1\nMontplaisir 1073 Tunis', email: 'contact@abc-sarl.info', phone: '+216 55 053 505' },
+    { id: '2', name: 'Entreprise XYZ', company: 'XYZ Solutions', address: '456 Avenue République, 69000 Lyon', email: 'info@xyz.fr', phone: '+33 4 72 00 00 00' },
+    { id: '3', name: 'Société Tech', company: 'Tech Innovation', address: '789 Boulevard Tech, 31000 Toulouse', email: 'hello@tech.fr', phone: '+33 5 61 00 00 00' }
   ];
   
   // Mock products for search
   const mockProducts = [
-    { id: '1', name: 'Consultation', price: 150, vat: 20 },
+    { id: '1', name: 'Prestation de conseil', price: 60, vat: 20 },
     { id: '2', name: 'Développement web', price: 80, vat: 20 },
     { id: '3', name: 'Formation', price: 120, vat: 20 }
   ];
@@ -131,49 +131,68 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
         <div className="space-y-6">
           {/* Header avec logo et infos organisation */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-4">
-                  {organization?.logo_url && (
-                    <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
-                  )}
-                  <div>
-                    <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
-                    <p className="text-sm text-gray-600">{organization?.address || user?.user_metadata?.company_address}</p>
-                    <p className="text-sm text-gray-600">{organization?.email || user?.email}</p>
-                    <p className="text-sm text-gray-600">{organization?.phone || user?.user_metadata?.company_phone}</p>
+                <div className="flex items-start space-x-4">
+                  {/* Logo de l'organisation */}
+                  <div className="flex-shrink-0">
+                    {organization?.logo_url ? (
+                      <img 
+                        src={organization.logo_url} 
+                        alt="Logo organisation" 
+                        className="h-20 w-20 object-contain border rounded-lg p-2"
+                      />
+                    ) : (
+                      <div className="h-20 w-20 bg-gray-100 border rounded-lg flex items-center justify-center">
+                        <Building2 className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Informations de l'organisation */}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}
+                    </h3>
+                    <div className="mt-2 text-sm text-gray-600 space-y-1">
+                      <p>{organization?.address || user?.user_metadata?.company_address || 'Adresse de l\'entreprise'}</p>
+                      <p>{organization?.email || user?.email || 'email@entreprise.com'}</p>
+                      <p>{organization?.phone || user?.user_metadata?.company_phone || 'Téléphone'}</p>
+                    </div>
                   </div>
                 </div>
+                
+                {/* Section FACTURE */}
                 <div className="text-right">
-                  <h2 className="text-2xl font-bold text-blue-600">FACTURE</h2>
-                  <div className="space-y-2 mt-2">
+                  <h2 className="text-3xl font-bold text-blue-600 mb-4">FACTURE</h2>
+                  <div className="space-y-3">
                     <div>
-                      <Label htmlFor="invoiceNumber">Numéro</Label>
+                      <Label htmlFor="invoiceNumber" className="text-sm font-medium">Numéro</Label>
                       <Input
                         id="invoiceNumber"
                         value={invoiceNumber}
                         onChange={(e) => setInvoiceNumber(e.target.value)}
-                        className="w-40"
+                        className="w-48 mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="invoiceDate">Date</Label>
+                      <Label htmlFor="invoiceDate" className="text-sm font-medium">Date</Label>
                       <Input
                         id="invoiceDate"
                         type="date"
                         value={invoiceDate}
                         onChange={(e) => setInvoiceDate(e.target.value)}
-                        className="w-40"
+                        className="w-48 mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="dueDate">Échéance</Label>
+                      <Label htmlFor="dueDate" className="text-sm font-medium">Échéance</Label>
                       <Input
                         id="dueDate"
                         type="date"
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className="w-40"
+                        className="w-48 mt-1"
                       />
                     </div>
                   </div>
@@ -185,7 +204,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           {/* Section Client */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg">
                 <User className="mr-2 h-5 w-5" />
                 Facturer à
               </CardTitle>
@@ -203,37 +222,42 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 </div>
                 
                 {clientSearch && !selectedClient && (
-                  <div className="border rounded-lg max-h-48 overflow-y-auto">
+                  <div className="border rounded-lg max-h-48 overflow-y-auto bg-white">
                     {filteredClients.map((client) => (
                       <div
                         key={client.id}
-                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                        className="p-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                         onClick={() => {
                           setSelectedClient(client);
                           setClientSearch('');
                         }}
                       >
-                        <div className="font-medium">{client.company}</div>
+                        <div className="font-semibold text-gray-900">{client.company}</div>
                         <div className="text-sm text-gray-600">{client.name}</div>
-                        <div className="text-sm text-gray-500">{client.address}</div>
+                        <div className="text-sm text-gray-500 mt-1 whitespace-pre-line">{client.address}</div>
+                        <div className="text-sm text-gray-500">{client.email}</div>
                       </div>
                     ))}
                   </div>
                 )}
                 
                 {selectedClient && (
-                  <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold">{selectedClient.company}</h4>
-                        <p className="text-sm text-gray-600">{selectedClient.name}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.address}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.email}</p>
+                        <h4 className="font-semibold text-blue-900">{selectedClient.company}</h4>
+                        <p className="text-sm text-blue-700">{selectedClient.name}</p>
+                        <p className="text-sm text-blue-600 mt-1 whitespace-pre-line">{selectedClient.address}</p>
+                        <p className="text-sm text-blue-600">{selectedClient.email}</p>
+                        {selectedClient.phone && (
+                          <p className="text-sm text-blue-600">{selectedClient.phone}</p>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedClient(null)}
+                        className="text-blue-600 hover:text-blue-800"
                       >
                         Changer
                       </Button>
@@ -244,11 +268,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardContent>
           </Card>
 
-          {/* Table des produits */}
+          {/* Articles / Services */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Articles / Services</CardTitle>
+                <CardTitle className="text-lg">Articles / Services</CardTitle>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -259,7 +283,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       className="pl-10 w-64"
                     />
                   </div>
-                  <Button onClick={addLineItem} size="sm">
+                  <Button onClick={addLineItem} size="sm" className="bg-green-600 hover:bg-green-700">
                     <Plus className="h-4 w-4 mr-1" />
                     Ajouter
                   </Button>
@@ -268,11 +292,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardHeader>
             <CardContent>
               {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
+                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto bg-white">
                   {filteredProducts.map((product) => (
                     <div
                       key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
+                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between items-center"
                       onClick={() => {
                         const newItem: LineItem = {
                           id: Date.now().toString(),
@@ -286,8 +310,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         setProductSearch('');
                       }}
                     >
-                      <span>{product.name}</span>
-                      <span className="text-sm text-gray-500">{product.price}€</span>
+                      <span className="font-medium">{product.name}</span>
+                      <span className="text-sm text-gray-500 font-medium">{product.price.toFixed(2)} €</span>
                     </div>
                   ))}
                 </div>
@@ -295,13 +319,13 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
               
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40%]">Description</TableHead>
-                    <TableHead className="w-[15%] text-center">Quantité</TableHead>
-                    <TableHead className="w-[15%] text-right">Prix unitaire HT</TableHead>
-                    <TableHead className="w-[15%] text-center">TVA</TableHead>
-                    <TableHead className="w-[15%] text-right">Total HT</TableHead>
-                    <TableHead className="w-[5%]"></TableHead>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="w-[40%] font-semibold">Description</TableHead>
+                    <TableHead className="w-[12%] text-center font-semibold">Qté</TableHead>
+                    <TableHead className="w-[15%] text-right font-semibold">P.U. HT</TableHead>
+                    <TableHead className="w-[12%] text-center font-semibold">TVA</TableHead>
+                    <TableHead className="w-[15%] text-right font-semibold">Total HT</TableHead>
+                    <TableHead className="w-[6%]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -312,6 +336,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           value={item.description}
                           onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
                           placeholder="Description du produit/service"
+                          className="border-0 bg-transparent p-0 focus-visible:ring-0"
                         />
                       </TableCell>
                       <TableCell>
@@ -319,7 +344,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           type="number"
                           value={item.quantity}
                           onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                          className="text-center"
+                          className="text-center border-0 bg-transparent p-0 focus-visible:ring-0"
                           min="0"
                           step="0.1"
                         />
@@ -329,7 +354,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           type="number"
                           value={item.unitPrice}
                           onChange={(e) => updateLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          className="text-right"
+                          className="text-right border-0 bg-transparent p-0 focus-visible:ring-0"
                           min="0"
                           step="0.01"
                         />
@@ -339,12 +364,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           type="number"
                           value={item.vatRate}
                           onChange={(e) => updateLineItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
-                          className="text-center"
+                          className="text-center border-0 bg-transparent p-0 focus-visible:ring-0"
                           min="0"
                           max="100"
                         />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-semibold">
                         {item.total.toFixed(2)} €
                       </TableCell>
                       <TableCell>
@@ -353,6 +378,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           size="sm"
                           onClick={() => removeLineItem(item.id)}
                           disabled={lineItems.length === 1}
+                          className="p-1 h-auto"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
@@ -367,22 +393,19 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           {/* Section Totaux */}
           <div className="flex justify-end">
             <Card className="w-80">
-              <CardHeader>
-                <CardTitle>Totaux</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
                     <span>Sous-total HT:</span>
                     <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm">
                     <span>TVA:</span>
                     <span className="font-medium">{totalVAT.toFixed(2)} €</span>
                   </div>
-                  <div className="border-t pt-2">
+                  <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Total TTC:</span>
+                      <span>TOTAL TTC:</span>
                       <span className="text-blue-600">{totalTTC.toFixed(2)} €</span>
                     </div>
                   </div>
@@ -394,20 +417,20 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           {/* Notes */}
           <Card>
             <CardHeader>
-              <CardTitle>Notes</CardTitle>
+              <CardTitle className="text-lg">Notes</CardTitle>
             </CardHeader>
             <CardContent>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Notes additionnelles..."
-                className="w-full h-24 p-3 border rounded-md resize-none"
+                className="w-full h-24 p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </CardContent>
           </Card>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end space-x-3 pt-4">
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
