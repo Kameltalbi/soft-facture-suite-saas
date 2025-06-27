@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,12 +14,13 @@ import { User } from '@/types/settings';
 interface UserManagementProps {
   users: User[];
   roles: string[];
+  currentUserRole?: string;
   onCreateUser: (email: string, password: string, firstName: string, lastName: string, role: string) => void;
   onUpdateUserRole: (userId: string, role: string) => void;
   onDeleteUser: (userId: string) => void;
 }
 
-export function UserManagement({ users, roles, onCreateUser, onUpdateUserRole, onDeleteUser }: UserManagementProps) {
+export function UserManagement({ users, roles, currentUserRole, onCreateUser, onUpdateUserRole, onDeleteUser }: UserManagementProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [userData, setUserData] = useState({
     email: '',
@@ -59,6 +61,26 @@ export function UserManagement({ users, roles, onCreateUser, onUpdateUserRole, o
       default:
         return <Badge variant="outline">{role}</Badge>;
     }
+  };
+
+  // Filter roles for creation - only superadmin can create superadmin
+  const getAvailableRoles = () => {
+    if (currentUserRole === 'superadmin') {
+      return roles;
+    }
+    return roles.filter(role => role !== 'superadmin');
+  };
+
+  // Filter roles for updates - same logic
+  const getUpdatableRoles = (targetUserRole: string) => {
+    if (currentUserRole === 'superadmin') {
+      return roles;
+    }
+    // Admin cannot update to/from superadmin
+    if (targetUserRole === 'superadmin') {
+      return [targetUserRole]; // Can't change superadmin role if you're not superadmin
+    }
+    return roles.filter(role => role !== 'superadmin');
   };
 
   return (
@@ -146,7 +168,7 @@ export function UserManagement({ users, roles, onCreateUser, onUpdateUserRole, o
                       <SelectValue placeholder="Sélectionnez un rôle" />
                     </SelectTrigger>
                     <SelectContent>
-                      {roles.map((role) => (
+                      {getAvailableRoles().map((role) => (
                         <SelectItem key={role} value={role}>
                           {role === 'superadmin' ? 'Super Admin' : 
                            role === 'admin' ? 'Admin' : 
@@ -197,7 +219,7 @@ export function UserManagement({ users, roles, onCreateUser, onUpdateUserRole, o
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {getUpdatableRoles(user.role).map((role) => (
                           <SelectItem key={role} value={role}>
                             {role === 'superadmin' ? 'Super Admin' : 
                              role === 'admin' ? 'Admin' : 

@@ -380,6 +380,7 @@ export default function Settings() {
           <UserManagement
             users={users}
             roles={['user', 'admin', 'superadmin']}
+            currentUserRole={profile?.role}
             onCreateUser={handleCreateUser}
             onUpdateUserRole={handleUpdateUserRole}
             onDeleteUser={handleDeleteUser}
