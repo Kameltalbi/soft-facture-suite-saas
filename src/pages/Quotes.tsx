@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
-import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
+import { QuoteActionsMenu } from '@/components/quote/QuoteActionsMenu';
 import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
 import { Quote } from '@/types/quote';
 import { useAuth } from '@/hooks/useAuth';
@@ -156,12 +156,16 @@ const QuotesPage = () => {
     console.log('Sending email:', emailData);
   };
 
+  const handleStatusChange = (quote: Quote, newStatus: string) => {
+    console.log('Changing status for quote:', quote.numero, 'to:', newStatus);
+  };
+
   const getStatutBadge = (statut: Quote['statut']) => {
     const variants = {
       'brouillon': 'secondary',
       'en_attente': 'default',
       'validee': 'default',
-      'acceptee': 'success',
+      'acceptee': 'default',
       'refusee': 'destructive',
       'annulee': 'destructive'
     } as const;
@@ -203,6 +207,20 @@ const QuotesPage = () => {
     email: user?.email,
     phone: user?.user_metadata?.company_phone,
   };
+
+  // Convert Quote to QuoteActionsMenu format
+  const convertQuoteFormat = (quote: Quote) => ({
+    id: quote.id,
+    number: quote.numero,
+    client: quote.clientNom,
+    amount: quote.montantTTC,
+    status: quote.statut === 'brouillon' ? 'draft' as const :
+            quote.statut === 'en_attente' ? 'sent' as const :
+            quote.statut === 'acceptee' ? 'accepted' as const :
+            quote.statut === 'refusee' ? 'rejected' as const :
+            'expired' as const,
+    validUntil: quote.dateValidite
+  });
 
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -294,7 +312,7 @@ const QuotesPage = () => {
                     {/* Actions pour chaque devis */}
                     <TableCell className="text-right">
                       <QuoteActionsMenu
-                        quote={quote}
+                        quote={convertQuoteFormat(quote)}
                         pdfComponent={<TemplatedInvoicePDF 
                           invoiceData={{
                             number: quote.numero,
@@ -328,9 +346,10 @@ const QuotesPage = () => {
                         />}
                         onView={() => handleViewQuote(quote)}
                         onEdit={() => handleEditQuote(quote)}
-                        onConvert={() => handleConvertToInvoice(quote)}
+                        onConvertToInvoice={() => handleConvertToInvoice(quote)}
                         onDuplicate={() => handleDuplicateQuote(quote)}
                         onDelete={() => handleDeleteQuote(quote)}
+                        onStatusChange={(newStatus) => handleStatusChange(quote, newStatus)}
                         onEmailSent={handleEmailSent}
                       />
                     </TableCell>
