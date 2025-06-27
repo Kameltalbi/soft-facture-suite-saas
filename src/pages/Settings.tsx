@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { OrganizationSettings } from '@/components/settings/OrganizationSettings';
@@ -9,6 +9,8 @@ import { UserManagement } from '@/components/settings/UserManagement';
 import { RolePermissions } from '@/components/settings/RolePermissions';
 import { PdfTemplateSettings } from '@/components/settings/PdfTemplateSettings';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Organization,
   Currency,
@@ -19,24 +21,7 @@ import {
   Permission
 } from '@/types/settings';
 
-// Mock data - Replace with actual data fetching
-const mockOrganization: Organization = {
-  id: '1',
-  name: 'Soft Facture SARL',
-  address: '123 Avenue Habib Bourguiba, 1000 Tunis, Tunisie',
-  email: 'contact@softfacture.tn',
-  phone: '+216 71 123 456',
-  website: 'https://softfacture.tn',
-  rib: '12345678901234567890',
-  iban: 'TN59 1234 5678 9012 3456 7890',
-  swift: 'ABCDTNTT',
-  bank: 'Banque de Tunisie',
-  siret: '12345678901234',
-  fiscal_id: '1234567',
-  vat_code: 'TN1234567',
-  tenant_id: 'tenant1'
-};
-
+// Mock data for features not yet implemented with real data
 const mockCurrencies: Currency[] = [
   { id: '1', code: 'TND', symbol: 'د.ت', name: 'Dinar Tunisien', is_primary: true, tenant_id: 'tenant1' },
   { id: '2', code: 'EUR', symbol: '€', name: 'Euro', is_primary: false, tenant_id: 'tenant1' },
@@ -63,7 +48,6 @@ const mockRoles: Role[] = [
       dashboard: { read: true, write: true, delete: false },
       invoices: { read: true, write: true, delete: true },
       quotes: { read: true, write: true, delete: true },
-      // ... autres permissions
     },
     tenant_id: 'tenant1'
   },
@@ -74,7 +58,6 @@ const mockRoles: Role[] = [
       dashboard: { read: true, write: false, delete: false },
       invoices: { read: true, write: true, delete: false },
       quotes: { read: true, write: false, delete: false },
-      // ... autres permissions
     },
     tenant_id: 'tenant1'
   }
@@ -94,22 +77,85 @@ const mockGlobalSettings: GlobalSettings = {
 
 export default function Settings() {
   const { toast } = useToast();
+  const { organization, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('organization');
+  const [organizationData, setOrganizationData] = useState<Organization | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // State management - Replace with actual API calls
-  const [organization] = useState(mockOrganization);
+  // State management for mock data
   const [currencies] = useState(mockCurrencies);
   const [numberings] = useState(mockNumberings);
   const [users] = useState(mockUsers);
   const [roles] = useState(mockRoles);
   const [globalSettings] = useState(mockGlobalSettings);
 
-  const handleSaveOrganization = (data: Partial<Organization>) => {
-    console.log('Saving organization:', data);
-    toast({
-      title: 'Succès',
-      description: 'Informations de l\'organisation mises à jour avec succès.',
-    });
+  useEffect(() => {
+    if (organization) {
+      // Convert the organization from useAuth to the expected format
+      const convertedOrg: Organization = {
+        id: organization.id,
+        name: organization.name,
+        address: organization.address || '',
+        email: organization.email || '',
+        phone: organization.phone || '',
+        website: organization.website || '',
+        rib: '', // These fields might need to be added to the organizations table
+        iban: '',
+        swift: '',
+        bank: '',
+        siret: '',
+        fiscal_id: '',
+        vat_code: organization.vat_number || '',
+        logo: organization.logo_url || undefined,
+        tenant_id: organization.id // Using organization id as tenant_id
+      };
+      setOrganizationData(convertedOrg);
+    }
+    setLoading(false);
+  }, [organization]);
+
+  const handleSaveOrganization = async (data: Partial<Organization>) => {
+    if (!profile?.organization_id) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de trouver l\'organisation',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          name: data.name,
+          address: data.address,
+          email: data.email,
+          phone: data.phone,
+          website: data.website,
+          vat_number: data.vat_code,
+        })
+        .eq('id', profile.organization_id);
+
+      if (error) throw error;
+
+      // Update local state
+      if (organizationData) {
+        setOrganizationData({ ...organizationData, ...data });
+      }
+
+      toast({
+        title: 'Succès',
+        description: 'Informations de l\'organisation mises à jour avec succès.',
+      });
+    } catch (error) {
+      console.error('Error updating organization:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la mise à jour des informations.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleAddCurrency = (currency: Omit<Currency, 'id' | 'tenant_id'>) => {
@@ -192,6 +238,17 @@ export default function Settings() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
+          <p className="text-gray-600 mt-2">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -213,10 +270,16 @@ export default function Settings() {
         </TabsList>
 
         <TabsContent value="organization">
-          <OrganizationSettings
-            organization={organization}
-            onSave={handleSaveOrganization}
-          />
+          {organizationData ? (
+            <OrganizationSettings
+              organization={organizationData}
+              onSave={handleSaveOrganization}
+            />
+          ) : (
+            <Card className="p-6">
+              <p className="text-gray-500">Aucune organisation trouvée</p>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="currencies">
