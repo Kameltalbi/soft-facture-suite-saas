@@ -189,18 +189,8 @@ const numberToWords = (num: number): string => {
 
 export const AvoirPDF: React.FC<AvoirPDFProps> = ({
   avoirData,
-  client = {
-    name: avoirData.clientName,
-    company: avoirData.clientName,
-    address: '123 Rue de l\'Exemple, 75001 Paris',
-    email: 'contact@example.com'
-  },
-  company = {
-    name: 'Soft Facture',
-    address: '456 Avenue de la République, 69000 Lyon',
-    email: 'contact@softfacture.fr',
-    phone: '04 72 00 00 00'
-  },
+  client,
+  company,
   settings = {
     showVat: true,
     showDiscount: false,
@@ -208,6 +198,21 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
     amountInWords: true
   }
 }) => {
+  // Utilise les données de l'organisation passées en props ou des valeurs par défaut
+  const clientData = client || {
+    name: avoirData.clientName,
+    company: avoirData.clientName,
+    address: '123 Rue de l\'Exemple, 75001 Paris',
+    email: 'contact@example.com'
+  };
+
+  const companyData = company || {
+    name: 'Soft Facture',
+    address: '456 Avenue de la République, 69000 Lyon',
+    email: 'contact@softfacture.fr',
+    phone: '04 72 00 00 00'
+  };
+
   // Utilise les items de l'avoir ou crée un item par défaut
   const lineItems = avoirData.items || [
     {
@@ -240,16 +245,16 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View>
-            {company.logo && (
-              <Image style={styles.logo} src={company.logo} />
+            {companyData.logo && (
+              <Image style={styles.logo} src={companyData.logo} />
             )}
           </View>
           <View style={styles.companyInfo}>
             <Text style={styles.title}>AVOIR</Text>
-            <Text style={styles.text}>{company.name}</Text>
-            {company.address && <Text style={styles.text}>{company.address}</Text>}
-            {company.email && <Text style={styles.text}>{company.email}</Text>}
-            {company.phone && <Text style={styles.text}>{company.phone}</Text>}
+            <Text style={styles.text}>{companyData.name}</Text>
+            {companyData.address && <Text style={styles.text}>{companyData.address}</Text>}
+            {companyData.email && <Text style={styles.text}>{companyData.email}</Text>}
+            {companyData.phone && <Text style={styles.text}>{companyData.phone}</Text>}
           </View>
         </View>
 
@@ -257,12 +262,12 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
         <View style={styles.documentInfo}>
           <View style={styles.clientInfo}>
             <Text style={styles.sectionTitle}>AVOIR ÉMIS POUR :</Text>
-            <Text style={styles.text}>{client.name}</Text>
-            {client.company && client.company !== client.name && (
-              <Text style={styles.text}>{client.company}</Text>
+            <Text style={styles.text}>{clientData.name}</Text>
+            {clientData.company && clientData.company !== clientData.name && (
+              <Text style={styles.text}>{clientData.company}</Text>
             )}
-            {client.address && <Text style={styles.text}>{client.address}</Text>}
-            {client.email && <Text style={styles.text}>{client.email}</Text>}
+            {clientData.address && <Text style={styles.text}>{clientData.address}</Text>}
+            {clientData.email && <Text style={styles.text}>{clientData.email}</Text>}
           </View>
           <View style={styles.avoirDetails}>
             <Text style={styles.text}>Avoir N° : {avoirData.number}</Text>
@@ -336,7 +341,7 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>Note de crédit • {company.name}</Text>
+          <Text>Note de crédit • {companyData.name}</Text>
           <Text>Cet avoir vient en déduction de votre prochain règlement</Text>
         </View>
       </Page>

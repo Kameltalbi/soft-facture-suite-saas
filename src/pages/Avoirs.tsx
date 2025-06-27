@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +11,7 @@ import { Plus, Search, Filter, Eye, Edit, Trash2, Download, Send, FileText } fro
 import { CreateAvoirModal } from '@/components/modals/CreateAvoirModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { AvoirPDF } from '@/components/pdf/AvoirPDF';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Avoir {
   id: string;
@@ -61,6 +61,7 @@ const mockAvoirs: Avoir[] = [
 ];
 
 export default function Avoirs() {
+  const { organization } = useAuth();
   const [avoirs, setAvoirs] = useState<Avoir[]>(mockAvoirs);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -160,6 +161,37 @@ export default function Avoirs() {
     valide: filteredAvoirs.filter(a => a.status === 'valide').length,
     envoye: filteredAvoirs.filter(a => a.status === 'envoye').length,
     totalAmount: filteredAvoirs.reduce((sum, avoir) => sum + avoir.amount, 0)
+  };
+
+  const getPDFData = (avoir: Avoir) => {
+    const mockClient = {
+      name: avoir.clientName,
+      company: avoir.clientName,
+      address: '123 Rue de l\'Exemple, 75001 Paris',
+      email: 'contact@example.com'
+    };
+
+    const companyData = {
+      name: organization?.name || 'Soft Facture',
+      address: organization?.address || '456 Avenue de la République, 69000 Lyon',
+      email: organization?.email || 'contact@softfacture.fr',
+      phone: organization?.phone || '04 72 00 00 00',
+      logo: organization?.logo_url
+    };
+
+    const settings = {
+      showVat: true,
+      showDiscount: false,
+      currency: 'EUR',
+      amountInWords: true
+    };
+
+    return {
+      avoirData: avoir,
+      client: mockClient,
+      company: companyData,
+      settings
+    };
   };
 
   return (
@@ -370,7 +402,7 @@ export default function Avoirs() {
                         <Edit className="h-4 w-4" />
                       </Button>
                       <PDFDownloadLink
-                        document={<AvoirPDF avoirData={avoir} />}
+                        document={<AvoirPDF {...getPDFData(avoir)} />}
                         fileName={`${avoir.number}.pdf`}
                       >
                         <Button variant="ghost" size="sm">
