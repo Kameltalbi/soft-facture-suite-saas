@@ -1,9 +1,19 @@
 
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useAuth } from '@/hooks/useAuth';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
 
 export const useBonCommandePDF = () => {
   const { currency } = useCurrency();
+  const { user, organization } = useAuth();
+
+  const getCompanyData = () => ({
+    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
+    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
+    address: organization?.address || user?.user_metadata?.company_address,
+    email: organization?.email || user?.email,
+    phone: organization?.phone || user?.user_metadata?.company_phone,
+  });
 
   const generateBonCommandePDF = (
     bonCommande: BonCommandeFournisseur,
@@ -11,11 +21,14 @@ export const useBonCommandePDF = () => {
   ) => {
     return {
       bonCommande,
-      fournisseur
+      fournisseur,
+      company: getCompanyData()
     };
   };
 
   const exportToPDF = (bonCommande: BonCommandeFournisseur) => {
+    const company = getCompanyData();
+    
     // Pour l'instant, on génère un PDF simple avec window.print
     // Dans une vraie application, on utiliserait react-pdf
     const printWindow = window.open('', '_blank');
@@ -58,10 +71,25 @@ export const useBonCommandePDF = () => {
               background: white;
             }
             .header {
-              text-align: center;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
               margin-bottom: 30px;
               border-bottom: 2px solid #6A9C89;
               padding-bottom: 20px;
+            }
+            .header-left {
+              flex-direction: column;
+            }
+            .header-right {
+              text-align: right;
+              flex-direction: column;
+            }
+            .company-logo {
+              width: 60px;
+              height: 60px;
+              object-fit: contain;
+              margin-bottom: 10px;
             }
             .title {
               color: #6A9C89;
@@ -72,6 +100,18 @@ export const useBonCommandePDF = () => {
             .subtitle {
               color: #666;
               font-size: 14px;
+              margin-bottom: 5px;
+            }
+            .company-name {
+              font-size: 16px;
+              font-weight: bold;
+              color: #333;
+              margin-bottom: 5px;
+            }
+            .company-info {
+              font-size: 12px;
+              color: #666;
+              margin-bottom: 3px;
             }
             .info-section {
               display: flex;
@@ -166,9 +206,18 @@ export const useBonCommandePDF = () => {
         </head>
         <body>
           <div class="header">
-            <div class="title">BON DE COMMANDE</div>
-            <div class="subtitle">N° ${bonCommande.numero}</div>
-            <div class="subtitle">Date: ${formatDate(bonCommande.dateCommande)}</div>
+            <div class="header-left">
+              <div class="title">BON DE COMMANDE</div>
+              <div class="subtitle">N° ${bonCommande.numero}</div>
+              <div class="subtitle">Date: ${formatDate(bonCommande.dateCommande)}</div>
+            </div>
+            <div class="header-right">
+              ${company.logo ? `<img class="company-logo" src="${company.logo}" alt="Logo" />` : ''}
+              ${company.name ? `<div class="company-name">${company.name}</div>` : ''}
+              ${company.email ? `<div class="company-info">${company.email}</div>` : ''}
+              ${company.address ? `<div class="company-info">${company.address}</div>` : ''}
+              ${company.phone ? `<div class="company-info">${company.phone}</div>` : ''}
+            </div>
           </div>
 
           <div class="info-section">
@@ -254,7 +303,7 @@ export const useBonCommandePDF = () => {
           ` : ''}
 
           <div class="footer">
-            Bon de commande généré le ${new Date().toLocaleDateString('fr-FR')}
+            Bon de commande généré le ${new Date().toLocaleDateString('fr-FR')} - ${company.name}
           </div>
 
           <script>
@@ -273,6 +322,7 @@ export const useBonCommandePDF = () => {
 
   return {
     generateBonCommandePDF,
-    exportToPDF
+    exportToPDF,
+    getCompanyData
   };
 };

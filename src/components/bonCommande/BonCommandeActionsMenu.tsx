@@ -6,6 +6,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -18,49 +21,82 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Eye, Printer, Send, Edit, Copy, CheckCircle, Trash } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+  MoreHorizontal, 
+  Eye, 
+  Printer, 
+  Mail, 
+  Edit, 
+  Copy, 
+  ArrowRight, 
+  Trash, 
+  CheckCircle,
+  Package
+} from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { BonCommandePDF } from '@/components/pdf/BonCommandePDF';
 import { EmailModal } from '@/components/modals/EmailModal';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
+import { useAuth } from '@/hooks/useAuth';
 
 interface BonCommandeActionsMenuProps {
   bonCommande: BonCommandeFournisseur;
-  pdfComponent: React.ReactNode;
   onView: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
-  onMarkAsReceived: () => void;
+  onConvertToDelivery: () => void;
+  onStatusChange: (status: BonCommandeFournisseur['statut']) => void;
   onDelete: () => void;
   onEmailSent: (emailData: any) => void;
 }
 
+const statusLabels = {
+  brouillon: { label: 'Brouillon', variant: 'secondary' as const },
+  en_attente: { label: 'En attente', variant: 'default' as const },
+  validee: { label: 'Validée', variant: 'default' as const },
+  livree: { label: 'Livrée', variant: 'default' as const },
+  annulee: { label: 'Annulée', variant: 'destructive' as const }
+};
+
 export function BonCommandeActionsMenu({
   bonCommande,
-  pdfComponent,
   onView,
   onEdit,
   onDuplicate,
-  onMarkAsReceived,
+  onConvertToDelivery,
+  onStatusChange,
   onDelete,
   onEmailSent
 }: BonCommandeActionsMenuProps) {
+  const { user, organization } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
   const canEdit = bonCommande.statut === 'brouillon' || bonCommande.statut === 'en_attente';
-  const canMarkAsReceived = bonCommande.statut !== 'livree' && bonCommande.statut !== 'annulee';
-  const isReceived = bonCommande.statut === 'livree';
-  const canDelete = bonCommande.statut !== 'livree';
-  const canSendEmail = bonCommande.statut !== 'livree' && bonCommande.statut !== 'annulee';
+  const canConvertToDelivery = bonCommande.statut === 'validee';
 
   const handleDelete = () => {
     onDelete();
     setShowDeleteDialog(false);
   };
 
+  const handleStatusChange = (newStatus: BonCommandeFournisseur['statut']) => {
+    onStatusChange(newStatus);
+  };
+
   const handleEmailSent = (emailData: any) => {
     onEmailSent(emailData);
     setShowEmailModal(false);
+  };
+
+  // Prepare company data from organization and user
+  const company = {
+    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
+    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
+    address: organization?.address || user?.user_metadata?.company_address,
+    email: organization?.email || user?.email,
+    phone: organization?.phone || user?.user_metadata?.company_phone,
   };
 
   return (
@@ -71,14 +107,19 @@ export function BonCommandeActionsMenu({
             <MoreHorizontal size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem onClick={onView}>
             <Eye size={16} className="mr-2" />
-            Voir le bon
+            Voir le bon de commande
           </DropdownMenuItem>
 
           <PDFDownloadLink
-            document={pdfComponent as any}
+            document={
+              <BonCommandePDF 
+                bonCommande={bonCommande}
+                company={company}
+              />
+            }
             fileName={`${bonCommande.numero}.pdf`}
           >
             {({ loading }) => (
@@ -89,12 +130,9 @@ export function BonCommandeActionsMenu({
             )}
           </PDFDownloadLink>
 
-          <DropdownMenuItem 
-            onClick={() => setShowEmailModal(true)}
-            disabled={!canSendEmail}
-          >
-            <Send size={16} className="mr-2" />
-            Envoyer au fournisseur
+          <DropdownMenuItem onClick={() => setShowEmailModal(true)}>
+            <Mail size={16} className="mr-2" />
+            Envoyer par email
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
@@ -109,19 +147,41 @@ export function BonCommandeActionsMenu({
             Dupliquer
           </DropdownMenuItem>
 
-          {canMarkAsReceived && (
-            <DropdownMenuItem onClick={onMarkAsReceived} className="text-[#6A9C89]">
-              <CheckCircle size={16} className="mr-2" />
-              Marquer comme reçu
+          {canConvertToDelivery && (
+            <DropdownMenuItem onClick={onConvertToDelivery} className="text-primary">
+              <Package size={16} className="mr-2" />
+              Convertir en bon de livraison
             </DropdownMenuItem>
           )}
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <CheckCircle size={16} className="mr-2" />
+              Changer le statut
+              <Badge variant={statusLabels[bonCommande.statut].variant} className="ml-auto text-xs">
+                {statusLabels[bonCommande.statut].label}
+              </Badge>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {Object.entries(statusLabels).map(([status, { label }]) => (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => handleStatusChange(status as BonCommandeFournisseur['statut'])}
+                  disabled={bonCommande.statut === status}
+                >
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
 
           <DropdownMenuSeparator />
 
           <DropdownMenuItem 
             onClick={() => setShowDeleteDialog(true)}
             className="text-destructive focus:text-destructive"
-            disabled={!canDelete}
           >
             <Trash size={16} className="mr-2" />
             Supprimer
