@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   logo: {
-    width: 60,
-    height: 45,
+    width: 62,
+    height: 47,
     objectFit: 'contain',
   },
   titleSection: {
