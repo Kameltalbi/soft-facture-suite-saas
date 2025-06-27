@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
 
 interface BonCommandePDFProps {
@@ -19,6 +19,13 @@ interface BonCommandePDFProps {
       telephone: string;
     };
   };
+  company?: {
+    name: string;
+    logo?: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 const styles = StyleSheet.create({
@@ -28,7 +35,21 @@ const styles = StyleSheet.create({
     padding: 30,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 20,
+  },
+  headerLeft: {
+    flexDirection: 'column',
+  },
+  headerRight: {
+    alignItems: 'flex-end',
+  },
+  logo: {
+    width: 80,
+    height: 60,
+    objectFit: 'contain',
   },
   title: {
     fontSize: 24,
@@ -40,6 +61,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
     marginBottom: 5,
+  },
+  companyInfo: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 2,
   },
   section: {
     marginBottom: 15,
@@ -165,13 +191,13 @@ const getStatusLabel = (statut: BonCommandeFournisseur['statut']) => {
   return labels[statut];
 };
 
-export const BonCommandePDF = ({ bonCommande, fournisseur }: BonCommandePDFProps) => {
+export const BonCommandePDF = ({ bonCommande, fournisseur, company }: BonCommandePDFProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+    return `${amount.toFixed(2).replace('.', ',')} €`;
   };
 
   const calculateTotals = () => {
@@ -194,11 +220,26 @@ export const BonCommandePDF = ({ bonCommande, fournisseur }: BonCommandePDFProps
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* En-tête */}
+        {/* En-tête avec logo à droite */}
         <View style={styles.header}>
-          <Text style={styles.title}>BON DE COMMANDE</Text>
-          <Text style={styles.subtitle}>N° {bonCommande.numero}</Text>
-          <Text style={styles.subtitle}>Date: {formatDate(bonCommande.dateCommande)}</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>BON DE COMMANDE</Text>
+            <Text style={styles.subtitle}>N° {bonCommande.numero}</Text>
+            <Text style={styles.subtitle}>Date: {formatDate(bonCommande.dateCommande)}</Text>
+          </View>
+          <View style={styles.headerRight}>
+            {company?.logo && (
+              <Image style={styles.logo} src={company.logo} />
+            )}
+            {company && (
+              <>
+                <Text style={styles.companyInfo}>{company.name}</Text>
+                {company.address && <Text style={styles.companyInfo}>{company.address}</Text>}
+                {company.email && <Text style={styles.companyInfo}>{company.email}</Text>}
+                {company.phone && <Text style={styles.companyInfo}>{company.phone}</Text>}
+              </>
+            )}
+          </View>
         </View>
 
         {/* Informations du bon de commande et fournisseur */}

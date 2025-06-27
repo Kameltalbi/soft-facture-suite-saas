@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,9 +18,11 @@ import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActi
 import { BonCommandePDF } from '@/components/pdf/BonCommandePDF';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
 import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
+import { useAuth } from '@/hooks/useAuth';
 
 const BonsCommandePage = () => {
   const { exportToPDF } = useBonCommandePDF();
+  const { user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -184,6 +187,15 @@ const BonsCommandePage = () => {
     bc.fournisseurNom.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Informations de l'entreprise pour le PDF
+  const company = {
+    name: user?.user_metadata?.company_name || 'Mon Entreprise',
+    logo: user?.user_metadata?.avatar_url,
+    address: user?.user_metadata?.company_address,
+    email: user?.email,
+    phone: user?.user_metadata?.company_phone,
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -270,7 +282,7 @@ const BonsCommandePage = () => {
                     <TableCell className="text-right">
                       <BonCommandeActionsMenu
                         bonCommande={bonCommande}
-                        pdfComponent={<BonCommandePDF bonCommande={bonCommande} />}
+                        pdfComponent={<BonCommandePDF bonCommande={bonCommande} company={company} />}
                         onView={() => handleViewBonCommande(bonCommande)}
                         onEdit={() => handleEditBonCommande(bonCommande)}
                         onDuplicate={() => handleDuplicateBonCommande(bonCommande)}
