@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Trash2, Package, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useClients } from '@/hooks/useClients';
 
 interface DeliveryItem {
   id: string;
@@ -27,6 +28,7 @@ interface DeliveryNoteModalProps {
 
 export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: DeliveryNoteModalProps) {
   const { organization, user } = useAuth();
+  const { clients, loading: clientsLoading } = useClients();
   
   // Form state
   const [deliveryNumber, setDeliveryNumber] = useState(deliveryNote?.number || 'BL-2025-001');
@@ -45,35 +47,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   // Product search
   const [productSearch, setProductSearch] = useState('');
   
-  // Mock clients for search
-  const mockClients = [
-    { 
-      id: '1', 
-      name: 'Client Premium', 
-      company: 'Premium Corp', 
-      address: '123 Rue de la Paix\n75001 Paris\nFrance', 
-      email: 'contact@premium.fr',
-      phone: '01 23 45 67 89'
-    },
-    { 
-      id: '2', 
-      name: 'Entreprise ABC', 
-      company: 'ABC Solutions', 
-      address: '456 Avenue République\n69000 Lyon\nFrance', 
-      email: 'info@abc.fr',
-      phone: '04 78 90 12 34'
-    },
-    { 
-      id: '3', 
-      name: 'Société Tech', 
-      company: 'Tech Innovation', 
-      address: '789 Boulevard Tech\n31000 Toulouse\nFrance', 
-      email: 'hello@tech.fr',
-      phone: '05 61 23 45 67'
-    }
-  ];
-  
-  // Mock products for search
+  // Mock products for search (we'll replace this later with real products)
   const mockProducts = [
     { id: '1', name: 'Ordinateur portable', unit: 'pièce' },
     { id: '2', name: 'Écran 24 pouces', unit: 'pièce' },
@@ -81,14 +55,26 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     { id: '4', name: 'Souris optique', unit: 'pièce' }
   ];
   
-  const filteredClients = mockClients.filter(client =>
+  const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    client.company.toLowerCase().includes(clientSearch.toLowerCase())
+    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
   
   const filteredProducts = mockProducts.filter(product =>
     product.name.toLowerCase().includes(productSearch.toLowerCase())
   );
+
+  const formatAddress = (client: any) => {
+    const parts = [];
+    if (client.address) parts.push(client.address);
+    if (client.postal_code && client.city) {
+      parts.push(`${client.postal_code} ${client.city}`);
+    } else if (client.city) {
+      parts.push(client.city);
+    }
+    if (client.country && client.country !== 'France') parts.push(client.country);
+    return parts.join('\n');
+  };
   
   const addDeliveryItem = () => {
     const newItem: DeliveryItem = {
@@ -130,7 +116,9 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   const handleClientSelect = (client: any) => {
     setSelectedClient(client);
     setClientSearch('');
-    setDeliveryAddress(client.address); // Automatically populate delivery address with client's address
+    // Automatically populate delivery address with client's formatted address
+    const formattedAddress = formatAddress(client);
+    setDeliveryAddress(formattedAddress);
   };
   
   const getStatusBadge = (status: DeliveryItem['status']) => {
@@ -245,9 +233,14 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                     onChange={(e) => setClientSearch(e.target.value)}
                     className="pl-10"
                   />
+                  {clientsLoading && (
+                    <div className="absolute right-3 top-3 text-sm text-gray-400">
+                      Chargement...
+                    </div>
+                  )}
                 </div>
                 
-                {clientSearch && !selectedClient && (
+                {clientSearch && !selectedClient && filteredClients.length > 0 && (
                   <div className="border rounded-lg max-h-48 overflow-y-auto bg-white z-10">
                     {filteredClients.map((client) => (
                       <div
@@ -255,12 +248,26 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                         onClick={() => handleClientSelect(client)}
                       >
-                        <div className="font-medium">{client.company}</div>
-                        <div className="text-sm text-gray-600">{client.name}</div>
-                        <div className="text-sm text-gray-500">{client.email}</div>
-                        <div className="text-xs text-gray-400 mt-1 whitespace-pre-line">{client.address}</div>
+                        <div className="font-medium">{client.company || client.name}</div>
+                        {client.company && client.name !== client.company && (
+                          <div className="text-sm text-gray-600">{client.name}</div>
+                        )}
+                        {client.email && (
+                          <div className="text-sm text-gray-500">{client.email}</div>
+                        )}
+                        {formatAddress(client) && (
+                          <div className="text-xs text-gray-400 mt-1 whitespace-pre-line">
+                            {formatAddress(client)}
+                          </div>
+                        )}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {clientSearch && !selectedClient && filteredClients.length === 0 && !clientsLoading && (
+                  <div className="text-sm text-gray-500 p-2">
+                    Aucun client trouvé. Vous pouvez créer un nouveau client dans la section Clients.
                   </div>
                 )}
                 
@@ -268,16 +275,24 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-green-800">{selectedClient.company}</h4>
-                        <p className="text-sm text-green-700">{selectedClient.name}</p>
-                        <p className="text-sm text-green-600">{selectedClient.email}</p>
+                        <h4 className="font-semibold text-green-800">
+                          {selectedClient.company || selectedClient.name}
+                        </h4>
+                        {selectedClient.company && selectedClient.name !== selectedClient.company && (
+                          <p className="text-sm text-green-700">{selectedClient.name}</p>
+                        )}
+                        {selectedClient.email && (
+                          <p className="text-sm text-green-600">{selectedClient.email}</p>
+                        )}
                         {selectedClient.phone && (
                           <p className="text-sm text-green-600">{selectedClient.phone}</p>
                         )}
-                        <div className="text-sm text-green-600 mt-2 whitespace-pre-line">
-                          <strong>Adresse :</strong><br />
-                          {selectedClient.address}
-                        </div>
+                        {formatAddress(selectedClient) && (
+                          <div className="text-sm text-green-600 mt-2 whitespace-pre-line">
+                            <strong>Adresse :</strong><br />
+                            {formatAddress(selectedClient)}
+                          </div>
+                        )}
                       </div>
                       <Button
                         variant="ghost"
