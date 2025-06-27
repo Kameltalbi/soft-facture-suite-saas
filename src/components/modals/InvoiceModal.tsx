@@ -17,6 +17,7 @@ interface InvoiceModalProps {
   open: boolean;
   onClose: () => void;
   document?: any;
+  documentType?: 'invoice' | 'quote' | 'delivery';
 }
 
 interface LineItem {
@@ -29,9 +30,17 @@ interface LineItem {
   total: number;
 }
 
-export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
+const documentLabels = {
+  invoice: { title: 'facture', button: 'Télécharger PDF' },
+  quote: { title: 'devis', button: 'Télécharger PDF' },
+  delivery: { title: 'bon de livraison', button: 'Télécharger PDF' }
+};
+
+export function InvoiceModal({ open, onClose, document, documentType = 'invoice' }: InvoiceModalProps) {
   const { generateInvoicePDF } = usePDFGeneration();
   const { currency } = useCurrency();
+
+  const labels = documentLabels[documentType];
 
   const [invoiceData, setInvoiceData] = useState({
     number: document?.number || 'FAC-2024-002',
@@ -113,12 +122,12 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-semibold">
-            {document ? 'Modifier la facture' : 'Nouvelle facture'}
+            {document ? `Modifier la ${labels.title}` : `Nouvelle ${labels.title}`}
           </DialogTitle>
           <div className="flex items-center space-x-2">
             <PDFDownloadLink
               document={<InvoicePDF {...pdfData} />}
-              fileName={`facture-${invoiceData.number}.pdf`}
+              fileName={`${documentType}-${invoiceData.number}.pdf`}
             >
               {({ loading }) => (
                 <Button variant="outline" size="sm" disabled={loading}>
@@ -240,7 +249,7 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
                     id="subject"
                     value={invoiceData.subject}
                     onChange={(e) => setInvoiceData({...invoiceData, subject: e.target.value})}
-                    placeholder="Objet de la facture"
+                    placeholder={`Objet ${documentType === 'quote' ? 'du devis' : documentType === 'delivery' ? 'du bon de livraison' : 'de la facture'}`}
                   />
                 </div>
               </CardContent>
@@ -406,12 +415,12 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
           </Button>
           <PDFDownloadLink
             document={<InvoicePDF {...pdfData} />}
-            fileName={`facture-${invoiceData.number}.pdf`}
+            fileName={`${documentType}-${invoiceData.number}.pdf`}
           >
             {({ loading }) => (
               <Button className="bg-primary hover:bg-primary/90" disabled={loading}>
                 <Send size={16} className="mr-2" />
-                {loading ? 'Génération...' : 'Télécharger PDF'}
+                {loading ? 'Génération...' : labels.button}
               </Button>
             )}
           </PDFDownloadLink>

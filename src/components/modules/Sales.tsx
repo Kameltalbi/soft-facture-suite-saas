@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -87,6 +86,7 @@ export function Sales() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  const [currentDocumentType, setCurrentDocumentType] = useState<'invoice' | 'quote' | 'delivery'>('invoice');
   
   // Date filters
   const currentDate = new Date();
@@ -123,11 +123,17 @@ export function Sales() {
 
   const handleNewDocument = (type: 'invoice' | 'quote' | 'delivery' | 'credit') => {
     setEditingDocument(null);
+    if (type !== 'credit') {
+      setCurrentDocumentType(type);
+    }
     setShowInvoiceModal(true);
   };
 
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document);
+    if (document.type !== 'credit') {
+      setCurrentDocumentType(document.type);
+    }
     setShowInvoiceModal(true);
   };
 
@@ -407,6 +413,7 @@ export function Sales() {
         open={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
         document={editingDocument}
+        documentType={currentDocumentType}
       />
     </div>
   );

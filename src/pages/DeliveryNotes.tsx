@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -383,7 +382,7 @@ export default function DeliveryNotes() {
                       pdfComponent={<TemplatedInvoicePDF {...getPDFData(delivery)} template="minimal" documentType="BON DE LIVRAISON" />}
                       onView={() => handleViewDelivery(delivery)}
                       onEdit={() => handleEditDelivery(delivery)}
-                      onDuplicate={() => handleDuplicateDelivery(delivery)}
+                      onDuplicate(() => handleDuplicateDelivery(delivery)}
                       onMarkAsDelivered={() => handleMarkAsDelivered(delivery)}
                       onConvertToInvoice={() => handleConvertToInvoice(delivery)}
                       onDelete={() => handleDeleteDelivery(delivery)}
@@ -402,6 +401,7 @@ export default function DeliveryNotes() {
         open={showDeliveryModal}
         onClose={() => setShowDeliveryModal(false)}
         document={editingDelivery}
+        documentType="delivery"
       />
     </div>
   );
