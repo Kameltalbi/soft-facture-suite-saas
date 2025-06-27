@@ -108,7 +108,7 @@ const BonsCommandePage = () => {
     fournisseurNom: po.suppliers?.name,
     dateCommande: po.date,
     dateCreation: po.created_at,
-    statut: po.status,
+    statut: po.status as 'brouillon' | 'en_attente' | 'validee' | 'livree' | 'annulee',
     montantHT: po.subtotal,
     montantTTC: po.total_amount,
     remarques: po.notes,

@@ -70,7 +70,7 @@ const Categories = () => {
     recentCategories: categories.filter(c => {
       const createdDate = new Date(c.created_at);
       const now = new Date();
-      const diffTime = Math.abs(now - createdDate);
+      const diffTime = Math.abs(now.getTime() - createdDate.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return diffDays <= 7;
     }).length
@@ -261,7 +261,7 @@ const Categories = () => {
 
       {/* Modal */}
       <CategoryModal
-        open={showModal}
+        isOpen={showModal}
         onClose={() => setShowModal(false)}
         onSave={handleSaveCategory}
         category={editingCategory}

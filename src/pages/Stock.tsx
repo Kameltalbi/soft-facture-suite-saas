@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,9 +64,9 @@ const Stock = () => {
   };
 
   const getStockStatus = (quantity) => {
-    if (quantity === 0) return { status: 'Rupture', variant: 'destructive', color: 'text-red-600' };
-    if (quantity < 10) return { status: 'Stock faible', variant: 'secondary', color: 'text-orange-600' };
-    return { status: 'En stock', variant: 'default', color: 'text-success' };
+    if (quantity === 0) return { status: 'Rupture', variant: 'destructive' as const, color: 'text-red-600' };
+    if (quantity < 10) return { status: 'Stock faible', variant: 'secondary' as const, color: 'text-orange-600' };
+    return { status: 'En stock', variant: 'default' as const, color: 'text-success' };
   };
 
   const stats = {
@@ -349,19 +348,19 @@ const Stock = () => {
 
         {/* Modals */}
         <StockEntryModal
-          open={showEntryModal}
+          isOpen={showEntryModal}
           onClose={() => setShowEntryModal(false)}
           product={selectedProduct}
         />
 
         <StockExitModal
-          open={showExitModal}
+          isOpen={showExitModal}
           onClose={() => setShowExitModal(false)}
           product={selectedProduct}
         />
 
         <StockHistoryModal
-          open={showHistoryModal}
+          isOpen={showHistoryModal}
           onClose={() => setShowHistoryModal(false)}
           product={selectedProduct}
         />

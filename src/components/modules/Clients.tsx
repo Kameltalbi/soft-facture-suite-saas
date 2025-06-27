@@ -65,7 +65,7 @@ const Clients = () => {
     companiesCount: clients.filter(c => c.company).length,
     individualsCount: clients.filter(c => !c.company).length,
     newThisMonth: clients.filter(c => {
-      const createdDate = new Date(c.created_at);
+      const createdDate = new Date(c.created_at || c.created_at);
       const now = new Date();
       return createdDate.getMonth() === now.getMonth() && 
              createdDate.getFullYear() === now.getFullYear();
@@ -245,7 +245,6 @@ const Clients = () => {
       <ClientModal
         open={showModal}
         onClose={() => setShowModal(false)}
-        onSave={handleSaveClient}
         client={editingClient}
       />
     </div>

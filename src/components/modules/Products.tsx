@@ -273,7 +273,6 @@ const Products = () => {
       <ProductModal
         open={showModal}
         onClose={() => setShowModal(false)}
-        onSave={handleSaveProduct}
         product={editingProduct}
       />
     </div>

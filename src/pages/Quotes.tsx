@@ -252,51 +252,62 @@ const Quotes = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredQuotes.map((quote) => (
-                  <TableRow key={quote.id} className="hover:bg-neutral-50">
-                    <TableCell>
-                      <div className="flex items-center">
-                        <FileText size={16} className="mr-2 text-[#6A9C89]" />
-                        <span className="font-medium">{quote.quote_number}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <span className="font-medium">{quote.clients?.name}</span>
-                        {quote.clients?.company && (
-                          <div className="text-sm text-neutral-500">{quote.clients.company}</div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {formatDate(quote.date)}
-                    </TableCell>
-                    <TableCell>
-                      {quote.valid_until ? formatDate(quote.valid_until) : 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      {getStatutBadge(quote.status)}
-                    </TableCell>
-                    <TableCell>
-                      {formatCurrency(quote.subtotal || 0)}
-                    </TableCell>
-                    <TableCell>
-                      {formatCurrency(quote.total_amount || 0)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <QuoteActionsMenu
-                        quote={quote}
-                        onView={() => handleViewQuote(quote)}
-                        onEdit={() => handleEditQuote(quote)}
-                        onDuplicate={() => handleDuplicateQuote(quote)}
-                        onConvertToInvoice={() => handleConvertToInvoice(quote)}
-                        onStatusChange={(status) => handleStatusChange(quote, status)}
-                        onDelete={() => handleDeleteQuote(quote)}
-                        onEmailSent={handleEmailSent}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredQuotes.map((quote) => {
+                  // Convert to expected format for the actions menu
+                  const convertedQuote = {
+                    number: quote.quote_number,
+                    client: quote.clients?.name || '',
+                    amount: quote.total_amount || 0,
+                    validUntil: quote.valid_until,
+                    ...quote
+                  };
+
+                  return (
+                    <TableRow key={quote.id} className="hover:bg-neutral-50">
+                      <TableCell>
+                        <div className="flex items-center">
+                          <FileText size={16} className="mr-2 text-[#6A9C89]" />
+                          <span className="font-medium">{quote.quote_number}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <span className="font-medium">{quote.clients?.name}</span>
+                          {quote.clients?.company && (
+                            <div className="text-sm text-neutral-500">{quote.clients.company}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(quote.date)}
+                      </TableCell>
+                      <TableCell>
+                        {quote.valid_until ? formatDate(quote.valid_until) : 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {getStatutBadge(quote.status)}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(quote.subtotal || 0)}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(quote.total_amount || 0)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <QuoteActionsMenu
+                          quote={convertedQuote}
+                          onView={() => handleViewQuote(quote)}
+                          onEdit={() => handleEditQuote(quote)}
+                          onDuplicate={() => handleDuplicateQuote(quote)}
+                          onConvertToInvoice={() => handleConvertToInvoice(quote)}
+                          onStatusChange={(status) => handleStatusChange(quote, status)}
+                          onDelete={() => handleDeleteQuote(quote)}
+                          onEmailSent={handleEmailSent}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
                 {filteredQuotes.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-neutral-500">
@@ -311,7 +322,7 @@ const Quotes = () => {
 
         {/* Modal */}
         <QuoteModal
-          isOpen={isModalOpen}
+          open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           quote={selectedQuote}
           onSave={(data) => {
