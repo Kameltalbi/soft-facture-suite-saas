@@ -7,29 +7,10 @@ interface HeaderProps {
   activeModule: string;
 }
 
-const moduleLabels: Record<string, string> = {
-  dashboard: 'Dashboard',
-  sales: 'Ventes',
-  products: 'Produits & Services',
-  categories: 'Catégories',
-  clients: 'Clients',
-  credits: 'Avoirs',
-  settings: 'Paramètres',
-};
-
 export function Header({ activeModule }: HeaderProps) {
   return (
     <header className="bg-white border-b border-neutral-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-900">
-            {moduleLabels[activeModule] || 'Soft Facture'}
-          </h1>
-          <p className="text-sm text-neutral-600 mt-1">
-            Gérez vos factures et devis en toute simplicité
-          </p>
-        </div>
-
+      <div className="flex items-center justify-end">
         <div className="flex items-center space-x-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
