@@ -18,13 +18,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Eye, Edit, Trash2, MoreHorizontal, Mail, Phone } from 'lucide-react';
-import { FournisseurDB } from '@/types/fournisseur';
+
+interface Fournisseur {
+  id: string;
+  name: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  postal_code: string | null;
+  country: string | null;
+  vat_number: string | null;
+  business_sector: string | null;
+  status: string | null;
+  internal_notes: string | null;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface FournisseursTableProps {
-  fournisseurs: FournisseurDB[];
-  onEdit: (fournisseur: FournisseurDB) => void;
+  fournisseurs: Fournisseur[];
+  onEdit: (fournisseur: Fournisseur) => void;
   onDelete: (id: string) => void;
-  onView: (fournisseur: FournisseurDB) => void;
+  onView: (fournisseur: Fournisseur) => void;
 }
 
 export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: FournisseursTableProps) {
@@ -32,7 +50,7 @@ export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: Fo
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const getStatutBadge = (statut: 'active' | 'inactive' | null) => {
+  const getStatutBadge = (statut: string | null) => {
     return (
       <Badge variant={statut === 'active' ? 'default' : 'secondary'}>
         {statut === 'active' ? 'Actif' : 'Inactif'}

@@ -6,84 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search, Users, Building, UserCheck, Calendar } from 'lucide-react';
 import { FournisseursTable } from '@/components/fournisseurs/FournisseursTable';
 import { FournisseurModal } from '@/components/modals/FournisseurModal';
-import { Fournisseur, CreateFournisseurData } from '@/types/fournisseur';
-
-// Données de test
-const mockFournisseurs: Fournisseur[] = [
-  {
-    id: '1',
-    nom: 'TechnoPlus SARL',
-    contactPrincipal: {
-      nom: 'Jean Technicien',
-      email: 'jean@technoplus.fr',
-      telephone: '+33 1 23 45 67 89'
-    },
-    adresse: {
-      rue: '45 Avenue de la Technologie',
-      ville: 'Paris',
-      codePostal: '75001',
-      pays: 'France'
-    },
-    matriculeFiscal: '12345678901',
-    secteurActivite: 'Informatique',
-    statut: 'actif',
-    notesInternes: 'Fournisseur principal pour le matériel informatique',
-    dateAjout: '2024-01-15',
-    organisationId: 'org1'
-  },
-  {
-    id: '2',
-    nom: 'Fournitures Bureau Pro',
-    contactPrincipal: {
-      nom: 'Marie Commerciale',
-      email: 'marie@bureaupro.com',
-      telephone: '+33 2 34 56 78 90'
-    },
-    adresse: {
-      rue: '12 Rue du Commerce',
-      ville: 'Lyon',
-      codePostal: '69000',
-      pays: 'France'
-    },
-    matriculeFiscal: '98765432109',
-    secteurActivite: 'Commerce',
-    statut: 'actif',
-    notesInternes: 'Excellent service client, livraisons rapides',
-    dateAjout: '2024-02-20',
-    organisationId: 'org1'
-  },
-  {
-    id: '3',
-    nom: 'Construction Durand',
-    contactPrincipal: {
-      nom: 'Pierre Durand',
-      email: 'contact@construction-durand.fr',
-      telephone: '+33 3 45 67 89 01'
-    },
-    adresse: {
-      rue: '78 Boulevard des Artisans',
-      ville: 'Marseille',
-      codePostal: '13000',
-      pays: 'France'
-    },
-    secteurActivite: 'BTP & Construction',
-    statut: 'inactif',
-    notesInternes: 'Contrat suspendu temporairement',
-    dateAjout: '2023-11-10',
-    organisationId: 'org1'
-  }
-];
+import { useFournisseurs } from '@/hooks/useFournisseurs';
+import { CreateFournisseurData } from '@/types/fournisseur';
 
 const Fournisseurs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | null>(null);
-  const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>(mockFournisseurs);
+  const [editingFournisseur, setEditingFournisseur] = useState<any>(null);
+  const { fournisseurs, loading, createFournisseur, updateFournisseur, deleteFournisseur } = useFournisseurs();
 
   const filteredFournisseurs = fournisseurs.filter(fournisseur =>
-    fournisseur.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fournisseur.contactPrincipal.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fournisseur.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase())
+    fournisseur.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (fournisseur.contact_name && fournisseur.contact_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (fournisseur.business_sector && fournisseur.business_sector.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleAddFournisseur = () => {
@@ -91,53 +26,46 @@ const Fournisseurs = () => {
     setShowModal(true);
   };
 
-  const handleEditFournisseur = (fournisseur: Fournisseur) => {
+  const handleEditFournisseur = (fournisseur: any) => {
     setEditingFournisseur(fournisseur);
     setShowModal(true);
   };
 
-  const handleSaveFournisseur = (data: CreateFournisseurData) => {
+  const handleSaveFournisseur = async (data: CreateFournisseurData) => {
     if (editingFournisseur) {
-      // Modification
-      setFournisseurs(prev => prev.map(f => 
-        f.id === editingFournisseur.id 
-          ? { ...f, ...data }
-          : f
-      ));
+      await updateFournisseur(editingFournisseur.id, data);
     } else {
-      // Création
-      const newFournisseur: Fournisseur = {
-        ...data,
-        id: Date.now().toString(),
-        dateAjout: new Date().toISOString(),
-        organisationId: 'org1' // À remplacer par l'ID de l'organisation active
-      };
-      setFournisseurs(prev => [...prev, newFournisseur]);
+      await createFournisseur(data);
     }
+    setShowModal(false);
   };
 
-  const handleDeleteFournisseur = (id: string) => {
+  const handleDeleteFournisseur = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
-      setFournisseurs(prev => prev.filter(f => f.id !== id));
+      await deleteFournisseur(id);
     }
   };
 
-  const handleViewFournisseur = (fournisseur: Fournisseur) => {
+  const handleViewFournisseur = (fournisseur: any) => {
     console.log('Voir les détails du fournisseur:', fournisseur);
     // Logique pour afficher les détails
   };
 
   const stats = {
     totalFournisseurs: fournisseurs.length,
-    fournisseursActifs: fournisseurs.filter(f => f.statut === 'actif').length,
-    secteurs: new Set(fournisseurs.map(f => f.secteurActivite)).size,
+    fournisseursActifs: fournisseurs.filter(f => f.status === 'active').length,
+    secteurs: new Set(fournisseurs.map(f => f.business_sector).filter(Boolean)).size,
     nouveauxCeMois: fournisseurs.filter(f => {
-      const dateAjout = new Date(f.dateAjout);
+      const dateAjout = new Date(f.created_at);
       const maintenant = new Date();
       return dateAjout.getMonth() === maintenant.getMonth() && 
              dateAjout.getFullYear() === maintenant.getFullYear();
     }).length
   };
+
+  if (loading) {
+    return <div className="p-6">Chargement...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6 bg-[#F7F9FA] min-h-screen">

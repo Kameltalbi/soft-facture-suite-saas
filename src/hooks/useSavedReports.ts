@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface SavedReport {
   id: string;
   name: string;
-  report_type: 'revenue' | 'client_revenue' | 'product_ranking' | 'year_comparison' | 'monthly_revenue' | 'custom';
+  report_type: string;
   parameters: any;
   created_by: string | null;
   is_public: boolean | null;

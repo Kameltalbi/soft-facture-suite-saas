@@ -23,7 +23,7 @@ interface CreditNote {
   subtotal: number;
   tax_amount: number;
   total_amount: number;
-  status: 'draft' | 'sent' | 'applied' | 'cancelled' | null;
+  status: string | null;
   notes: string | null;
   organization_id: string;
   created_at: string;

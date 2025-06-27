@@ -6,10 +6,10 @@ import { useAuth } from '@/hooks/useAuth';
 interface StockMovement {
   id: string;
   product_id: string;
-  movement_type: 'in' | 'out' | 'adjustment' | 'inventory';
+  movement_type: string;
   quantity: number;
   unit_cost: number | null;
-  reference_type: 'invoice' | 'delivery_note' | 'purchase_order' | 'adjustment' | 'inventory' | null;
+  reference_type: string | null;
   reference_id: string | null;
   reason: string | null;
   notes: string | null;

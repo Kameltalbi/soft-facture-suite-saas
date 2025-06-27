@@ -15,7 +15,7 @@ interface Fournisseur {
   country: string | null;
   vat_number: string | null;
   business_sector: string | null;
-  status: 'active' | 'inactive' | null;
+  status: string | null;
   internal_notes: string | null;
   organization_id: string;
   created_at: string;

@@ -20,7 +20,7 @@ interface PurchaseOrder {
   supplier_id: string;
   date: string;
   expected_delivery_date: string | null;
-  status: 'draft' | 'sent' | 'confirmed' | 'received' | 'cancelled' | null;
+  status: string | null;
   subtotal: number;
   tax_amount: number;
   total_amount: number;
