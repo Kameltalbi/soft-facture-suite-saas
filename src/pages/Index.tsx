@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Dashboard } from '@/components/modules/Dashboard';
 import { Products } from '@/components/modules/Products';
+import { Categories } from '@/components/modules/Categories';
 import { Clients } from '@/components/modules/Clients';
 import Invoices from './Invoices';
 import Quotes from './Quotes';
@@ -29,7 +30,7 @@ const Index = () => {
       case 'clients':
         return <Clients />;
       case 'categories':
-        return <div className="p-6"><h1 className="text-2xl font-bold">Catégories</h1><p>Module en cours de développement</p></div>;
+        return <Categories />;
       case 'credits':
         return <div className="p-6"><h1 className="text-2xl font-bold">Avoirs</h1><p>Module en cours de développement</p></div>;
       case 'settings':
