@@ -1,4 +1,6 @@
 
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   FileText, 
@@ -16,7 +18,6 @@ import {
   Star,
   Users
 } from 'lucide-react';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface KpiData {
   totalInvoices: number;
@@ -39,7 +40,7 @@ interface DashboardKpisProps {
 }
 
 const SparklineChart = ({ data, color = '#648B78' }: { data: number[]; color?: string }) => (
-  <svg width="60" height="20" className="ml-auto">
+  <svg width="60" height="20" className="inline-block">
     <polyline
       fill="none"
       stroke={color}
@@ -50,7 +51,7 @@ const SparklineChart = ({ data, color = '#648B78' }: { data: number[]; color?: s
 );
 
 const MiniBarChart = ({ value, max }: { value: number; max: number }) => (
-  <div className="ml-auto w-12 h-4 bg-gray-100 rounded overflow-hidden">
+  <div className="inline-block w-12 h-4 bg-gray-100 rounded overflow-hidden">
     <div 
       className="h-full bg-[#648B78] transition-all duration-300"
       style={{ width: `${(value / max) * 100}%` }}
@@ -206,60 +207,73 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-      {kpis.map((kpi, index) => {
-        const Icon = kpi.icon;
-        const TrendIcon = kpi.evolutionPositive ? TrendingUp : TrendingDown;
-        
-        return (
-          <Card 
-            key={kpi.title} 
-            className={`hover:shadow-lg transition-all duration-300 border-0 shadow-sm ${kpi.cardBg || 'bg-white'} rounded-xl`}
-          >
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
-              <div className="space-y-1">
-                <CardTitle className="text-sm font-medium text-gray-600 leading-tight">
-                  {kpi.title}
-                </CardTitle>
-                {kpi.label && (
-                  <p className="text-xs text-gray-500 truncate">{kpi.label}</p>
-                )}
-              </div>
-              <div className={`p-2.5 rounded-xl ${kpi.bgColor} shrink-0`}>
-                <Icon className={`h-4 w-4 ${kpi.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">
-                <div className="flex items-end justify-between">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {formatValue(kpi.value, kpi.format)}
-                  </div>
-                  {kpi.sparkline && (
-                    <SparklineChart 
-                      data={kpi.sparkline} 
-                      color={kpi.sparklineColor || '#648B78'} 
-                    />
-                  )}
-                  {kpi.miniBar && (
-                    <MiniBarChart value={kpi.value} max={50000} />
-                  )}
-                </div>
+    <Card className="border-0 shadow-sm rounded-xl bg-white mb-8">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold text-gray-900">Indicateurs clés de performance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12"></TableHead>
+                <TableHead className="font-semibold">Indicateur</TableHead>
+                <TableHead className="font-semibold text-right">Valeur</TableHead>
+                <TableHead className="font-semibold text-center">Évolution</TableHead>
+                <TableHead className="font-semibold text-center">Graphique</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {kpis.map((kpi, index) => {
+                const Icon = kpi.icon;
+                const TrendIcon = kpi.evolutionPositive ? TrendingUp : TrendingDown;
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1">
-                    <TrendIcon className={`h-3 w-3 ${kpi.evolutionPositive ? 'text-[#648B78]' : 'text-red-500'}`} />
-                    <span className={`text-xs font-medium ${kpi.evolutionPositive ? 'text-[#648B78]' : 'text-red-500'}`}>
-                      {kpi.evolution}
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-500">vs mois dernier</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+                return (
+                  <TableRow key={kpi.title} className="hover:bg-gray-50/50">
+                    <TableCell>
+                      <div className={`p-2 rounded-lg ${kpi.bgColor} inline-flex`}>
+                        <Icon className={`h-4 w-4 ${kpi.color}`} />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-gray-900">{kpi.title}</div>
+                        {kpi.label && (
+                          <div className="text-xs text-gray-500 mt-1">{kpi.label}</div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="font-semibold text-lg text-gray-900">
+                        {formatValue(kpi.value, kpi.format)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center space-x-1">
+                        <TrendIcon className={`h-3 w-3 ${kpi.evolutionPositive ? 'text-[#648B78]' : 'text-red-500'}`} />
+                        <span className={`text-sm font-medium ${kpi.evolutionPositive ? 'text-[#648B78]' : 'text-red-500'}`}>
+                          {kpi.evolution}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {kpi.sparkline && (
+                        <SparklineChart 
+                          data={kpi.sparkline} 
+                          color={kpi.sparklineColor || '#648B78'} 
+                        />
+                      )}
+                      {kpi.miniBar && (
+                        <MiniBarChart value={kpi.value} max={50000} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
