@@ -18,13 +18,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, CheckCircle, FileText, Trash } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+  MoreHorizontal, 
+  Eye, 
+  Printer, 
+  Mail, 
+  Edit, 
+  Copy, 
+  ArrowRight, 
+  Trash,
+  CheckCircle,
+  Package
+} from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { EmailModal } from '@/components/modals/EmailModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DeliveryNote {
   id: string;
   number: string;
+  date: string;
   client: string;
   amount: number;
   status: 'draft' | 'sent' | 'delivered' | 'signed';
@@ -33,7 +47,7 @@ interface DeliveryNote {
 
 interface DeliveryNoteActionsMenuProps {
   deliveryNote: DeliveryNote;
-  pdfComponent: React.ReactNode;
+  pdfComponent: React.ReactElement;
   onView: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
@@ -42,6 +56,13 @@ interface DeliveryNoteActionsMenuProps {
   onDelete: () => void;
   onEmailSent: (emailData: any) => void;
 }
+
+const statusLabels = {
+  draft: { label: 'Brouillon', variant: 'secondary' as const },
+  sent: { label: 'Envoyé', variant: 'default' as const },
+  delivered: { label: 'Livré', variant: 'default' as const },
+  signed: { label: 'Signé', variant: 'default' as const }
+};
 
 export function DeliveryNoteActionsMenu({
   deliveryNote,
@@ -54,12 +75,13 @@ export function DeliveryNoteActionsMenu({
   onDelete,
   onEmailSent
 }: DeliveryNoteActionsMenuProps) {
+  const { user, organization } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const canEdit = deliveryNote.status === 'draft' || deliveryNote.status === 'sent';
-  const canMarkAsDelivered = deliveryNote.status !== 'delivered' && deliveryNote.status !== 'signed';
-  const isDelivered = deliveryNote.status === 'delivered' || deliveryNote.status === 'signed';
+  const canEdit = deliveryNote.status === 'draft';
+  const canMarkAsDelivered = deliveryNote.status === 'sent';
+  const canConvertToInvoice = deliveryNote.status === 'delivered' || deliveryNote.status === 'signed';
 
   const handleDelete = () => {
     onDelete();
@@ -71,6 +93,18 @@ export function DeliveryNoteActionsMenu({
     setShowEmailModal(false);
   };
 
+  // Prepare company data from organization and user
+  const company = {
+    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
+    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
+    address: organization?.address || user?.user_metadata?.company_address,
+    email: organization?.email || user?.email,
+    phone: organization?.phone || user?.user_metadata?.company_phone,
+  };
+
+  // Create enhanced PDF component with company data
+  const enhancedPdfComponent = React.cloneElement(pdfComponent, { company });
+
   return (
     <>
       <DropdownMenu>
@@ -79,14 +113,14 @@ export function DeliveryNoteActionsMenu({
             <MoreHorizontal size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem onClick={onView}>
             <Eye size={16} className="mr-2" />
-            Voir le BL
+            Voir le bon de livraison
           </DropdownMenuItem>
 
           <PDFDownloadLink
-            document={pdfComponent as any}
+            document={enhancedPdfComponent}
             fileName={`${deliveryNote.number}.pdf`}
           >
             {({ loading }) => (
@@ -106,7 +140,7 @@ export function DeliveryNoteActionsMenu({
 
           <DropdownMenuItem onClick={onEdit} disabled={!canEdit}>
             <Edit size={16} className="mr-2" />
-            Modifier le BL
+            Modifier
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={onDuplicate}>
@@ -115,23 +149,24 @@ export function DeliveryNoteActionsMenu({
           </DropdownMenuItem>
 
           {canMarkAsDelivered && (
-            <DropdownMenuItem onClick={onMarkAsDelivered} className="text-success">
-              <CheckCircle size={16} className="mr-2" />
+            <DropdownMenuItem onClick={onMarkAsDelivered} className="text-primary">
+              <Package size={16} className="mr-2" />
               Marquer comme livré
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuItem onClick={onConvertToInvoice} className="text-primary">
-            <FileText size={16} className="mr-2" />
-            Convertir en facture
-          </DropdownMenuItem>
+          {canConvertToInvoice && (
+            <DropdownMenuItem onClick={onConvertToInvoice} className="text-primary">
+              <ArrowRight size={16} className="mr-2" />
+              Convertir en facture
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuSeparator />
 
           <DropdownMenuItem 
             onClick={() => setShowDeleteDialog(true)}
             className="text-destructive focus:text-destructive"
-            disabled={isDelivered}
           >
             <Trash size={16} className="mr-2" />
             Supprimer

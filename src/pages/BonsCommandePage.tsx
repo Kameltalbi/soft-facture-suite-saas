@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,15 +14,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
 import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActionsMenu';
-import { BonCommandePDF } from '@/components/pdf/BonCommandePDF';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
-import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
-import { useAuth } from '@/hooks/useAuth';
 
 const BonsCommandePage = () => {
-  const { exportToPDF } = useBonCommandePDF();
-  const { user } = useAuth();
-  
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
@@ -33,90 +26,94 @@ const BonsCommandePage = () => {
     {
       id: '1',
       numero: 'BC-2025-0001',
-      fournisseurId: 'f1',
-      fournisseurNom: 'Fournisseur ABC',
+      fournisseurNom: 'Fournisseur Alpha',
       dateCommande: '2025-01-15',
       statut: 'en_attente',
-      montantHT: 1200.00,
-      montantTTC: 1440.00,
+      montantHT: 1500.00,
+      montantTTC: 1800.00,
+      remarques: 'Veuillez confirmer la réception de ce bon de commande.',
       lignes: [
         {
           id: '1',
-          designation: 'Matériel informatique',
+          designation: 'Ordinateur portable',
           quantite: 2,
-          prixUnitaireHT: 600.00,
+          prixUnitaireHT: 750.00,
           tva: 20,
-          totalHT: 1200.00
+          totalHT: 1500.00
         }
       ],
       organisationId: 'org1',
-      dateCreation: '2025-01-15T10:00:00Z'
+      dateCreationTimestamp: 1737000000,
+      remise: 0
     },
     {
       id: '2',
       numero: 'BC-2025-0002',
-      fournisseurId: 'f2',
-      fournisseurNom: 'Fournisseur XYZ',
+      fournisseurNom: 'Fournisseur Beta',
       dateCommande: '2025-01-14',
       statut: 'validee',
-      montantHT: 850.00,
-      montantTTC: 1020.00,
+      montantHT: 900.00,
+      montantTTC: 1080.00,
+      remarques: 'Livraison prévue sous 5 jours ouvrables.',
       lignes: [
         {
           id: '2',
-          designation: 'Fournitures de bureau',
+          designation: 'Imprimante multifonction',
           quantite: 1,
-          prixUnitaireHT: 850.00,
+          prixUnitaireHT: 900.00,
           tva: 20,
-          totalHT: 850.00
+          totalHT: 900.00
         }
       ],
       organisationId: 'org1',
-      dateCreation: '2025-01-14T14:30:00Z'
+      dateCreationTimestamp: 1736913600,
+      remise: 0
     },
     {
       id: '3',
       numero: 'BC-2025-0003',
-      fournisseurId: 'f3',
-      fournisseurNom: 'Équipements Pro',
+      fournisseurNom: 'Fournisseur Gamma',
       dateCommande: '2025-01-13',
       statut: 'livree',
-      montantHT: 2500.00,
-      montantTTC: 3000.00,
+      montantHT: 3000.00,
+      montantTTC: 3600.00,
+      remarques: 'Facture à envoyer après la livraison.',
       lignes: [
         {
           id: '3',
-          designation: 'Équipement industriel',
-          quantite: 1,
-          prixUnitaireHT: 2500.00,
+          designation: 'Mobilier de bureau',
+          quantite: 3,
+          prixUnitaireHT: 1000.00,
           tva: 20,
-          totalHT: 2500.00
+          totalHT: 3000.00
         }
       ],
       organisationId: 'org1',
-      dateCreation: '2025-01-13T09:15:00Z'
+      dateCreationTimestamp: 1736828400,
+      remise: 0
     },
     {
       id: '4',
       numero: 'BC-2025-0004',
-      fournisseurId: 'f4',
-      fournisseurNom: 'Services Techniques',
+      fournisseurNom: 'Fournisseur Delta',
       dateCommande: '2025-01-12',
       statut: 'brouillon',
-      montantHT: 450.00,
-      montantTTC: 540.00,
+      montantHT: 600.00,
+      montantTTC: 720.00,
+      remarques: 'Bon de commande en attente de validation.',
       lignes: [
         {
           id: '4',
-          designation: 'Prestations de service',
-          quantite: 3,
-          prixUnitaireHT: 150.00,
+          designation: 'Fournitures de bureau',
+          quantite: 6,
+          prixUnitaireHT: 100.00,
           tva: 20,
-          totalHT: 450.00
+          totalHT: 600.00
         }
       ],
       organisationId: 'org1',
-      dateCreation: '2025-01-12T16:45:00Z'
+      dateCreationTimestamp: 1736748000,
+      remise: 0
     }
   ]);
 
@@ -126,7 +123,7 @@ const BonsCommandePage = () => {
   };
 
   const handleViewBonCommande = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Viewing purchase order:', bonCommande.numero);
+    console.log('Viewing bon de commande:', bonCommande.numero);
   };
 
   const handleEditBonCommande = (bonCommande: BonCommandeFournisseur) => {
@@ -135,19 +132,23 @@ const BonsCommandePage = () => {
   };
 
   const handleDuplicateBonCommande = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Duplicating purchase order:', bonCommande.numero);
+    console.log('Duplicating bon de commande:', bonCommande.numero);
   };
 
-  const handleMarkAsReceived = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Marking as received:', bonCommande.numero);
+  const handleConvertToDelivery = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Converting bon de commande to delivery:', bonCommande.numero);
   };
 
   const handleDeleteBonCommande = (bonCommande: BonCommandeFournisseur) => {
-    console.log('Deleting purchase order:', bonCommande.numero);
+    console.log('Deleting bon de commande:', bonCommande.numero);
   };
 
   const handleEmailSent = (emailData: any) => {
     console.log('Sending email:', emailData);
+  };
+
+  const handleStatusChange = (bonCommande: BonCommandeFournisseur, newStatus: BonCommandeFournisseur['statut']) => {
+    console.log('Changing status for bon de commande:', bonCommande.numero, 'to:', newStatus);
   };
 
   const getStatutBadge = (statut: BonCommandeFournisseur['statut']) => {
@@ -155,7 +156,7 @@ const BonsCommandePage = () => {
       'brouillon': 'secondary',
       'en_attente': 'default',
       'validee': 'default',
-      'livree': 'default',
+      'livree': 'success',
       'annulee': 'destructive'
     } as const;
 
@@ -182,19 +183,10 @@ const BonsCommandePage = () => {
     return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
   };
 
-  const filteredBonsCommande = bonsCommande.filter(bc =>
-    bc.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bc.fournisseurNom.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBonsCommande = bonsCommande.filter(bonCommande =>
+    bonCommande.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    bonCommande.fournisseurNom.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Informations de l'entreprise pour le PDF
-  const company = {
-    name: user?.user_metadata?.company_name || 'Mon Entreprise',
-    logo: user?.user_metadata?.avatar_url,
-    address: user?.user_metadata?.company_address,
-    email: user?.email,
-    phone: user?.user_metadata?.company_phone,
-  };
 
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -202,8 +194,8 @@ const BonsCommandePage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900">Bons de commande</h1>
-            <p className="text-neutral-600">Gérez vos commandes fournisseurs</p>
+            <h1 className="text-2xl font-bold text-neutral-900">Bons de Commande</h1>
+            <p className="text-neutral-600">Gérez vos bons de commande</p>
           </div>
           <Button 
             onClick={handleCreateBonCommande}
@@ -248,7 +240,7 @@ const BonsCommandePage = () => {
                 <TableRow>
                   <TableHead>Numéro</TableHead>
                   <TableHead>Fournisseur</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Date Commande</TableHead>
                   <TableHead>Statut</TableHead>
                   <TableHead>Montant HT</TableHead>
                   <TableHead>Montant TTC</TableHead>
@@ -279,14 +271,15 @@ const BonsCommandePage = () => {
                     <TableCell>
                       {formatCurrency(bonCommande.montantTTC)}
                     </TableCell>
+                    
                     <TableCell className="text-right">
                       <BonCommandeActionsMenu
                         bonCommande={bonCommande}
-                        pdfComponent={<BonCommandePDF bonCommande={bonCommande} company={company} />}
                         onView={() => handleViewBonCommande(bonCommande)}
                         onEdit={() => handleEditBonCommande(bonCommande)}
                         onDuplicate={() => handleDuplicateBonCommande(bonCommande)}
-                        onMarkAsReceived={() => handleMarkAsReceived(bonCommande)}
+                        onConvertToDelivery={() => handleConvertToDelivery(bonCommande)}
+                        onStatusChange={(status) => handleStatusChange(bonCommande, status)}
                         onDelete={() => handleDeleteBonCommande(bonCommande)}
                         onEmailSent={handleEmailSent}
                       />

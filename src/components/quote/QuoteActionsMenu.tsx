@@ -22,11 +22,23 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, ArrowRight, Trash, CheckCircle } from 'lucide-react';
+import { 
+  MoreHorizontal, 
+  Eye, 
+  Printer, 
+  Mail, 
+  Edit, 
+  Copy, 
+  ArrowRight, 
+  Trash, 
+  CheckCircle 
+} from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
 import { EmailModal } from '@/components/modals/EmailModal';
+import { useAuth } from '@/hooks/useAuth';
 
-interface QuoteForActions {
+export interface QuoteForActions {
   id: string;
   number: string;
   client: string;
@@ -37,13 +49,13 @@ interface QuoteForActions {
 
 interface QuoteActionsMenuProps {
   quote: QuoteForActions;
-  pdfComponent: React.ReactNode;
+  pdfComponent: React.ReactElement;
   onView: () => void;
   onEdit: () => void;
-  onDuplicate: () => void;
   onConvertToInvoice: () => void;
-  onStatusChange: (status: QuoteForActions['status']) => void;
+  onDuplicate: () => void;
   onDelete: () => void;
+  onStatusChange: (status: string) => void;
   onEmailSent: (emailData: any) => void;
 }
 
@@ -52,7 +64,7 @@ const statusLabels = {
   sent: { label: 'Envoyé', variant: 'default' as const },
   accepted: { label: 'Accepté', variant: 'default' as const },
   rejected: { label: 'Refusé', variant: 'destructive' as const },
-  expired: { label: 'Expiré', variant: 'secondary' as const }
+  expired: { label: 'Expiré', variant: 'destructive' as const }
 };
 
 export function QuoteActionsMenu({
@@ -60,16 +72,17 @@ export function QuoteActionsMenu({
   pdfComponent,
   onView,
   onEdit,
-  onDuplicate,
   onConvertToInvoice,
-  onStatusChange,
+  onDuplicate,
   onDelete,
+  onStatusChange,
   onEmailSent
 }: QuoteActionsMenuProps) {
+  const { user, organization } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const canEdit = quote.status === 'draft' || quote.status === 'sent';
+  const canEdit = quote.status === 'draft';
   const canConvertToInvoice = quote.status === 'accepted';
 
   const handleDelete = () => {
@@ -77,7 +90,7 @@ export function QuoteActionsMenu({
     setShowDeleteDialog(false);
   };
 
-  const handleStatusChange = (newStatus: QuoteForActions['status']) => {
+  const handleStatusChange = (newStatus: string) => {
     onStatusChange(newStatus);
   };
 
@@ -85,6 +98,18 @@ export function QuoteActionsMenu({
     onEmailSent(emailData);
     setShowEmailModal(false);
   };
+
+  // Prepare company data from organization and user
+  const company = {
+    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
+    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
+    address: organization?.address || user?.user_metadata?.company_address,
+    email: organization?.email || user?.email,
+    phone: organization?.phone || user?.user_metadata?.company_phone,
+  };
+
+  // Create enhanced PDF component with company data
+  const enhancedPdfComponent = React.cloneElement(pdfComponent, { company });
 
   return (
     <>
@@ -94,14 +119,14 @@ export function QuoteActionsMenu({
             <MoreHorizontal size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg">
+        <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuItem onClick={onView}>
             <Eye size={16} className="mr-2" />
             Voir le devis
           </DropdownMenuItem>
 
           <PDFDownloadLink
-            document={pdfComponent as any}
+            document={enhancedPdfComponent}
             fileName={`${quote.number}.pdf`}
           >
             {({ loading }) => (
@@ -121,7 +146,7 @@ export function QuoteActionsMenu({
 
           <DropdownMenuItem onClick={onEdit} disabled={!canEdit}>
             <Edit size={16} className="mr-2" />
-            Modifier le devis
+            Modifier
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={onDuplicate}>
@@ -146,11 +171,11 @@ export function QuoteActionsMenu({
                 {statusLabels[quote.status].label}
               </Badge>
             </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="bg-white border shadow-lg">
+            <DropdownMenuSubContent>
               {Object.entries(statusLabels).map(([status, { label }]) => (
                 <DropdownMenuItem
                   key={status}
-                  onClick={() => handleStatusChange(status as QuoteForActions['status'])}
+                  onClick={() => handleStatusChange(status)}
                   disabled={quote.status === status}
                 >
                   {label}
