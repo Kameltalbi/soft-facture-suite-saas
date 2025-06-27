@@ -17,6 +17,9 @@ export function Header() {
               <a href="#tarifs" className="text-gray-600 hover:text-[#6A9C89] transition-colors">
                 Tarifs
               </a>
+              <a href="#contact" className="text-gray-600 hover:text-[#6A9C89] transition-colors">
+                Contact
+              </a>
             </nav>
           </div>
           
