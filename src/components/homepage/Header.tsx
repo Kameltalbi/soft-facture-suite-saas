@@ -8,7 +8,11 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
-            <h1 className="text-2xl font-bold text-[#6A9C89]">Soft Facture</h1>
+            <img 
+              src="/lovable-uploads/a37d1d26-1551-481a-a7cd-1f8b9cbbe869.png" 
+              alt="Soft Facture Logo" 
+              className="h-12 w-12"
+            />
             
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#fonctionnalites" className="text-gray-600 hover:text-[#6A9C89] transition-colors">
