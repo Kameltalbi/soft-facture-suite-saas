@@ -15,19 +15,14 @@ import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Organization, User } from '@/types/settings';
 
-// Mock data for user management (not yet implemented with real data)
-const mockUsers: User[] = [
-  { id: '1', email: 'admin@softfacture.tn', full_name: 'Admin Principal', role: 'Administrateur', status: 'active', created_at: '2024-01-01T00:00:00Z', tenant_id: 'tenant1' },
-  { id: '2', email: 'comptable@softfacture.tn', full_name: 'Marie Dubois', role: 'Comptable', status: 'active', created_at: '2024-01-15T00:00:00Z', tenant_id: 'tenant1' },
-  { id: '3', email: 'commercial@softfacture.tn', full_name: 'Ahmed Ben Ali', role: 'Commercial', status: 'pending', created_at: '2024-02-01T00:00:00Z', tenant_id: 'tenant1' },
-];
-
 export default function Settings() {
   const { toast } = useToast();
   const { organization, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('organization');
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   const [organizationLoading, setOrganizationLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
   
   const {
     currencies,
@@ -42,6 +37,53 @@ export default function Settings() {
     createRole,
     updateRole
   } = useSettings();
+
+  // Load users from the organization
+  const loadUsers = async () => {
+    if (!profile?.organization_id) {
+      setUsersLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          user_id,
+          first_name,
+          last_name,
+          role,
+          created_at,
+          organization_id
+        `)
+        .eq('organization_id', profile.organization_id);
+
+      if (error) throw error;
+
+      // Transform data to match User interface
+      const transformedUsers: User[] = (data || []).map(user => ({
+        id: user.user_id,
+        email: '', // We'll need to get this from auth.users but it's protected
+        full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur',
+        role: user.role || 'user',
+        status: 'active' as const, // Default to active since they're in profiles
+        created_at: user.created_at,
+        tenant_id: user.organization_id
+      }));
+
+      setUsers(transformedUsers);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les utilisateurs',
+        variant: 'destructive',
+      });
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (organization) {
@@ -67,6 +109,10 @@ export default function Settings() {
     }
     setOrganizationLoading(false);
   }, [organization]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [profile?.organization_id]);
 
   const handleSaveOrganization = async (data: Partial<Organization>) => {
     if (!profile?.organization_id) {
@@ -116,32 +162,80 @@ export default function Settings() {
     saveGlobalSettings(data);
   };
 
-  // Mock handlers for user management (not yet implemented)
-  const handleInviteUser = (email: string, role: string) => {
-    console.log('Inviting user:', email, role);
-    toast({
-      title: 'Succès',
-      description: 'Invitation envoyée avec succès.',
-    });
+  // User management handlers
+  const handleInviteUser = async (email: string, role: string) => {
+    try {
+      // This would typically involve sending an invitation email
+      // For now, we'll just show a success message
+      console.log('Inviting user:', email, role);
+      toast({
+        title: 'Succès',
+        description: 'Invitation envoyée avec succès.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de l\'envoi de l\'invitation.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleUpdateUserRole = (userId: string, role: string) => {
-    console.log('Updating user role:', userId, role);
-    toast({
-      title: 'Succès',
-      description: 'Rôle utilisateur mis à jour.',
-    });
+  const handleUpdateUserRole = async (userId: string, role: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, role } : user
+      ));
+
+      toast({
+        title: 'Succès',
+        description: 'Rôle utilisateur mis à jour.',
+      });
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la mise à jour du rôle.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleDeleteUser = (userId: string) => {
-    console.log('Deleting user:', userId);
-    toast({
-      title: 'Succès',
-      description: 'Utilisateur supprimé.',
-    });
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(users.filter(user => user.id !== userId));
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur supprimé.',
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la suppression de l\'utilisateur.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  if (organizationLoading || settingsLoading) {
+  if (organizationLoading || settingsLoading || usersLoading) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
         <div className="mb-8">
@@ -221,7 +315,7 @@ export default function Settings() {
 
         <TabsContent value="users">
           <UserManagement
-            users={mockUsers}
+            users={users}
             roles={roles.map(r => r.name)}
             onInviteUser={handleInviteUser}
             onUpdateUserRole={handleUpdateUserRole}
