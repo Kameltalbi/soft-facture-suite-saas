@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { InvoicePDF } from '@/components/pdf/invoices/InvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
@@ -266,17 +265,32 @@ export default function Invoices() {
       footer_content: 'Soft Facture SARL - Merci pour votre confiance'
     };
 
-    return generateInvoicePDF(
-      {
+    const company = {
+      name: 'Mon Entreprise',
+      address: 'Adresse de l\'entreprise',
+      email: 'contact@monentreprise.fr',
+      phone: 'Téléphone'
+    };
+
+    const client = {
+      name: invoice.client,
+      company: invoice.client,
+      address: 'Adresse du client',
+      email: 'client@email.com'
+    };
+
+    return {
+      invoiceData: {
         number: invoice.number,
         date: invoice.date,
-        clientId: '1',
         subject: `Facture pour ${invoice.client}`,
         notes: 'Merci pour votre confiance.'
       },
-      mockLineItems,
-      mockSettings
-    );
+      lineItems: mockLineItems,
+      client,
+      company,
+      settings: mockSettings
+    };
   };
 
   return (
@@ -436,7 +450,7 @@ export default function Invoices() {
                   <TableCell className="text-right">
                     <InvoiceActionsMenu
                       invoice={invoice}
-                      pdfComponent={<TemplatedInvoicePDF {...getPDFData(invoice)} template="classic" documentType="FACTURE" />}
+                      pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
                       onView={() => handleViewInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}

@@ -14,9 +14,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { usePDFGeneration } from '@/hooks/usePDFGeneration';
-import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { DeliveryNotePDF } from '@/components/pdf/deliveryNotes/DeliveryNotePDF';
 import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface DeliveryNote {
   id: string;
@@ -202,17 +202,32 @@ export default function DeliveryNotes() {
       footer_content: 'Soft Facture SARL - Merci pour votre confiance'
     };
 
-    return generateInvoicePDF(
-      {
+    const company = {
+      name: 'Mon Entreprise',
+      address: 'Adresse de l\'entreprise',
+      email: 'contact@monentreprise.fr',
+      phone: 'Téléphone'
+    };
+
+    const client = {
+      name: delivery.client,
+      company: delivery.client,
+      address: 'Adresse du client',
+      email: 'client@email.com'
+    };
+
+    return {
+      deliveryData: {
         number: delivery.number,
         date: delivery.date,
-        clientId: '1',
         subject: `Bon de livraison pour ${delivery.client}`,
         notes: delivery.deliveryDate ? `Livré le ${new Date(delivery.deliveryDate).toLocaleDateString('fr-FR')}` : 'En cours de livraison'
       },
-      mockLineItems,
-      mockSettings
-    );
+      lineItems: mockLineItems,
+      client,
+      company,
+      settings: mockSettings
+    };
   };
 
   return (
@@ -379,7 +394,7 @@ export default function DeliveryNotes() {
                   <TableCell className="text-right">
                     <DeliveryNoteActionsMenu
                       deliveryNote={delivery}
-                      pdfComponent={<TemplatedInvoicePDF {...getPDFData(delivery)} template="minimal" documentType="BON DE LIVRAISON" />}
+                      pdfComponent={<DeliveryNotePDF {...getPDFData(delivery)} />}
                       onView={() => handleViewDelivery(delivery)}
                       onEdit={() => handleEditDelivery(delivery)}
                       onDuplicate={() => handleDuplicateDelivery(delivery)}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
 import { QuoteActionsMenu } from '@/components/quote/QuoteActionsMenu';
-import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
 import { Quote } from '@/types/quote';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -222,6 +221,44 @@ const QuotesPage = () => {
     validUntil: quote.dateValidite
   });
 
+  const getPDFData = (quote: Quote) => {
+    const client = {
+      name: quote.clientNom,
+      company: quote.clientNom,
+      address: '',
+      email: ''
+    };
+
+    const settings = {
+      currency: '€',
+      showVat: true,
+      amountInWords: false,
+      footer_content: 'Soft Facture - Merci pour votre confiance'
+    };
+
+    return {
+      quoteData: {
+        number: quote.numero,
+        date: quote.dateCreation,
+        validUntil: quote.dateValidite,
+        subject: quote.objet,
+        notes: quote.remarques
+      },
+      lineItems: quote.lignes.map(ligne => ({
+        id: ligne.id,
+        description: ligne.designation,
+        quantity: ligne.quantite,
+        unitPrice: ligne.prixUnitaireHT,
+        vatRate: ligne.tva,
+        discount: 0,
+        total: ligne.totalHT
+      })),
+      client,
+      company,
+      settings
+    };
+  };
+
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -313,37 +350,7 @@ const QuotesPage = () => {
                     <TableCell className="text-right">
                       <QuoteActionsMenu
                         quote={convertQuoteFormat(quote)}
-                        pdfComponent={<TemplatedInvoicePDF 
-                          invoiceData={{
-                            number: quote.numero,
-                            date: quote.dateCreation,
-                            dueDate: quote.dateValidite,
-                            subject: quote.objet,
-                            notes: quote.remarques
-                          }}
-                          lineItems={quote.lignes.map(ligne => ({
-                            id: ligne.id,
-                            description: ligne.designation,
-                            quantity: ligne.quantite,
-                            unitPrice: ligne.prixUnitaireHT,
-                            vatRate: ligne.tva,
-                            discount: 0,
-                            total: ligne.totalHT
-                          }))}
-                          client={{
-                            name: quote.clientNom,
-                            company: quote.clientNom,
-                            address: '',
-                            email: ''
-                          }}
-                          company={company}
-                          settings={{
-                            currency: '€',
-                            showVat: true,
-                            amountInWords: false
-                          }}
-                          documentType="DEVIS"
-                        />}
+                        pdfComponent={<QuotePDF {...getPDFData(quote)} />}
                         onView={() => handleViewQuote(quote)}
                         onEdit={() => handleEditQuote(quote)}
                         onConvertToInvoice={() => handleConvertToInvoice(quote)}
