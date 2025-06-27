@@ -16,7 +16,46 @@ export function PricingSection() {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <Card className="rounded-2xl shadow-lg bg-white relative">
+            <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#6A9C89]">
+              Gratuit
+            </Badge>
+            <CardHeader className="text-center pt-8">
+              <CardTitle className="text-2xl text-gray-900 mb-2">Essai gratuit</CardTitle>
+              <div className="space-y-2">
+                <div className="text-4xl font-bold text-[#6A9C89]">0 DT</div>
+                <div className="text-lg text-gray-600">14 jours</div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center mb-6">
+                <p className="text-gray-600">1 utilisateur</p>
+              </div>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
+                  Factures
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
+                  Devis
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
+                  Bons de livraison
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-[#6A9C89] rounded-full mr-3"></span>
+                  Avoirs
+                </li>
+              </ul>
+              <Button className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white mt-6">
+                Commencer l'essai gratuit
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className="rounded-2xl shadow-lg bg-white relative">
             <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#6A9C89]">
               Promotion jusqu'à fin 2025
