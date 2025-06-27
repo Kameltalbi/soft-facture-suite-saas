@@ -66,8 +66,32 @@ export default function Avoirs() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  // Date filters
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  
+  // Generate available years (5 years back to 2 years forward)
+  const availableYears = Array.from({ length: 8 }, (_, i) => currentDate.getFullYear() - 5 + i);
+  
+  const months = [
+    { value: 1, label: 'Janvier' },
+    { value: 2, label: 'Février' },
+    { value: 3, label: 'Mars' },
+    { value: 4, label: 'Avril' },
+    { value: 5, label: 'Mai' },
+    { value: 6, label: 'Juin' },
+    { value: 7, label: 'Juillet' },
+    { value: 8, label: 'Août' },
+    { value: 9, label: 'Septembre' },
+    { value: 10, label: 'Octobre' },
+    { value: 11, label: 'Novembre' },
+    { value: 12, label: 'Décembre' },
+  ];
 
   const filteredAvoirs = avoirs.filter(avoir => {
+    const avoirDate = new Date(avoir.date);
     const matchesSearch = 
       avoir.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       avoir.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,8 +99,10 @@ export default function Avoirs() {
     
     const matchesType = typeFilter === 'all' || avoir.type === typeFilter;
     const matchesStatus = statusFilter === 'all' || avoir.status === statusFilter;
+    const matchesYear = avoirDate.getFullYear() === selectedYear;
+    const matchesMonth = avoirDate.getMonth() + 1 === selectedMonth;
     
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus && matchesYear && matchesMonth;
   });
 
   const getStatusBadge = (status: string) => {
@@ -129,11 +155,11 @@ export default function Avoirs() {
   };
 
   const stats = {
-    total: avoirs.length,
-    brouillon: avoirs.filter(a => a.status === 'brouillon').length,
-    valide: avoirs.filter(a => a.status === 'valide').length,
-    envoye: avoirs.filter(a => a.status === 'envoye').length,
-    totalAmount: avoirs.reduce((sum, avoir) => sum + avoir.amount, 0)
+    total: filteredAvoirs.length,
+    brouillon: filteredAvoirs.filter(a => a.status === 'brouillon').length,
+    valide: filteredAvoirs.filter(a => a.status === 'valide').length,
+    envoye: filteredAvoirs.filter(a => a.status === 'envoye').length,
+    totalAmount: filteredAvoirs.reduce((sum, avoir) => sum + avoir.amount, 0)
   };
 
   return (
@@ -224,6 +250,45 @@ export default function Avoirs() {
                 />
               </div>
             </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Année :</label>
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(value) => setSelectedYear(parseInt(value))}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Mois :</label>
+              <Select
+                value={selectedMonth.toString()}
+                onValueChange={(value) => setSelectedMonth(parseInt(value))}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Type d'avoir" />
@@ -251,6 +316,12 @@ export default function Avoirs() {
 
       {/* Table */}
       <Card>
+        <CardHeader>
+          <CardTitle>Liste des avoirs</CardTitle>
+          <p className="text-sm text-gray-600">
+            Avoirs pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
+          </p>
+        </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -326,17 +397,8 @@ export default function Avoirs() {
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun avoir trouvé</h3>
           <p className="text-gray-600 mb-4">
-            {searchTerm || typeFilter !== 'all' || statusFilter !== 'all' 
-              ? 'Aucun avoir ne correspond à vos critères de recherche.'
-              : 'Commencez par créer votre premier avoir.'
-            }
+            Aucun avoir ne correspond à vos critères pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}.
           </p>
-          {(!searchTerm && typeFilter === 'all' && statusFilter === 'all') && (
-            <Button onClick={() => setIsCreateModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Créer un avoir
-            </Button>
-          )}
         </div>
       )}
     </div>

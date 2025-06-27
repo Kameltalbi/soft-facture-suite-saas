@@ -1,8 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Eye, Edit, Download, MoreHorizontal, FileText } from 'lucide-react';
 import {
   DropdownMenu,
@@ -77,11 +79,39 @@ export default function Quotes() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [editingQuote, setEditingQuote] = useState<Quote | null>(null);
+  
+  // Date filters
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  
+  // Generate available years (5 years back to 2 years forward)
+  const availableYears = Array.from({ length: 8 }, (_, i) => currentDate.getFullYear() - 5 + i);
+  
+  const months = [
+    { value: 1, label: 'Janvier' },
+    { value: 2, label: 'Février' },
+    { value: 3, label: 'Mars' },
+    { value: 4, label: 'Avril' },
+    { value: 5, label: 'Mai' },
+    { value: 6, label: 'Juin' },
+    { value: 7, label: 'Juillet' },
+    { value: 8, label: 'Août' },
+    { value: 9, label: 'Septembre' },
+    { value: 10, label: 'Octobre' },
+    { value: 11, label: 'Novembre' },
+    { value: 12, label: 'Décembre' },
+  ];
 
-  const filteredQuotes = mockQuotes.filter(quote =>
-    quote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    quote.number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredQuotes = mockQuotes.filter(quote => {
+    const quoteDate = new Date(quote.date);
+    const matchesSearch = quote.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.number.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesYear = quoteDate.getFullYear() === selectedYear;
+    const matchesMonth = quoteDate.getMonth() + 1 === selectedMonth;
+    
+    return matchesSearch && matchesYear && matchesMonth;
+  });
 
   const handleNewQuote = () => {
     setEditingQuote(null);
@@ -142,16 +172,60 @@ export default function Quotes() {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-        <Input
-          placeholder="Rechercher par client ou numéro..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 bg-white border-neutral-200"
-        />
-      </div>
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+              <Input
+                placeholder="Rechercher par client ou numéro..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white border-neutral-200"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Année :</label>
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(value) => setSelectedYear(parseInt(value))}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Mois :</label>
+              <Select
+                value={selectedMonth.toString()}
+                onValueChange={(value) => setSelectedMonth(parseInt(value))}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -160,7 +234,7 @@ export default function Quotes() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Total devis</p>
-                <p className="text-2xl font-bold text-neutral-900">{mockQuotes.length}</p>
+                <p className="text-2xl font-bold text-neutral-900">{filteredQuotes.length}</p>
               </div>
               <div className="w-3 h-3 bg-secondary rounded-full"></div>
             </div>
@@ -171,7 +245,7 @@ export default function Quotes() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Acceptés</p>
-                <p className="text-2xl font-bold text-success">{mockQuotes.filter(q => q.status === 'accepted').length}</p>
+                <p className="text-2xl font-bold text-success">{filteredQuotes.filter(q => q.status === 'accepted').length}</p>
               </div>
               <div className="w-3 h-3 bg-success rounded-full"></div>
             </div>
@@ -182,7 +256,7 @@ export default function Quotes() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">En attente</p>
-                <p className="text-2xl font-bold text-primary">{mockQuotes.filter(q => q.status === 'sent').length}</p>
+                <p className="text-2xl font-bold text-primary">{filteredQuotes.filter(q => q.status === 'sent').length}</p>
               </div>
               <div className="w-3 h-3 bg-primary rounded-full"></div>
             </div>
@@ -193,7 +267,7 @@ export default function Quotes() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Refusés</p>
-                <p className="text-2xl font-bold text-destructive">{mockQuotes.filter(q => q.status === 'rejected').length}</p>
+                <p className="text-2xl font-bold text-destructive">{filteredQuotes.filter(q => q.status === 'rejected').length}</p>
               </div>
               <div className="w-3 h-3 bg-destructive rounded-full"></div>
             </div>
@@ -206,7 +280,7 @@ export default function Quotes() {
         <CardHeader>
           <CardTitle>Liste des devis</CardTitle>
           <CardDescription>
-            Consultez et gérez tous vos devis
+            Consultez et gérez tous vos devis pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
           </CardDescription>
         </CardHeader>
         <CardContent>

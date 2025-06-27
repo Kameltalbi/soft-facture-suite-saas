@@ -1,8 +1,10 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, Eye, Edit, Download, MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
@@ -91,11 +93,39 @@ export function Sales() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
+  
+  // Date filters
+  const currentDate = new Date();
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  
+  // Generate available years (5 years back to 2 years forward)
+  const availableYears = Array.from({ length: 8 }, (_, i) => currentDate.getFullYear() - 5 + i);
+  
+  const months = [
+    { value: 1, label: 'Janvier' },
+    { value: 2, label: 'Février' },
+    { value: 3, label: 'Mars' },
+    { value: 4, label: 'Avril' },
+    { value: 5, label: 'Mai' },
+    { value: 6, label: 'Juin' },
+    { value: 7, label: 'Juillet' },
+    { value: 8, label: 'Août' },
+    { value: 9, label: 'Septembre' },
+    { value: 10, label: 'Octobre' },
+    { value: 11, label: 'Novembre' },
+    { value: 12, label: 'Décembre' },
+  ];
 
-  const filteredDocuments = mockDocuments.filter(doc =>
-    doc.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredDocuments = mockDocuments.filter(doc => {
+    const docDate = new Date(doc.date);
+    const matchesSearch = doc.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.number.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesYear = docDate.getFullYear() === selectedYear;
+    const matchesMonth = docDate.getMonth() + 1 === selectedMonth;
+    
+    return matchesSearch && matchesYear && matchesMonth;
+  });
 
   const handleNewDocument = (type: 'invoice' | 'quote' | 'delivery' | 'credit') => {
     setEditingDocument(null);
@@ -145,14 +175,9 @@ export function Sales() {
     <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
       {/* Header Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-          <Input
-            placeholder="Rechercher par client ou numéro..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-white border-neutral-200"
-          />
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900">Documents de vente</h1>
+          <p className="text-neutral-600">Gérez tous vos documents commerciaux</p>
         </div>
 
         <div className="flex space-x-2">
@@ -174,6 +199,61 @@ export function Sales() {
         </div>
       </div>
 
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+              <Input
+                placeholder="Rechercher par client ou numéro..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white border-neutral-200"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Année :</label>
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(value) => setSelectedYear(parseInt(value))}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Mois :</label>
+              <Select
+                value={selectedMonth.toString()}
+                onValueChange={(value) => setSelectedMonth(parseInt(value))}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value.toString()}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -181,7 +261,7 @@ export function Sales() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Factures ce mois</p>
-                <p className="text-2xl font-bold text-neutral-900">24</p>
+                <p className="text-2xl font-bold text-neutral-900">{filteredDocuments.filter(d => d.type === 'invoice').length}</p>
               </div>
               <div className="w-3 h-3 bg-primary rounded-full"></div>
             </div>
@@ -192,7 +272,7 @@ export function Sales() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Devis en attente</p>
-                <p className="text-2xl font-bold text-neutral-900">8</p>
+                <p className="text-2xl font-bold text-neutral-900">{filteredDocuments.filter(d => d.type === 'quote').length}</p>
               </div>
               <div className="w-3 h-3 bg-secondary rounded-full"></div>
             </div>
@@ -202,8 +282,13 @@ export function Sales() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">CA en attente</p>
-                <p className="text-2xl font-bold text-neutral-900">12 450 €</p>
+                <p className="text-sm text-neutral-600">CA filtré</p>
+                <p className="text-2xl font-bold text-neutral-900">
+                  {filteredDocuments.reduce((sum, doc) => sum + (doc.amount > 0 ? doc.amount : 0), 0).toLocaleString('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                  })}
+                </p>
               </div>
               <div className="w-3 h-3 bg-success rounded-full"></div>
             </div>
@@ -214,7 +299,7 @@ export function Sales() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Avoirs émis</p>
-                <p className="text-2xl font-bold text-neutral-900">3</p>
+                <p className="text-2xl font-bold text-neutral-900">{filteredDocuments.filter(d => d.type === 'credit').length}</p>
               </div>
               <div className="w-3 h-3 bg-destructive rounded-full"></div>
             </div>
@@ -227,7 +312,7 @@ export function Sales() {
         <CardHeader>
           <CardTitle>Documents de vente</CardTitle>
           <CardDescription>
-            Gérez vos factures, devis, bons de livraison et avoirs
+            Documents pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
           </CardDescription>
         </CardHeader>
         <CardContent>
