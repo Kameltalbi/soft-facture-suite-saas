@@ -5,13 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye, Edit, Download, MoreHorizontal } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Plus, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,8 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import { InvoicePDF } from '@/components/pdf/InvoicePDF';
+import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface Document {
@@ -135,6 +129,37 @@ export function Sales() {
   const handleEditDocument = (document: Document) => {
     setEditingDocument(document);
     setShowInvoiceModal(true);
+  };
+
+  const handleViewDocument = (document: Document) => {
+    console.log('Viewing document:', document.number);
+  };
+
+  const handleDuplicateDocument = (document: Document) => {
+    const duplicatedDocument = {
+      ...document,
+      id: Date.now().toString(),
+      number: `${document.type.toUpperCase()}-2024-${String(mockDocuments.length + 1).padStart(3, '0')}`,
+      date: new Date().toISOString().split('T')[0],
+      status: 'draft' as const
+    };
+    console.log('Duplicating document:', duplicatedDocument);
+  };
+
+  const handleMarkAsSent = (document: Document) => {
+    console.log('Marking as sent:', document.number);
+  };
+
+  const handleDeleteDocument = (document: Document) => {
+    console.log('Deleting document:', document.number);
+  };
+
+  const handlePaymentRecorded = (paymentData: any) => {
+    console.log('Recording payment:', paymentData);
+  };
+
+  const handleEmailSent = (emailData: any) => {
+    console.log('Sending email:', emailData);
   };
 
   const getPDFData = (document: Document) => {
@@ -352,34 +377,23 @@ export function Sales() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditDocument(document)}>
-                          <Eye size={16} className="mr-2" />
-                          Voir
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditDocument(document)}>
-                          <Edit size={16} className="mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <PDFDownloadLink
-                          document={<InvoicePDF {...getPDFData(document)} />}
-                          fileName={`${document.number}.pdf`}
-                        >
-                          {({ loading }) => (
-                            <DropdownMenuItem disabled={loading}>
-                              <Download size={16} className="mr-2" />
-                              {loading ? 'Génération...' : 'Télécharger PDF'}
-                            </DropdownMenuItem>
-                          )}
-                        </PDFDownloadLink>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <InvoiceActionsMenu
+                      invoice={{
+                        id: document.id,
+                        number: document.number,
+                        client: document.client,
+                        amount: document.amount,
+                        status: document.status
+                      }}
+                      pdfComponent={<InvoicePDF {...getPDFData(document)} />}
+                      onView={() => handleViewDocument(document)}
+                      onEdit={() => handleEditDocument(document)}
+                      onDuplicate={() => handleDuplicateDocument(document)}
+                      onMarkAsSent={() => handleMarkAsSent(document)}
+                      onDelete={() => handleDeleteDocument(document)}
+                      onPaymentRecorded={handlePaymentRecorded}
+                      onEmailSent={handleEmailSent}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

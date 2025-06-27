@@ -1,17 +1,10 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Eye, Edit, Download, MoreHorizontal } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Plus, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -21,9 +14,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 
 interface Invoice {
   id: string;
@@ -115,6 +108,43 @@ export default function Invoices() {
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice);
     setShowInvoiceModal(true);
+  };
+
+  const handleViewInvoice = (invoice: Invoice) => {
+    // Open invoice in view mode - could open modal in read-only mode
+    console.log('Viewing invoice:', invoice.number);
+  };
+
+  const handleDuplicateInvoice = (invoice: Invoice) => {
+    const duplicatedInvoice = {
+      ...invoice,
+      id: Date.now().toString(),
+      number: `FAC-2024-${String(mockInvoices.length + 1).padStart(3, '0')}`,
+      date: new Date().toISOString().split('T')[0],
+      status: 'draft' as const
+    };
+    console.log('Duplicating invoice:', duplicatedInvoice);
+    // Add logic to create the duplicated invoice
+  };
+
+  const handleMarkAsSent = (invoice: Invoice) => {
+    console.log('Marking as sent:', invoice.number);
+    // Add logic to update invoice status
+  };
+
+  const handleDeleteInvoice = (invoice: Invoice) => {
+    console.log('Deleting invoice:', invoice.number);
+    // Add logic to delete invoice
+  };
+
+  const handlePaymentRecorded = (paymentData: any) => {
+    console.log('Recording payment:', paymentData);
+    // Add logic to record payment
+  };
+
+  const handleEmailSent = (emailData: any) => {
+    console.log('Sending email:', emailData);
+    // Add logic to send email
   };
 
   const getPDFData = (invoice: Invoice) => {
@@ -307,34 +337,17 @@ export default function Invoices() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
-                          <Eye size={16} className="mr-2" />
-                          Voir
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
-                          <Edit size={16} className="mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <PDFDownloadLink
-                          document={<TemplatedInvoicePDF {...getPDFData(invoice)} template="classic" documentType="FACTURE" />}
-                          fileName={`${invoice.number}.pdf`}
-                        >
-                          {({ loading }) => (
-                            <DropdownMenuItem disabled={loading}>
-                              <Download size={16} className="mr-2" />
-                              {loading ? 'Génération...' : 'Télécharger PDF'}
-                            </DropdownMenuItem>
-                          )}
-                        </PDFDownloadLink>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <InvoiceActionsMenu
+                      invoice={invoice}
+                      pdfComponent={<TemplatedInvoicePDF {...getPDFData(invoice)} template="classic" documentType="FACTURE" />}
+                      onView={() => handleViewInvoice(invoice)}
+                      onEdit={() => handleEditInvoice(invoice)}
+                      onDuplicate={() => handleDuplicateInvoice(invoice)}
+                      onMarkAsSent={() => handleMarkAsSent(invoice)}
+                      onDelete={() => handleDeleteInvoice(invoice)}
+                      onPaymentRecorded={handlePaymentRecorded}
+                      onEmailSent={handleEmailSent}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
