@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -14,6 +13,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Organization, User } from '@/types/settings';
+
+interface AuthUser {
+  id: string;
+  email?: string;
+}
 
 export default function Settings() {
   const { toast } = useToast();
@@ -72,7 +76,7 @@ export default function Settings() {
       // Transform data to match User interface
       const transformedUsers: User[] = (profilesData || []).map(user => {
         // Find corresponding auth user for email
-        const authUser = authUsers?.users?.find(au => au.id === user.user_id);
+        const authUser = (authUsers?.users as AuthUser[] || []).find((au: AuthUser) => au.id === user.user_id);
         
         return {
           id: user.user_id,
