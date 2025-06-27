@@ -9,6 +9,7 @@ import Invoices from './Invoices';
 import Quotes from './Quotes';
 import DeliveryNotes from './DeliveryNotes';
 import Settings from './Settings';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -39,15 +40,17 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-50">
-      <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header activeModule={activeModule} />
-        <main className="flex-1 overflow-y-auto">
-          {renderModule()}
-        </main>
+    <CurrencyProvider>
+      <div className="flex h-screen bg-neutral-50">
+        <Sidebar activeModule={activeModule} onModuleChange={setActiveModule} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header activeModule={activeModule} />
+          <main className="flex-1 overflow-y-auto">
+            {renderModule()}
+          </main>
+        </div>
       </div>
-    </div>
+    </CurrencyProvider>
   );
 };
 
