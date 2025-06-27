@@ -36,6 +36,10 @@ interface ChartData {
     value: number;
     color: string;
   }>;
+  clientRevenue: Array<{
+    name: string;
+    revenue: number;
+  }>;
 }
 
 interface DashboardChartsProps {
@@ -48,13 +52,11 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
   const { currency } = useCurrency();
   
   const COLORS = {
-    currentYear: '#6A9C89',
-    previousYear: '#64B5F6',
-    product: '#6A9C89',
-    category: ['#8B5CF6', '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#F97316'],
-    paid: '#81C784',
-    pending: '#FFB74D',
-    overdue: '#E57373'
+    currentYear: '#648B78',
+    previousYear: '#94A3B8',
+    product: '#648B78',
+    category: ['#648B78', '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#F97316'],
+    client: '#3B82F6'
   };
 
   const formatCurrency = (value: number) => {
@@ -63,15 +65,15 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <Card key={i} className="animate-pulse border-0 shadow-sm rounded-xl">
+            <CardHeader className="pb-4">
+              <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-64 bg-gray-200 rounded"></div>
+              <div className="h-80 bg-gray-200 rounded-lg"></div>
             </CardContent>
           </Card>
         ))}
@@ -80,35 +82,37 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* 1. Courbe comparative CA / mois année N vs N-1 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Chiffre d'affaires mensuel</CardTitle>
-          <CardDescription>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Chiffre d'affaires mensuel */}
+      <Card className="border-0 shadow-sm rounded-xl bg-white">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">Chiffre d'affaires mensuel</CardTitle>
+          <CardDescription className="text-gray-600">
             Comparaison {selectedYear} vs {selectedYear - 1}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data.monthlyComparison}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <CardContent className="pt-2">
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={data.monthlyComparison} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
               <XAxis 
                 dataKey="month" 
-                stroke="#666"
-                tick={{ fontSize: 12 }}
+                stroke="#64748B"
+                tick={{ fontSize: 12, fill: '#64748B' }}
+                axisLine={{ stroke: '#E2E8F0' }}
               />
               <YAxis 
-                stroke="#666"
-                tick={{ fontSize: 12 }}
+                stroke="#64748B"
+                tick={{ fontSize: 12, fill: '#64748B' }}
+                axisLine={{ stroke: '#E2E8F0' }}
                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'white',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                 }}
                 formatter={(value: number, name: string) => [
                   formatCurrency(value),
@@ -122,8 +126,8 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 stroke={COLORS.currentYear}
                 strokeWidth={3}
                 name={selectedYear.toString()}
-                dot={{ fill: COLORS.currentYear, strokeWidth: 2, r: 5 }}
-                activeDot={{ r: 7, stroke: COLORS.currentYear, strokeWidth: 2 }}
+                dot={{ fill: COLORS.currentYear, strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: COLORS.currentYear, strokeWidth: 2 }}
               />
               <Line 
                 type="monotone" 
@@ -131,127 +135,126 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 stroke={COLORS.previousYear}
                 strokeWidth={3}
                 name={(selectedYear - 1).toString()}
-                dot={{ fill: COLORS.previousYear, strokeWidth: 2, r: 5 }}
-                activeDot={{ r: 7, stroke: COLORS.previousYear, strokeWidth: 2 }}
+                dot={{ fill: COLORS.previousYear, strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: COLORS.previousYear, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* 2. Barres verticales – CA par produit/service */}
-      <Card>
-        <CardHeader>
-          <CardTitle>CA par produit/service</CardTitle>
-          <CardDescription>Chiffre d'affaires par produit et service</CardDescription>
+      {/* CA par produit/service */}
+      <Card className="border-0 shadow-sm rounded-xl bg-white">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">CA par produit/service</CardTitle>
+          <CardDescription className="text-gray-600">Chiffre d'affaires par produit et service</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+        <CardContent className="pt-2">
+          <ResponsiveContainer width="100%" height={320}>
             <BarChart 
               data={data.topProducts}
               margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
               <XAxis 
                 dataKey="name" 
-                stroke="#666"
-                tick={{ fontSize: 11 }}
+                stroke="#64748B"
+                tick={{ fontSize: 11, fill: '#64748B' }}
                 angle={-45}
                 textAnchor="end"
                 height={80}
+                axisLine={{ stroke: '#E2E8F0' }}
               />
               <YAxis 
-                stroke="#666"
-                tick={{ fontSize: 12 }}
+                stroke="#64748B"
+                tick={{ fontSize: 12, fill: '#64748B' }}
+                axisLine={{ stroke: '#E2E8F0' }}
                 tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'white',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                 }}
                 formatter={(value: number) => [formatCurrency(value), 'CA']}
               />
               <Bar 
                 dataKey="revenue" 
                 fill={COLORS.product}
-                radius={[4, 4, 0, 0]}
+                radius={[6, 6, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* 3. Camembert – CA par catégorie */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Chiffre d'affaires par catégorie</CardTitle>
-          <CardDescription>Répartition du CA par catégorie</CardDescription>
+      {/* CA par client */}
+      <Card className="border-0 shadow-sm rounded-xl bg-white">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">Top clients</CardTitle>
+          <CardDescription className="text-gray-600">Chiffre d'affaires par client</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data.categorySales}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={100}
-                dataKey="amount"
-                label={({ category, percent, amount }) => 
-                  `${category}: ${(percent * 100).toFixed(1)}%`
-                }
-                labelLine={false}
-              >
-                {data.categorySales.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS.category[index % COLORS.category.length]} 
-                  />
-                ))}
-              </Pie>
+        <CardContent className="pt-2">
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart 
+              data={data.clientRevenue}
+              layout="horizontal"
+              margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+              <XAxis 
+                type="number"
+                stroke="#64748B"
+                tick={{ fontSize: 12, fill: '#64748B' }}
+                axisLine={{ stroke: '#E2E8F0' }}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+              />
+              <YAxis 
+                type="category"
+                dataKey="name"
+                stroke="#64748B"
+                tick={{ fontSize: 11, fill: '#64748B' }}
+                axisLine={{ stroke: '#E2E8F0' }}
+                width={70}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'white',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                formatter={(value: number) => [formatCurrency(value), 'CA']}
               />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value, entry) => (
-                  <span style={{ color: entry.color }}>
-                    {value}
-                  </span>
-                )}
+              <Bar 
+                dataKey="revenue" 
+                fill={COLORS.client}
+                radius={[0, 6, 6, 0]}
               />
-            </PieChart>
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* 4. Camembert – Statuts des factures */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Statut des factures</CardTitle>
-          <CardDescription>Répartition par statut (% et valeur brute)</CardDescription>
+      {/* Statut des factures */}
+      <Card className="border-0 shadow-sm rounded-xl bg-white">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">Statut des factures</CardTitle>
+          <CardDescription className="text-gray-600">Répartition par statut (% et valeur brute)</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+        <CardContent className="pt-2">
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
                 data={data.invoiceStatus}
                 cx="50%"
                 cy="50%"
-                innerRadius={50}
-                outerRadius={100}
+                innerRadius={60}
+                outerRadius={120}
                 dataKey="value"
-                label={({ name, percent, value }) => 
+                label={({ name, percent }) => 
                   `${name}: ${(percent * 100).toFixed(1)}%`
                 }
                 labelLine={false}
@@ -259,28 +262,24 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 {data.invoiceStatus.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={
-                      entry.name === 'Payées' ? COLORS.paid :
-                      entry.name === 'En attente' ? COLORS.pending :
-                      COLORS.overdue
-                    } 
+                    fill={entry.color} 
                   />
                 ))}
               </Pie>
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'white',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                formatter={(value: number) => [formatCurrency(value), 'Montant']}
               />
               <Legend 
                 verticalAlign="bottom" 
                 height={36}
                 formatter={(value, entry) => (
-                  <span style={{ color: entry.color }}>
+                  <span style={{ color: entry.color, fontWeight: 500 }}>
                     {value}
                   </span>
                 )}

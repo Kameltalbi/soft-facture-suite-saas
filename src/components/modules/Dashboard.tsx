@@ -6,7 +6,7 @@ import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
-// Données de simulation - À remplacer par des appels Supabase
+// Enhanced mock data with all 12 KPIs
 const generateMockData = (year: number, month: number) => {
   const kpiData = {
     totalInvoices: 156,
@@ -16,6 +16,11 @@ const generateMockData = (year: number, month: number) => {
     totalCredits: 5500,
     totalRevenue: 125000,
     totalVat: 25000,
+    quotesThisMonth: 28,
+    pendingOrders: 12,
+    lowStockProducts: 8,
+    topProduct: { name: 'Consultation Web', revenue: 45000 },
+    topClient: { name: 'TechCorp SARL', revenue: 32000 }
   };
 
   const chartData = {
@@ -47,10 +52,17 @@ const generateMockData = (year: number, month: number) => {
       { category: 'Conseil', amount: 28000 },
     ],
     invoiceStatus: [
-      { name: 'Payées', value: 125000, color: '#81C784' },
-      { name: 'En attente', value: 45000, color: '#FFB74D' },
-      { name: 'En retard', value: 12000, color: '#E57373' },
+      { name: 'Payées', value: 125000, color: '#648B78' },
+      { name: 'En attente', value: 45000, color: '#F59E0B' },
+      { name: 'En retard', value: 12000, color: '#EF4444' },
     ],
+    clientRevenue: [
+      { name: 'TechCorp SARL', revenue: 32000 },
+      { name: 'Digital Solutions', revenue: 28000 },
+      { name: 'StartUp Innov', revenue: 22000 },
+      { name: 'WebAgency Pro', revenue: 18000 },
+      { name: 'E-commerce Plus', revenue: 15000 },
+    ]
   };
 
   return { kpiData, chartData };
@@ -77,31 +89,37 @@ export function Dashboard() {
 
   return (
     <CurrencyProvider>
-      <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p className="text-gray-600">Vue d'ensemble de votre activité commerciale</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        <div className="p-6 space-y-8">
+          {/* Header Section */}
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">Dashboard</h1>
+            <p className="text-lg text-gray-600">Vue d'ensemble de votre activité commerciale</p>
+          </div>
+
+          {/* Filters */}
+          <DashboardFilters
+            selectedYear={filters.selectedYear}
+            selectedMonth={filters.selectedMonth}
+            availableYears={availableYears}
+            months={months}
+            onYearChange={updateYear}
+            onMonthChange={updateMonth}
+          />
+
+          {/* KPI Cards */}
+          <DashboardKpis 
+            data={dashboardData.kpiData} 
+            loading={loading}
+          />
+
+          {/* Charts Section */}
+          <DashboardCharts 
+            data={dashboardData.chartData}
+            selectedYear={filters.selectedYear}
+            loading={loading}
+          />
         </div>
-
-        <DashboardFilters
-          selectedYear={filters.selectedYear}
-          selectedMonth={filters.selectedMonth}
-          availableYears={availableYears}
-          months={months}
-          onYearChange={updateYear}
-          onMonthChange={updateMonth}
-        />
-
-        <DashboardKpis 
-          data={dashboardData.kpiData} 
-          loading={loading}
-        />
-
-        <DashboardCharts 
-          data={dashboardData.chartData}
-          selectedYear={filters.selectedYear}
-          loading={loading}
-        />
       </div>
     </CurrencyProvider>
   );
