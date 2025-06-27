@@ -39,12 +39,12 @@ export function HeroSection() {
           
           <div className="lg:pl-8">
             <Card className="p-6 shadow-2xl bg-white rounded-2xl">
-              <div className="aspect-video bg-gradient-to-br from-[#6A9C89] to-[#5A8A75] rounded-xl flex items-center justify-center">
-                <div className="text-white text-center">
-                  <div className="text-6xl mb-4">📊</div>
-                  <p className="text-xl font-semibold">Dashboard Soft Facture</p>
-                  <p className="text-sm opacity-90">Aperçu de votre application</p>
-                </div>
+              <div className="aspect-video bg-white rounded-xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/137f4872-2bc2-421e-bd39-ba486b894243.png" 
+                  alt="Dashboard Soft Facture - Aperçu de votre application de facturation"
+                  className="w-full h-full object-cover rounded-xl"
+                />
               </div>
             </Card>
           </div>
