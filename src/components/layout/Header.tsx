@@ -15,22 +15,6 @@ interface HeaderProps {
   activeModule: string;
 }
 
-const moduleNames: Record<string, string> = {
-  dashboard: 'Tableau de bord',
-  invoices: 'Factures',
-  quotes: 'Devis',
-  'delivery-notes': 'Bons de livraison',
-  'bons-commande': 'Bons de commande',
-  products: 'Produits',
-  categories: 'Catégories',
-  stock: 'Stock',
-  clients: 'Clients',
-  fournisseurs: 'Fournisseurs',
-  credits: 'Avoirs',
-  reports: 'Rapports',
-  settings: 'Paramètres',
-};
-
 export function Header({ activeModule }: HeaderProps) {
   const { user, profile, organization, signOut } = useAuth();
 
@@ -40,15 +24,17 @@ export function Header({ activeModule }: HeaderProps) {
 
   return (
     <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {moduleNames[activeModule] || 'Soft Facture'}
-        </h1>
-        {organization && (
-          <p className="text-sm text-gray-600 flex items-center gap-1">
-            <Building className="h-4 w-4" />
-            {organization.name}
-          </p>
+      <div className="flex items-center gap-3">
+        {organization?.logo_url ? (
+          <img 
+            src={organization.logo_url} 
+            alt={`${organization.name} logo`}
+            className="h-10 w-auto object-contain"
+          />
+        ) : (
+          <div className="h-10 w-10 bg-[#6A9C89] rounded-lg flex items-center justify-center">
+            <Building className="h-6 w-6 text-white" />
+          </div>
         )}
       </div>
       
