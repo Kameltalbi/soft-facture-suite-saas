@@ -89,8 +89,8 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   const isCollapsed = state === 'collapsed';
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader className="border-b px-6 py-4">
+    <Sidebar collapsible="icon" className="border-r border-gray-200 bg-[#F6F7F9]">
+      <SidebarHeader className="border-b border-gray-200 px-6 py-4 bg-[#F6F7F9]">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6A9C89] text-white">
             <span className="text-sm font-bold">SF</span>
@@ -104,7 +104,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
+      <SidebarContent className="px-3 py-4 bg-[#F6F7F9]">
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
             {!isCollapsed && 'Navigation'}
@@ -134,7 +134,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t px-6 py-4">
+      <SidebarFooter className="border-t border-gray-200 px-6 py-4 bg-[#F6F7F9]">
         {!isCollapsed && (
           <div className="text-center">
             <p className="text-xs text-muted-foreground">Version 1.0.0</p>
