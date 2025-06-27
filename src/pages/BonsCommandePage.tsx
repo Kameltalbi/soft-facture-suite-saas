@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, FileText, Eye, Edit, Trash2, MoreHorizontal, Download } from 'lucide-react';
+import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,14 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
+import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActionsMenu';
+import { BonCommandePDF } from '@/components/pdf/BonCommandePDF';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
 import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
 
@@ -29,7 +25,7 @@ const BonsCommandePage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
 
-  // Données de démonstration
+  // Enhanced mock data with more realistic entries
   const [bonsCommande] = useState<BonCommandeFournisseur[]>([
     {
       id: '1',
@@ -40,7 +36,16 @@ const BonsCommandePage = () => {
       statut: 'en_attente',
       montantHT: 1200.00,
       montantTTC: 1440.00,
-      lignes: [],
+      lignes: [
+        {
+          id: '1',
+          designation: 'Matériel informatique',
+          quantite: 2,
+          prixUnitaireHT: 600.00,
+          tva: 20,
+          totalHT: 1200.00
+        }
+      ],
       organisationId: 'org1',
       dateCreation: '2025-01-15T10:00:00Z'
     },
@@ -53,19 +58,72 @@ const BonsCommandePage = () => {
       statut: 'validee',
       montantHT: 850.00,
       montantTTC: 1020.00,
-      lignes: [],
+      lignes: [
+        {
+          id: '2',
+          designation: 'Fournitures de bureau',
+          quantite: 1,
+          prixUnitaireHT: 850.00,
+          tva: 20,
+          totalHT: 850.00
+        }
+      ],
       organisationId: 'org1',
       dateCreation: '2025-01-14T14:30:00Z'
+    },
+    {
+      id: '3',
+      numero: 'BC-2025-0003',
+      fournisseurId: 'f3',
+      fournisseurNom: 'Équipements Pro',
+      dateCommande: '2025-01-13',
+      statut: 'livree',
+      montantHT: 2500.00,
+      montantTTC: 3000.00,
+      lignes: [
+        {
+          id: '3',
+          designation: 'Équipement industriel',
+          quantite: 1,
+          prixUnitaireHT: 2500.00,
+          tva: 20,
+          totalHT: 2500.00
+        }
+      ],
+      organisationId: 'org1',
+      dateCreation: '2025-01-13T09:15:00Z'
+    },
+    {
+      id: '4',
+      numero: 'BC-2025-0004',
+      fournisseurId: 'f4',
+      fournisseurNom: 'Services Techniques',
+      dateCommande: '2025-01-12',
+      statut: 'brouillon',
+      montantHT: 450.00,
+      montantTTC: 540.00,
+      lignes: [
+        {
+          id: '4',
+          designation: 'Prestations de service',
+          quantite: 3,
+          prixUnitaireHT: 150.00,
+          tva: 20,
+          totalHT: 450.00
+        }
+      ],
+      organisationId: 'org1',
+      dateCreation: '2025-01-12T16:45:00Z'
     }
   ]);
-
-  const handleExportPDF = (bonCommande: BonCommandeFournisseur) => {
-    exportToPDF(bonCommande);
-  };
 
   const handleCreateBonCommande = () => {
     setSelectedBonCommande(null);
     setIsModalOpen(true);
+  };
+
+  const handleViewBonCommande = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Viewing purchase order:', bonCommande.numero);
   };
 
   const handleEditBonCommande = (bonCommande: BonCommandeFournisseur) => {
@@ -73,10 +131,20 @@ const BonsCommandePage = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteBonCommande = (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce bon de commande ?')) {
-      console.log('Suppression du bon de commande:', id);
-    }
+  const handleDuplicateBonCommande = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Duplicating purchase order:', bonCommande.numero);
+  };
+
+  const handleMarkAsReceived = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Marking as received:', bonCommande.numero);
+  };
+
+  const handleDeleteBonCommande = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Deleting purchase order:', bonCommande.numero);
+  };
+
+  const handleEmailSent = (emailData: any) => {
+    console.log('Sending email:', emailData);
   };
 
   const getStatutBadge = (statut: BonCommandeFournisseur['statut']) => {
@@ -200,34 +268,16 @@ const BonsCommandePage = () => {
                       {formatCurrency(bonCommande.montantTTC)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
-                            <Eye size={16} className="mr-2" />
-                            Voir les détails
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditBonCommande(bonCommande)}>
-                            <Edit size={16} className="mr-2" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExportPDF(bonCommande)}>
-                            <Download size={16} className="mr-2" />
-                            Exporter en PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteBonCommande(bonCommande.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 size={16} className="mr-2" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <BonCommandeActionsMenu
+                        bonCommande={bonCommande}
+                        pdfComponent={<BonCommandePDF bonCommande={bonCommande} />}
+                        onView={() => handleViewBonCommande(bonCommande)}
+                        onEdit={() => handleEditBonCommande(bonCommande)}
+                        onDuplicate={() => handleDuplicateBonCommande(bonCommande)}
+                        onMarkAsReceived={() => handleMarkAsReceived(bonCommande)}
+                        onDelete={() => handleDeleteBonCommande(bonCommande)}
+                        onEmailSent={handleEmailSent}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
