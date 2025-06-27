@@ -11,22 +11,40 @@ export type Database = {
     Tables: {
       organizations: {
         Row: {
+          address: string | null
           created_at: string | null
+          email: string | null
           id: string
+          logo_url: string | null
           name: string
+          phone: string | null
           updated_at: string | null
+          vat_number: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
           created_at?: string | null
+          email?: string | null
           id?: string
+          logo_url?: string | null
           name: string
+          phone?: string | null
           updated_at?: string | null
+          vat_number?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
           created_at?: string | null
+          email?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
+          phone?: string | null
           updated_at?: string | null
+          vat_number?: string | null
+          website?: string | null
         }
         Relationships: []
       }

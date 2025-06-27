@@ -17,6 +17,12 @@ interface Profile {
 interface Organization {
   id: string;
   name: string;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  vat_number: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,7 +34,15 @@ interface AuthContextType {
   organization: Organization | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, firstName: string, lastName: string, organizationName: string) => Promise<{ error: any }>;
+  signUp: (
+    email: string, 
+    password: string, 
+    firstName: string, 
+    lastName: string, 
+    organizationName: string,
+    organizationData?: any,
+    logoFile?: File
+  ) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
 }
@@ -59,6 +73,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const uploadLogo = async (file: File, organizationId: string): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${organizationId}-${Math.random()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('organization-logos')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error('Error uploading logo:', uploadError);
+        return null;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('organization-logos')
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      return null;
+    }
+  };
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -144,22 +183,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string, organizationName: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    firstName: string, 
+    lastName: string, 
+    organizationName: string,
+    organizationData?: any,
+    logoFile?: File
+  ) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      // Préparer les métadonnées utilisateur avec toutes les infos de l'organisation
+      const userMetadata = {
+        first_name: firstName,
+        last_name: lastName,
+        organization_name: organizationName,
+        organization_address: organizationData?.organization_address || '',
+        organization_email: organizationData?.organization_email || '',
+        organization_phone: organizationData?.organization_phone || '',
+        organization_website: organizationData?.organization_website || '',
+        organization_vat_number: organizationData?.organization_vat_number || '',
+      };
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            organization_name: organizationName,
-          }
+          data: userMetadata
         }
       });
+
+      if (error) return { error };
+
+      // Si un logo est fourni et qu'on a un utilisateur, on l'upload après la création
+      if (logoFile && data.user) {
+        // On va attendre que l'organisation soit créée par le trigger
+        // puis on mettra à jour avec le logo
+        setTimeout(async () => {
+          try {
+            // Récupérer l'organisation créée
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('organization_id')
+              .eq('user_id', data.user.id)
+              .single();
+
+            if (profileData?.organization_id) {
+              const logoUrl = await uploadLogo(logoFile, profileData.organization_id);
+              if (logoUrl) {
+                await supabase
+                  .from('organizations')
+                  .update({ logo_url: logoUrl })
+                  .eq('id', profileData.organization_id);
+              }
+            }
+          } catch (logoError) {
+            console.error('Error uploading logo after signup:', logoError);
+          }
+        }, 2000);
+      }
+
       return { error };
     } catch (error) {
       return { error };
