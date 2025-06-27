@@ -39,28 +39,39 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 20,
+    borderBottom: 2,
+    borderBottomColor: '#6A9C89',
+    paddingBottom: 20,
   },
   headerLeft: {
     flexDirection: 'column',
   },
   headerRight: {
     alignItems: 'flex-end',
+    flexDirection: 'column',
   },
   logo: {
-    width: 80,
+    width: 60,
     height: 60,
     objectFit: 'contain',
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#6A9C89',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   subtitle: {
     fontSize: 12,
     color: '#666666',
-    marginBottom: 5,
+    marginBottom: 3,
+  },
+  companyName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 3,
   },
   companyInfo: {
     fontSize: 10,
@@ -75,6 +86,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#333333',
+    borderBottom: 1,
+    borderBottomColor: '#DDDDDD',
+    paddingBottom: 3,
   },
   row: {
     flexDirection: 'row',
@@ -155,6 +169,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#6A9C89',
+    borderTop: 2,
+    borderTopColor: '#6A9C89',
+    paddingTop: 5,
   },
   statusBadge: {
     backgroundColor: '#E8F5E8',
@@ -220,7 +237,7 @@ export const BonCommandePDF = ({ bonCommande, fournisseur, company }: BonCommand
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* En-tête avec logo à droite */}
+        {/* En-tête avec informations de l'entreprise */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.title}>BON DE COMMANDE</Text>
@@ -231,13 +248,17 @@ export const BonCommandePDF = ({ bonCommande, fournisseur, company }: BonCommand
             {company?.logo && (
               <Image style={styles.logo} src={company.logo} />
             )}
-            {company && (
-              <>
-                <Text style={styles.companyInfo}>{company.name}</Text>
-                {company.address && <Text style={styles.companyInfo}>{company.address}</Text>}
-                {company.email && <Text style={styles.companyInfo}>{company.email}</Text>}
-                {company.phone && <Text style={styles.companyInfo}>{company.phone}</Text>}
-              </>
+            {company?.name && (
+              <Text style={styles.companyName}>{company.name}</Text>
+            )}
+            {company?.email && (
+              <Text style={styles.companyInfo}>{company.email}</Text>
+            )}
+            {company?.address && (
+              <Text style={styles.companyInfo}>{company.address}</Text>
+            )}
+            {company?.phone && (
+              <Text style={styles.companyInfo}>{company.phone}</Text>
             )}
           </View>
         </View>
@@ -355,7 +376,7 @@ export const BonCommandePDF = ({ bonCommande, fournisseur, company }: BonCommand
             <Text style={styles.totalLabel}>Total TVA:</Text>
             <Text style={styles.totalValue}>{formatCurrency(totaux.totalTVA)}</Text>
           </View>
-          <View style={styles.totalRow}>
+          <View style={[styles.totalRow, styles.grandTotal]}>
             <Text style={styles.grandTotal}>Total TTC:</Text>
             <Text style={styles.grandTotal}>{formatCurrency(totaux.totalTTC)}</Text>
           </View>
