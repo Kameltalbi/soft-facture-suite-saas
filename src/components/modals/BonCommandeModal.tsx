@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,11 +42,18 @@ interface BonCommandeModalProps {
 }
 
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    numero: string;
+    fournisseurId: string;
+    dateCommande: Date;
+    statut: 'brouillon' | 'en_attente' | 'validee' | 'livree' | 'annulee';
+    remise: number;
+    remarques: string;
+  }>({
     numero: '',
     fournisseurId: '',
     dateCommande: new Date(),
-    statut: 'brouillon' as const,
+    statut: 'brouillon',
     remise: 0,
     remarques: '',
   });
@@ -237,7 +243,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
 
             <div>
               <Label htmlFor="statut">Statut</Label>
-              <Select value={formData.statut} onValueChange={(value: any) => setFormData({ ...formData, statut: value })}>
+              <Select value={formData.statut} onValueChange={(value: 'brouillon' | 'en_attente' | 'validee' | 'livree' | 'annulee') => setFormData({ ...formData, statut: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
