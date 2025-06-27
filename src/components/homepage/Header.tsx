@@ -11,7 +11,7 @@ export function Header() {
             <img 
               src="/lovable-uploads/a37d1d26-1551-481a-a7cd-1f8b9cbbe869.png" 
               alt="Soft Facture Logo" 
-              className="h-12 w-12"
+              className="h-24 w-24"
             />
             
             <nav className="hidden md:flex items-center space-x-8">
