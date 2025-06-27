@@ -40,14 +40,14 @@ const menuItems = [
     icon: LayoutDashboard 
   },
   { 
-    id: 'invoices', 
-    label: 'Factures', 
-    icon: FileText 
-  },
-  { 
     id: 'quotes', 
     label: 'Devis', 
     icon: ClipboardList 
+  },
+  { 
+    id: 'invoices', 
+    label: 'Factures', 
+    icon: FileText 
   },
   { 
     id: 'delivery-notes', 
@@ -55,9 +55,14 @@ const menuItems = [
     icon: Truck 
   },
   { 
-    id: 'bons-commande', 
-    label: 'Bons de commande', 
+    id: 'credits', 
+    label: 'Avoirs', 
     icon: Receipt 
+  },
+  { 
+    id: 'clients', 
+    label: 'Clients', 
+    icon: UsersRound 
   },
   { 
     id: 'products', 
@@ -75,18 +80,13 @@ const menuItems = [
     icon: Warehouse 
   },
   { 
-    id: 'clients', 
-    label: 'Clients', 
-    icon: UsersRound 
-  },
-  { 
     id: 'fournisseurs', 
     label: 'Fournisseurs', 
     icon: Building2 
   },
   { 
-    id: 'credits', 
-    label: 'Avoirs', 
+    id: 'bons-commande', 
+    label: 'Bons de commande', 
     icon: Receipt 
   },
   { 
