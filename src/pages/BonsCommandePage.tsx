@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,8 +27,10 @@ const BonsCommandePage = () => {
     {
       id: '1',
       numero: 'BC-2025-0001',
+      fournisseurId: 'fournisseur-alpha-001',
       fournisseurNom: 'Fournisseur Alpha',
       dateCommande: '2025-01-15',
+      dateCreation: '2025-01-15',
       statut: 'en_attente',
       montantHT: 1500.00,
       montantTTC: 1800.00,
@@ -48,8 +51,10 @@ const BonsCommandePage = () => {
     {
       id: '2',
       numero: 'BC-2025-0002',
+      fournisseurId: 'fournisseur-beta-002',
       fournisseurNom: 'Fournisseur Beta',
       dateCommande: '2025-01-14',
+      dateCreation: '2025-01-14',
       statut: 'validee',
       montantHT: 900.00,
       montantTTC: 1080.00,
@@ -70,8 +75,10 @@ const BonsCommandePage = () => {
     {
       id: '3',
       numero: 'BC-2025-0003',
+      fournisseurId: 'fournisseur-gamma-003',
       fournisseurNom: 'Fournisseur Gamma',
       dateCommande: '2025-01-13',
+      dateCreation: '2025-01-13',
       statut: 'livree',
       montantHT: 3000.00,
       montantTTC: 3600.00,
@@ -92,8 +99,10 @@ const BonsCommandePage = () => {
     {
       id: '4',
       numero: 'BC-2025-0004',
+      fournisseurId: 'fournisseur-delta-004',
       fournisseurNom: 'Fournisseur Delta',
       dateCommande: '2025-01-12',
+      dateCreation: '2025-01-12',
       statut: 'brouillon',
       montantHT: 600.00,
       montantTTC: 720.00,
