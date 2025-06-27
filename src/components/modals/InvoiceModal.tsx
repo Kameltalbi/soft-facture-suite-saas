@@ -6,16 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Trash2, Building2, User } from 'lucide-react';
+import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useClients } from '@/hooks/useClients';
+import { useProducts } from '@/hooks/useProducts';
 
-interface LineItem {
+interface InvoiceItem {
   id: string;
   description: string;
   quantity: number;
   unitPrice: number;
   vatRate: number;
+  discount: number;
   total: number;
 }
 
@@ -28,6 +30,8 @@ interface InvoiceModalProps {
 
 export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalProps) {
   const { organization, user } = useAuth();
+  const { clients, loading: clientsLoading } = useClients();
+  const { products, loading: productsLoading } = useProducts();
   
   // Form state
   const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || 'FAC-2025-001');
@@ -35,57 +39,48 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const [dueDate, setDueDate] = useState(invoice?.dueDate || '');
   const [clientSearch, setClientSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState(invoice?.client || null);
+  const [subject, setSubject] = useState(invoice?.subject || '');
   const [notes, setNotes] = useState(invoice?.notes || '');
   
-  // Line items
-  const [lineItems, setLineItems] = useState<LineItem[]>(invoice?.lineItems || [
-    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, total: 0 }
+  // Invoice items
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>(invoice?.items || [
+    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
   
   // Product search
   const [productSearch, setProductSearch] = useState('');
   
-  // Mock clients for search
-  const mockClients = [
-    { id: '1', name: 'Client ABC', company: 'ABC SARL', address: 'Espace Tunis immeuble H. Bureau B3-1\nMontplaisir 1073 Tunis', email: 'contact@abc-sarl.info', phone: '+216 55 053 505' },
-    { id: '2', name: 'Entreprise XYZ', company: 'XYZ Solutions', address: '456 Avenue République, 69000 Lyon', email: 'info@xyz.fr', phone: '+33 4 72 00 00 00' },
-    { id: '3', name: 'Société Tech', company: 'Tech Innovation', address: '789 Boulevard Tech, 31000 Toulouse', email: 'hello@tech.fr', phone: '+33 5 61 00 00 00' }
-  ];
-  
-  // Mock products for search
-  const mockProducts = [
-    { id: '1', name: 'Prestation de conseil', price: 60, vat: 20 },
-    { id: '2', name: 'Développement web', price: 80, vat: 20 },
-    { id: '3', name: 'Formation', price: 120, vat: 20 }
-  ];
-  
-  const filteredClients = mockClients.filter(client =>
+  const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    client.company.toLowerCase().includes(clientSearch.toLowerCase())
+    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
   
-  const filteredProducts = mockProducts.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
   );
   
-  const addLineItem = () => {
-    const newItem: LineItem = {
+  const addInvoiceItem = () => {
+    const newItem: InvoiceItem = {
       id: Date.now().toString(),
       description: '',
       quantity: 1,
       unitPrice: 0,
       vatRate: 20,
+      discount: 0,
       total: 0
     };
-    setLineItems([...lineItems, newItem]);
+    setInvoiceItems([...invoiceItems, newItem]);
   };
   
-  const updateLineItem = (id: string, field: keyof LineItem, value: any) => {
-    setLineItems(lineItems.map(item => {
+  const updateInvoiceItem = (id: string, field: keyof InvoiceItem, value: any) => {
+    setInvoiceItems(invoiceItems.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
-        if (field === 'quantity' || field === 'unitPrice') {
-          updated.total = updated.quantity * updated.unitPrice;
+        if (field === 'quantity' || field === 'unitPrice' || field === 'discount') {
+          const subtotal = updated.quantity * updated.unitPrice;
+          const discountAmount = subtotal * (updated.discount / 100);
+          updated.total = subtotal - discountAmount;
         }
         return updated;
       }
@@ -93,17 +88,32 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }));
   };
   
-  const removeLineItem = (id: string) => {
-    setLineItems(lineItems.filter(item => item.id !== id));
+  const removeInvoiceItem = (id: string) => {
+    setInvoiceItems(invoiceItems.filter(item => item.id !== id));
   };
   
   const calculateTotals = () => {
-    const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
-    const totalVAT = lineItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
-    return { subtotalHT, totalVAT, totalTTC: subtotalHT + totalVAT };
+    const subtotalHT = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+    const totalDiscount = invoiceItems.reduce((sum, item) => {
+      const subtotal = item.quantity * item.unitPrice;
+      return sum + (subtotal * item.discount / 100);
+    }, 0);
+    const totalVAT = invoiceItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
+    const totalTTC = subtotalHT + totalVAT;
+    
+    return { subtotalHT, totalDiscount, totalVAT, totalTTC };
   };
   
-  const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
+  const { subtotalHT, totalDiscount, totalVAT, totalTTC } = calculateTotals();
+  
+  // Set default due date (30 days from now)
+  React.useEffect(() => {
+    if (!dueDate) {
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 30);
+      setDueDate(defaultDate.toISOString().split('T')[0]);
+    }
+  }, [dueDate]);
   
   const handleSave = () => {
     const invoiceData = {
@@ -111,9 +121,10 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       date: invoiceDate,
       dueDate,
       client: selectedClient,
-      lineItems,
+      subject,
+      items: invoiceItems,
       notes,
-      totals: { subtotalHT, totalVAT, totalTTC }
+      totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
     };
     onSave(invoiceData);
     onClose();
@@ -131,68 +142,49 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
         <div className="space-y-6">
           {/* Header avec logo et infos organisation */}
           <Card>
-            <CardHeader className="pb-4">
+            <CardHeader>
               <div className="flex justify-between items-start">
-                <div className="flex items-start space-x-4">
-                  {/* Logo de l'organisation */}
-                  <div className="flex-shrink-0">
-                    {organization?.logo_url ? (
-                      <img 
-                        src={organization.logo_url} 
-                        alt="Logo organisation" 
-                        className="h-20 w-20 object-contain border rounded-lg p-2"
-                      />
-                    ) : (
-                      <div className="h-20 w-20 bg-gray-100 border rounded-lg flex items-center justify-center">
-                        <Building2 className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Informations de l'organisation */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}
-                    </h3>
-                    <div className="mt-2 text-sm text-gray-600 space-y-1">
-                      <p>{organization?.address || user?.user_metadata?.company_address || 'Adresse de l\'entreprise'}</p>
-                      <p>{organization?.email || user?.email || 'email@entreprise.com'}</p>
-                      <p>{organization?.phone || user?.user_metadata?.company_phone || 'Téléphone'}</p>
-                    </div>
+                <div className="flex items-center space-x-4">
+                  {organization?.logo_url && (
+                    <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
+                    <p className="text-sm text-gray-600">{organization?.address || user?.user_metadata?.company_address}</p>
+                    <p className="text-sm text-gray-600">{organization?.email || user?.email}</p>
+                    <p className="text-sm text-gray-600">{organization?.phone || user?.user_metadata?.company_phone}</p>
                   </div>
                 </div>
-                
-                {/* Section FACTURE */}
                 <div className="text-right">
-                  <h2 className="text-3xl font-bold text-blue-600 mb-4">FACTURE</h2>
-                  <div className="space-y-3">
+                  <h2 className="text-2xl font-bold text-blue-600">FACTURE</h2>
+                  <div className="space-y-2 mt-2">
                     <div>
-                      <Label htmlFor="invoiceNumber" className="text-sm font-medium">Numéro</Label>
+                      <Label htmlFor="invoiceNumber">Numéro</Label>
                       <Input
                         id="invoiceNumber"
                         value={invoiceNumber}
                         onChange={(e) => setInvoiceNumber(e.target.value)}
-                        className="w-48 mt-1"
+                        className="w-40"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="invoiceDate" className="text-sm font-medium">Date</Label>
+                      <Label htmlFor="invoiceDate">Date</Label>
                       <Input
                         id="invoiceDate"
                         type="date"
                         value={invoiceDate}
                         onChange={(e) => setInvoiceDate(e.target.value)}
-                        className="w-48 mt-1"
+                        className="w-40"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="dueDate" className="text-sm font-medium">Échéance</Label>
+                      <Label htmlFor="dueDate">Échéance</Label>
                       <Input
                         id="dueDate"
                         type="date"
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className="w-48 mt-1"
+                        className="w-40"
                       />
                     </div>
                   </div>
@@ -204,7 +196,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           {/* Section Client */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-lg">
+              <CardTitle className="flex items-center">
                 <User className="mr-2 h-5 w-5" />
                 Facturer à
               </CardTitle>
@@ -218,61 +210,73 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     value={clientSearch}
                     onChange={(e) => setClientSearch(e.target.value)}
                     className="pl-10"
+                    disabled={clientsLoading}
                   />
+                  {clientsLoading && <p className="text-sm text-gray-500 mt-2">Chargement des clients...</p>}
                 </div>
                 
                 {clientSearch && !selectedClient && (
-                  <div className="border rounded-lg max-h-48 overflow-y-auto bg-white">
+                  <div className="border rounded-lg max-h-48 overflow-y-auto">
                     {filteredClients.map((client) => (
                       <div
                         key={client.id}
-                        className="p-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
                         onClick={() => {
                           setSelectedClient(client);
                           setClientSearch('');
                         }}
                       >
-                        <div className="font-semibold text-gray-900">{client.company}</div>
+                        <div className="font-medium">{client.company || client.name}</div>
                         <div className="text-sm text-gray-600">{client.name}</div>
-                        <div className="text-sm text-gray-500 mt-1 whitespace-pre-line">{client.address}</div>
-                        <div className="text-sm text-gray-500">{client.email}</div>
+                        <div className="text-sm text-gray-500">{client.address}, {client.city}</div>
                       </div>
                     ))}
                   </div>
                 )}
                 
                 {selectedClient && (
-                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                  <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-semibold text-blue-900">{selectedClient.company}</h4>
-                        <p className="text-sm text-blue-700">{selectedClient.name}</p>
-                        <p className="text-sm text-blue-600 mt-1 whitespace-pre-line">{selectedClient.address}</p>
-                        <p className="text-sm text-blue-600">{selectedClient.email}</p>
-                        {selectedClient.phone && (
-                          <p className="text-sm text-blue-600">{selectedClient.phone}</p>
-                        )}
+                        <h4 className="font-semibold">{selectedClient.company || selectedClient.name}</h4>
+                        <p className="text-sm text-gray-600">{selectedClient.name}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.address}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.city} {selectedClient.postal_code}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.email}</p>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setSelectedClient(null)}
-                        className="text-blue-600 hover:text-blue-800"
                       >
                         Changer
                       </Button>
                     </div>
                   </div>
                 )}
+                
+                <div>
+                  <Label htmlFor="subject">Objet de la facture</Label>
+                  <Input
+                    id="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="Objet de la facture..."
+                    className="mt-1"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Articles / Services */}
+          {/* Table des produits/services */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="text-lg">Articles / Services</CardTitle>
+                <CardTitle className="flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Produits / Services
+                </CardTitle>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -281,9 +285,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       value={productSearch}
                       onChange={(e) => setProductSearch(e.target.value)}
                       className="pl-10 w-64"
+                      disabled={productsLoading}
                     />
+                    {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
                   </div>
-                  <Button onClick={addLineItem} size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={addInvoiceItem} size="sm" className="bg-blue-600 hover:bg-blue-700">
                     <Plus className="h-4 w-4 mr-1" />
                     Ajouter
                   </Button>
@@ -292,26 +298,30 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardHeader>
             <CardContent>
               {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto bg-white">
+                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
                   {filteredProducts.map((product) => (
                     <div
                       key={product.id}
-                      className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between items-center"
+                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
                       onClick={() => {
-                        const newItem: LineItem = {
+                        const newItem: InvoiceItem = {
                           id: Date.now().toString(),
                           description: product.name,
                           quantity: 1,
                           unitPrice: product.price,
-                          vatRate: product.vat,
+                          vatRate: 20,
+                          discount: 0,
                           total: product.price
                         };
-                        setLineItems([...lineItems, newItem]);
+                        setInvoiceItems([...invoiceItems, newItem]);
                         setProductSearch('');
                       }}
                     >
-                      <span className="font-medium">{product.name}</span>
-                      <span className="text-sm text-gray-500 font-medium">{product.price.toFixed(2)} €</span>
+                      <div>
+                        <span className="font-medium">{product.name}</span>
+                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
+                      </div>
+                      <span className="text-sm text-gray-500">{product.price}€</span>
                     </div>
                   ))}
                 </div>
@@ -319,42 +329,42 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
               
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-[40%] font-semibold">Description</TableHead>
-                    <TableHead className="w-[12%] text-center font-semibold">Qté</TableHead>
-                    <TableHead className="w-[15%] text-right font-semibold">P.U. HT</TableHead>
-                    <TableHead className="w-[12%] text-center font-semibold">TVA</TableHead>
-                    <TableHead className="w-[15%] text-right font-semibold">Total HT</TableHead>
-                    <TableHead className="w-[6%]"></TableHead>
+                  <TableRow>
+                    <TableHead className="w-[35%]">Description</TableHead>
+                    <TableHead className="w-[12%] text-center">Quantité</TableHead>
+                    <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
+                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
+                    <TableHead className="w-[10%] text-center">TVA</TableHead>
+                    <TableHead className="w-[12%] text-right">Total HT</TableHead>
+                    <TableHead className="w-[5%]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lineItems.map((item) => (
+                  {invoiceItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Input
                           value={item.description}
-                          onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
+                          onChange={(e) => updateInvoiceItem(item.id, 'description', e.target.value)}
                           placeholder="Description du produit/service"
-                          className="border-0 bg-transparent p-0 focus-visible:ring-0"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                          className="text-center border-0 bg-transparent p-0 focus-visible:ring-0"
+                          onChange={(e) => updateInvoiceItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                          className="text-center"
                           min="0"
-                          step="0.1"
+                          step="0.5"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           value={item.unitPrice}
-                          onChange={(e) => updateLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          className="text-right border-0 bg-transparent p-0 focus-visible:ring-0"
+                          onChange={(e) => updateInvoiceItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="text-right"
                           min="0"
                           step="0.01"
                         />
@@ -362,23 +372,32 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       <TableCell>
                         <Input
                           type="number"
-                          value={item.vatRate}
-                          onChange={(e) => updateLineItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
-                          className="text-center border-0 bg-transparent p-0 focus-visible:ring-0"
+                          value={item.discount}
+                          onChange={(e) => updateInvoiceItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                          className="text-center"
                           min="0"
                           max="100"
                         />
                       </TableCell>
-                      <TableCell className="text-right font-semibold">
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.vatRate}
+                          onChange={(e) => updateInvoiceItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          max="100"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
                         {item.total.toFixed(2)} €
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeLineItem(item.id)}
-                          disabled={lineItems.length === 1}
-                          className="p-1 h-auto"
+                          onClick={() => removeInvoiceItem(item.id)}
+                          disabled={invoiceItems.length === 1}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
@@ -393,19 +412,32 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           {/* Section Totaux */}
           <div className="flex justify-end">
             <Card className="w-80">
-              <CardContent className="pt-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
+              <CardHeader>
+                <CardTitle>Totaux</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
                     <span>Sous-total HT:</span>
+                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
+                  </div>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Remise totale:</span>
+                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Net HT:</span>
                     <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between">
                     <span>TVA:</span>
                     <span className="font-medium">{totalVAT.toFixed(2)} €</span>
                   </div>
-                  <div className="border-t pt-3">
+                  <div className="border-t pt-2">
                     <div className="flex justify-between text-lg font-bold">
-                      <span>TOTAL TTC:</span>
+                      <span>Total TTC:</span>
                       <span className="text-blue-600">{totalTTC.toFixed(2)} €</span>
                     </div>
                   </div>
@@ -417,20 +449,20 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           {/* Notes */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Notes</CardTitle>
+              <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Notes additionnelles..."
-                className="w-full h-24 p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-32 p-3 border rounded-md resize-none"
               />
             </CardContent>
           </Card>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3">
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>

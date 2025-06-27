@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,12 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
+import { Search, Plus, Trash2, FileText, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 
-interface QuoteItem {
+interface CreditNoteItem {
   id: string;
   description: string;
   quantity: number;
@@ -20,30 +21,29 @@ interface QuoteItem {
   total: number;
 }
 
-interface QuoteModalProps {
+interface CreditNoteModalProps {
   open: boolean;
   onClose: () => void;
-  quote?: any;
+  creditNote?: any;
   onSave: (data: any) => void;
 }
 
-export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
+export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNoteModalProps) {
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
   
   // Form state
-  const [quoteNumber, setQuoteNumber] = useState(quote?.number || 'DEV-2025-001');
-  const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
-  const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
+  const [creditNoteNumber, setCreditNoteNumber] = useState(creditNote?.number || 'AV-2025-001');
+  const [creditNoteDate, setCreditNoteDate] = useState(creditNote?.date || new Date().toISOString().split('T')[0]);
   const [clientSearch, setClientSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState(quote?.client || null);
-  const [subject, setSubject] = useState(quote?.subject || '');
-  const [notes, setNotes] = useState(quote?.notes || '');
-  const [conditions, setConditions] = useState(quote?.conditions || '');
+  const [selectedClient, setSelectedClient] = useState(creditNote?.client || null);
+  const [reason, setReason] = useState(creditNote?.reason || '');
+  const [originalInvoiceNumber, setOriginalInvoiceNumber] = useState(creditNote?.originalInvoiceNumber || '');
+  const [notes, setNotes] = useState(creditNote?.notes || '');
   
-  // Quote items
-  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>(quote?.items || [
+  // Credit note items
+  const [creditNoteItems, setCreditNoteItems] = useState<CreditNoteItem[]>(creditNote?.items || [
     { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
   
@@ -60,9 +60,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
   );
   
-  
-  const addQuoteItem = () => {
-    const newItem: QuoteItem = {
+  const addCreditNoteItem = () => {
+    const newItem: CreditNoteItem = {
       id: Date.now().toString(),
       description: '',
       quantity: 1,
@@ -71,11 +70,11 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       discount: 0,
       total: 0
     };
-    setQuoteItems([...quoteItems, newItem]);
+    setCreditNoteItems([...creditNoteItems, newItem]);
   };
   
-  const updateQuoteItem = (id: string, field: keyof QuoteItem, value: any) => {
-    setQuoteItems(quoteItems.map(item => {
+  const updateCreditNoteItem = (id: string, field: keyof CreditNoteItem, value: any) => {
+    setCreditNoteItems(creditNoteItems.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
         if (field === 'quantity' || field === 'unitPrice' || field === 'discount') {
@@ -89,17 +88,17 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     }));
   };
   
-  const removeQuoteItem = (id: string) => {
-    setQuoteItems(quoteItems.filter(item => item.id !== id));
+  const removeCreditNoteItem = (id: string) => {
+    setCreditNoteItems(creditNoteItems.filter(item => item.id !== id));
   };
   
   const calculateTotals = () => {
-    const subtotalHT = quoteItems.reduce((sum, item) => sum + item.total, 0);
-    const totalDiscount = quoteItems.reduce((sum, item) => {
+    const subtotalHT = creditNoteItems.reduce((sum, item) => sum + item.total, 0);
+    const totalDiscount = creditNoteItems.reduce((sum, item) => {
       const subtotal = item.quantity * item.unitPrice;
       return sum + (subtotal * item.discount / 100);
     }, 0);
-    const totalVAT = quoteItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
+    const totalVAT = creditNoteItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
     const totalTTC = subtotalHT + totalVAT;
     
     return { subtotalHT, totalDiscount, totalVAT, totalTTC };
@@ -107,28 +106,18 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   
   const { subtotalHT, totalDiscount, totalVAT, totalTTC } = calculateTotals();
   
-  // Set default validity (30 days from now)
-  React.useEffect(() => {
-    if (!validUntil) {
-      const defaultDate = new Date();
-      defaultDate.setDate(defaultDate.getDate() + 30);
-      setValidUntil(defaultDate.toISOString().split('T')[0]);
-    }
-  }, [validUntil]);
-  
   const handleSave = () => {
-    const quoteData = {
-      number: quoteNumber,
-      date: quoteDate,
-      validUntil,
+    const creditNoteData = {
+      number: creditNoteNumber,
+      date: creditNoteDate,
       client: selectedClient,
-      subject,
-      items: quoteItems,
+      reason,
+      originalInvoiceNumber,
+      items: creditNoteItems,
       notes,
-      conditions,
       totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
     };
-    onSave(quoteData);
+    onSave(creditNoteData);
     onClose();
   };
 
@@ -136,8 +125,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-purple-600">
-            {quote ? 'Modifier le devis' : 'Nouveau devis'}
+          <DialogTitle className="text-2xl font-bold text-red-600">
+            {creditNote ? 'Modifier l\'avoir' : 'Nouvel avoir'}
           </DialogTitle>
         </DialogHeader>
 
@@ -158,34 +147,24 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <h2 className="text-2xl font-bold text-purple-600">DEVIS</h2>
+                  <h2 className="text-2xl font-bold text-red-600">AVOIR</h2>
                   <div className="space-y-2 mt-2">
                     <div>
-                      <Label htmlFor="quoteNumber">Numéro</Label>
+                      <Label htmlFor="creditNoteNumber">Numéro</Label>
                       <Input
-                        id="quoteNumber"
-                        value={quoteNumber}
-                        onChange={(e) => setQuoteNumber(e.target.value)}
+                        id="creditNoteNumber"
+                        value={creditNoteNumber}
+                        onChange={(e) => setCreditNoteNumber(e.target.value)}
                         className="w-40"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="quoteDate">Date</Label>
+                      <Label htmlFor="creditNoteDate">Date</Label>
                       <Input
-                        id="quoteDate"
+                        id="creditNoteDate"
                         type="date"
-                        value={quoteDate}
-                        onChange={(e) => setQuoteDate(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="validUntil">Valide jusqu'au</Label>
-                      <Input
-                        id="validUntil"
-                        type="date"
-                        value={validUntil}
-                        onChange={(e) => setValidUntil(e.target.value)}
+                        value={creditNoteDate}
+                        onChange={(e) => setCreditNoteDate(e.target.value)}
                         className="w-40"
                       />
                     </div>
@@ -200,7 +179,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <User className="mr-2 h-5 w-5" />
-                Devis pour
+                Avoir pour
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -237,7 +216,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                 )}
                 
                 {selectedClient && (
-                  <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="bg-red-50 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-semibold">{selectedClient.company || selectedClient.name}</h4>
@@ -257,33 +236,45 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   </div>
                 )}
                 
-                <div>
-                  <Label htmlFor="subject">Objet du devis</Label>
-                  <Input
-                    id="subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Objet du devis..."
-                    className="mt-1"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="originalInvoiceNumber">Facture d'origine</Label>
+                    <Input
+                      id="originalInvoiceNumber"
+                      value={originalInvoiceNumber}
+                      onChange={(e) => setOriginalInvoiceNumber(e.target.value)}
+                      placeholder="Numéro de facture..."
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="reason">Motif de l'avoir</Label>
+                    <Input
+                      id="reason"
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="Motif de l'avoir..."
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Table des services */}
+          {/* Table des produits/services */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center">
                   <FileText className="mr-2 h-5 w-5" />
-                  Services / Prestations
+                  Éléments à créditer
                 </CardTitle>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Rechercher un service..."
+                      placeholder="Rechercher un produit..."
                       value={productSearch}
                       onChange={(e) => setProductSearch(e.target.value)}
                       className="pl-10 w-64"
@@ -291,7 +282,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                     />
                     {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
                   </div>
-                  <Button onClick={addQuoteItem} size="sm" className="bg-purple-600 hover:bg-purple-700">
+                  <Button onClick={addCreditNoteItem} size="sm" className="bg-red-600 hover:bg-red-700">
                     <Plus className="h-4 w-4 mr-1" />
                     Ajouter
                   </Button>
@@ -306,7 +297,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       key={product.id}
                       className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
                       onClick={() => {
-                        const newItem: QuoteItem = {
+                        const newItem: CreditNoteItem = {
                           id: Date.now().toString(),
                           description: product.name,
                           quantity: 1,
@@ -315,7 +306,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                           discount: 0,
                           total: product.price
                         };
-                        setQuoteItems([...quoteItems, newItem]);
+                        setCreditNoteItems([...creditNoteItems, newItem]);
                         setProductSearch('');
                       }}
                     >
@@ -342,20 +333,20 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {quoteItems.map((item) => (
+                  {creditNoteItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Input
                           value={item.description}
-                          onChange={(e) => updateQuoteItem(item.id, 'description', e.target.value)}
-                          placeholder="Description du service"
+                          onChange={(e) => updateCreditNoteItem(item.id, 'description', e.target.value)}
+                          placeholder="Description de l'élément à créditer"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateQuoteItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateCreditNoteItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                           className="text-center"
                           min="0"
                           step="0.5"
@@ -365,7 +356,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <Input
                           type="number"
                           value={item.unitPrice}
-                          onChange={(e) => updateQuoteItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateCreditNoteItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                           className="text-right"
                           min="0"
                           step="0.01"
@@ -375,7 +366,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <Input
                           type="number"
                           value={item.discount}
-                          onChange={(e) => updateQuoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateCreditNoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
                           className="text-center"
                           min="0"
                           max="100"
@@ -385,7 +376,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <Input
                           type="number"
                           value={item.vatRate}
-                          onChange={(e) => updateQuoteItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateCreditNoteItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
                           className="text-center"
                           min="0"
                           max="100"
@@ -398,8 +389,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeQuoteItem(item.id)}
-                          disabled={quoteItems.length === 1}
+                          onClick={() => removeCreditNoteItem(item.id)}
+                          disabled={creditNoteItems.length === 1}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
@@ -411,13 +402,11 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             </CardContent>
           </Card>
 
-          
-          
           {/* Section Totaux */}
           <div className="flex justify-end">
             <Card className="w-80">
               <CardHeader>
-                <CardTitle>Totaux</CardTitle>
+                <CardTitle>Totaux à créditer</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -442,7 +431,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   <div className="border-t pt-2">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total TTC:</span>
-                      <span className="text-purple-600">{totalTTC.toFixed(2)} €</span>
+                      <span className="text-red-600">{totalTTC.toFixed(2)} €</span>
                     </div>
                   </div>
                 </div>
@@ -450,64 +439,28 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             </Card>
           </div>
 
-          {/* Validité */}
+          {/* Notes */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="mr-2 h-5 w-5" />
-                Validité du devis
-              </CardTitle>
+              <CardTitle>Notes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <p className="text-sm">
-                  <strong>Ce devis est valable jusqu'au {validUntil ? new Date(validUntil).toLocaleDateString('fr-FR') : 'Non spécifiée'}</strong>
-                </p>
-                <p className="text-xs text-gray-600 mt-2">
-                  Passé cette date, les prix et conditions pourront être révisés.
-                </p>
-              </div>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Notes additionnelles sur l'avoir..."
+                className="w-full h-32 p-3 border rounded-md resize-none"
+              />
             </CardContent>
           </Card>
-
-          {/* Conditions et Notes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Conditions particulières</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <textarea
-                  value={conditions}
-                  onChange={(e) => setConditions(e.target.value)}
-                  placeholder="Conditions de réalisation, délais, modalités de paiement..."
-                  className="w-full h-32 p-3 border rounded-md resize-none"
-                />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Notes additionnelles..."
-                  className="w-full h-32 p-3 border rounded-md resize-none"
-                />
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Actions */}
           <div className="flex justify-end space-x-3">
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
-              {quote ? 'Mettre à jour' : 'Créer le devis'}
+            <Button onClick={handleSave} className="bg-red-600 hover:bg-red-700">
+              {creditNote ? 'Mettre à jour' : 'Créer l\'avoir'}
             </Button>
           </div>
         </div>
