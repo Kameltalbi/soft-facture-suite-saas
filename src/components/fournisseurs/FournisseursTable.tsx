@@ -18,25 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Eye, Edit, Trash2, MoreHorizontal, Mail, Phone } from 'lucide-react';
-
-interface Fournisseur {
-  id: string;
-  name: string;
-  contact_name: string | null;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  city: string | null;
-  postal_code: string | null;
-  country: string | null;
-  vat_number: string | null;
-  business_sector: string | null;
-  status: string | null;
-  internal_notes: string | null;
-  organization_id: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Fournisseur } from '@/types/fournisseur';
 
 interface FournisseursTableProps {
   fournisseurs: Fournisseur[];
@@ -50,10 +32,10 @@ export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: Fo
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const getStatutBadge = (statut: string | null) => {
+  const getStatutBadge = (statut: 'actif' | 'inactif') => {
     return (
-      <Badge variant={statut === 'active' ? 'default' : 'secondary'}>
-        {statut === 'active' ? 'Actif' : 'Inactif'}
+      <Badge variant={statut === 'actif' ? 'default' : 'secondary'}>
+        {statut === 'actif' ? 'Actif' : 'Inactif'}
       </Badge>
     );
   };
@@ -83,39 +65,39 @@ export function FournisseursTable({ fournisseurs, onEdit, onDelete, onView }: Fo
               <TableRow key={fournisseur.id} className="hover:bg-neutral-50">
                 <TableCell>
                   <div>
-                    <div className="font-medium text-neutral-900">{fournisseur.name}</div>
-                    {fournisseur.vat_number && (
+                    <div className="font-medium text-neutral-900">{fournisseur.nom}</div>
+                    {fournisseur.matriculeFiscal && (
                       <div className="text-xs text-neutral-400">
-                        Matricule: {fournisseur.vat_number}
+                        Matricule: {fournisseur.matriculeFiscal}
                       </div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
-                    <div className="font-medium">{fournisseur.contact_name || 'N/A'}</div>
-                    {fournisseur.email && (
+                    <div className="font-medium">{fournisseur.contactPrincipal.nom || 'N/A'}</div>
+                    {fournisseur.contactPrincipal.email && (
                       <div className="flex items-center text-sm text-neutral-600">
                         <Mail size={12} className="mr-1" />
-                        {fournisseur.email}
+                        {fournisseur.contactPrincipal.email}
                       </div>
                     )}
-                    {fournisseur.phone && (
+                    {fournisseur.contactPrincipal.telephone && (
                       <div className="flex items-center text-sm text-neutral-600">
                         <Phone size={12} className="mr-1" />
-                        {fournisseur.phone}
+                        {fournisseur.contactPrincipal.telephone}
                       </div>
                     )}
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline">{fournisseur.business_sector || 'N/A'}</Badge>
+                  <Badge variant="outline">{fournisseur.secteurActivite || 'N/A'}</Badge>
                 </TableCell>
                 <TableCell>
-                  {getStatutBadge(fournisseur.status)}
+                  {getStatutBadge(fournisseur.statut)}
                 </TableCell>
                 <TableCell className="text-sm text-neutral-600">
-                  {formatDate(fournisseur.created_at)}
+                  {formatDate(fournisseur.dateAjout)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

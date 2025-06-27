@@ -7,18 +7,18 @@ import { Plus, Search, Users, Building, UserCheck, Calendar } from 'lucide-react
 import { FournisseursTable } from '@/components/fournisseurs/FournisseursTable';
 import { FournisseurModal } from '@/components/modals/FournisseurModal';
 import { useFournisseurs } from '@/hooks/useFournisseurs';
-import { CreateFournisseurData } from '@/types/fournisseur';
+import { CreateFournisseurData, Fournisseur } from '@/types/fournisseur';
 
 const Fournisseurs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingFournisseur, setEditingFournisseur] = useState<any>(null);
+  const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | null>(null);
   const { fournisseurs, loading, createFournisseur, updateFournisseur, deleteFournisseur } = useFournisseurs();
 
   const filteredFournisseurs = fournisseurs.filter(fournisseur =>
-    fournisseur.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (fournisseur.contact_name && fournisseur.contact_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (fournisseur.business_sector && fournisseur.business_sector.toLowerCase().includes(searchTerm.toLowerCase()))
+    fournisseur.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fournisseur.contactPrincipal.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    fournisseur.secteurActivite.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddFournisseur = () => {
@@ -26,7 +26,7 @@ const Fournisseurs = () => {
     setShowModal(true);
   };
 
-  const handleEditFournisseur = (fournisseur: any) => {
+  const handleEditFournisseur = (fournisseur: Fournisseur) => {
     setEditingFournisseur(fournisseur);
     setShowModal(true);
   };
@@ -46,17 +46,17 @@ const Fournisseurs = () => {
     }
   };
 
-  const handleViewFournisseur = (fournisseur: any) => {
+  const handleViewFournisseur = (fournisseur: Fournisseur) => {
     console.log('Voir les détails du fournisseur:', fournisseur);
     // Logique pour afficher les détails
   };
 
   const stats = {
     totalFournisseurs: fournisseurs.length,
-    fournisseursActifs: fournisseurs.filter(f => f.status === 'active').length,
-    secteurs: new Set(fournisseurs.map(f => f.business_sector).filter(Boolean)).size,
+    fournisseursActifs: fournisseurs.filter(f => f.statut === 'actif').length,
+    secteurs: new Set(fournisseurs.map(f => f.secteurActivite).filter(Boolean)).size,
     nouveauxCeMois: fournisseurs.filter(f => {
-      const dateAjout = new Date(f.created_at);
+      const dateAjout = new Date(f.dateAjout);
       const maintenant = new Date();
       return dateAjout.getMonth() === maintenant.getMonth() && 
              dateAjout.getFullYear() === maintenant.getFullYear();

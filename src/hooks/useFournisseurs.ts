@@ -2,25 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
-interface Fournisseur {
-  id: string;
-  name: string;
-  contact_name: string | null;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  city: string | null;
-  postal_code: string | null;
-  country: string | null;
-  vat_number: string | null;
-  business_sector: string | null;
-  status: string | null;
-  internal_notes: string | null;
-  organization_id: string;
-  created_at: string;
-  updated_at: string;
-}
+import { FournisseurDB, Fournisseur, dbToFournisseur, fournisseurToDb, CreateFournisseurData } from '@/types/fournisseur';
 
 export function useFournisseurs() {
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
@@ -40,7 +22,10 @@ export function useFournisseurs() {
         .order('name');
 
       if (error) throw error;
-      setFournisseurs(data || []);
+      
+      // Convert database format to UI format
+      const convertedFournisseurs = (data || []).map(dbToFournisseur);
+      setFournisseurs(convertedFournisseurs);
     } catch (err) {
       console.error('Error fetching suppliers:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des fournisseurs');
@@ -53,14 +38,17 @@ export function useFournisseurs() {
     fetchFournisseurs();
   }, [organization?.id]);
 
-  const createFournisseur = async (fournisseurData: Omit<Fournisseur, 'id' | 'organization_id' | 'created_at' | 'updated_at'>) => {
+  const createFournisseur = async (fournisseurData: CreateFournisseurData) => {
     if (!organization?.id) return { error: 'Organization not found' };
 
     try {
+      // Convert UI format to database format
+      const dbData = fournisseurToDb(fournisseurData);
+      
       const { data, error } = await supabase
         .from('suppliers')
         .insert({
-          ...fournisseurData,
+          ...dbData,
           organization_id: organization.id
         })
         .select()
@@ -80,13 +68,16 @@ export function useFournisseurs() {
     }
   };
 
-  const updateFournisseur = async (fournisseurId: string, fournisseurData: Partial<Fournisseur>) => {
+  const updateFournisseur = async (fournisseurId: string, fournisseurData: Partial<CreateFournisseurData>) => {
     if (!organization?.id) return { error: 'Organization not found' };
 
     try {
+      // Convert UI format to database format
+      const dbData = fournisseurToDb(fournisseurData as CreateFournisseurData);
+      
       const { data, error } = await supabase
         .from('suppliers')
-        .update(fournisseurData)
+        .update(dbData)
         .eq('id', fournisseurId)
         .eq('organization_id', organization.id)
         .select()
