@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
@@ -12,6 +11,7 @@ import DeliveryNotes from './DeliveryNotes';
 import Stock from './Stock';
 import Settings from './Settings';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import Avoirs from './Avoirs';
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -35,7 +35,7 @@ const Index = () => {
       case 'clients':
         return <Clients />;
       case 'credits':
-        return <div className="p-6"><h1 className="text-2xl font-bold">Avoirs</h1><p>Module en cours de développement</p></div>;
+        return <Avoirs />;
       case 'settings':
         return <Settings />;
       default:
