@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,9 @@ const Quotes = () => {
           *,
           clients (
             name,
-            company
+            company,
+            address,
+            email
           ),
           quote_items (*)
         `)
@@ -271,12 +272,12 @@ const Quotes = () => {
 
                   // Convert to expected format for the actions menu
                   const convertedQuote = {
-                    ...quote,
                     number: quote.quote_number,
                     client: quote.clients?.name || '',
                     amount: quote.total_amount || 0,
                     validUntil: quote.valid_until || '',
-                    status: getQuoteStatus(quote.status)
+                    status: getQuoteStatus(quote.status),
+                    ...quote
                   };
 
                   // Prepare data for PDF
