@@ -45,11 +45,13 @@ interface DashboardChartsProps {
 
 export function DashboardCharts({ data, selectedYear, loading = false }: DashboardChartsProps) {
   const COLORS = {
-    primary: '#6A9C89',
-    secondary: '#E57373',
-    success: '#81C784',
-    warning: '#FFB74D',
-    info: '#64B5F6'
+    currentYear: '#6A9C89',
+    previousYear: '#64B5F6',
+    product: '#6A9C89',
+    category: '#64B5F6',
+    paid: '#81C784',
+    pending: '#FFB74D',
+    overdue: '#E57373'
   };
 
   if (loading) {
@@ -72,7 +74,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Courbe comparative CA */}
+      {/* 1. Courbe comparative CA / mois année N vs N-1 */}
       <Card>
         <CardHeader>
           <CardTitle>Chiffre d'affaires mensuel</CardTitle>
@@ -84,56 +86,89 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data.monthlyComparison}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" stroke="#666" />
-              <YAxis stroke="#666" />
+              <XAxis 
+                dataKey="month" 
+                stroke="#666"
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                stroke="#666"
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #e0e0e0',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value: number) => [
+                formatter={(value: number, name: string) => [
                   new Intl.NumberFormat('fr-FR', {
                     style: 'currency',
                     currency: 'EUR'
-                  }).format(value)
+                  }).format(value),
+                  name === 'currentYear' ? selectedYear.toString() : (selectedYear - 1).toString()
                 ]}
               />
               <Legend />
               <Line 
                 type="monotone" 
                 dataKey="currentYear" 
-                stroke={COLORS.primary}
+                stroke={COLORS.currentYear}
                 strokeWidth={3}
                 name={selectedYear.toString()}
-                dot={{ fill: COLORS.primary, strokeWidth: 2, r: 4 }}
+                dot={{ fill: COLORS.currentYear, strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7, stroke: COLORS.currentYear, strokeWidth: 2 }}
               />
               <Line 
                 type="monotone" 
                 dataKey="previousYear" 
-                stroke={COLORS.secondary}
+                stroke={COLORS.previousYear}
                 strokeWidth={3}
                 name={(selectedYear - 1).toString()}
-                dot={{ fill: COLORS.secondary, strokeWidth: 2, r: 4 }}
+                dot={{ fill: COLORS.previousYear, strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7, stroke: COLORS.previousYear, strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Top produits */}
+      {/* 2. Barres horizontales – CA par produit (Top 5) */}
       <Card>
         <CardHeader>
           <CardTitle>Top 5 produits</CardTitle>
-          <CardDescription>Par chiffre d'affaires</CardDescription>
+          <CardDescription>Par chiffre d'affaires (tri décroissant)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.topProducts} layout="horizontal">
+            <BarChart 
+              data={data.topProducts.slice(0, 5).sort((a, b) => b.revenue - a.revenue)} 
+              layout="horizontal"
+              margin={{ left: 80, right: 30, top: 20, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis type="number" stroke="#666" />
-              <YAxis dataKey="name" type="category" stroke="#666" width={100} />
+              <XAxis 
+                type="number" 
+                stroke="#666"
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
+              />
+              <YAxis 
+                dataKey="name" 
+                type="category" 
+                stroke="#666" 
+                width={100}
+                tick={{ fontSize: 11 }}
+              />
               <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
                 formatter={(value: number) => [
                   new Intl.NumberFormat('fr-FR', {
                     style: 'currency',
@@ -141,25 +176,49 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                   }).format(value), 'CA'
                 ]}
               />
-              <Bar dataKey="revenue" fill={COLORS.primary} />
+              <Bar 
+                dataKey="revenue" 
+                fill={COLORS.product}
+                radius={[0, 4, 4, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* CA par catégorie */}
+      {/* 3. Barres verticales – CA par catégorie */}
       <Card>
         <CardHeader>
           <CardTitle>Chiffre d'affaires par catégorie</CardTitle>
-          <CardDescription>Répartition mensuelle</CardDescription>
+          <CardDescription>Total CA par catégorie (période sélectionnée)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.categorySales}>
+            <BarChart 
+              data={data.categorySales}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="category" stroke="#666" />
-              <YAxis stroke="#666" />
+              <XAxis 
+                dataKey="category" 
+                stroke="#666"
+                tick={{ fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                stroke="#666"
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
+              />
               <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
                 formatter={(value: number) => [
                   new Intl.NumberFormat('fr-FR', {
                     style: 'currency',
@@ -167,17 +226,21 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                   }).format(value), 'CA'
                 ]}
               />
-              <Bar dataKey="amount" fill={COLORS.info} />
+              <Bar 
+                dataKey="amount" 
+                fill={COLORS.category}
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Statut des factures */}
+      {/* 4. Camembert – Statuts des factures */}
       <Card>
         <CardHeader>
           <CardTitle>Statut des factures</CardTitle>
-          <CardDescription>Répartition par statut</CardDescription>
+          <CardDescription>Répartition par statut (% et valeur brute)</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -186,20 +249,49 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 data={data.invoiceStatus}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={120}
+                innerRadius={50}
+                outerRadius={100}
                 dataKey="value"
+                label={({ name, percent, value }) => 
+                  `${name}: ${(percent * 100).toFixed(1)}%`
+                }
+                labelLine={false}
               >
                 {data.invoiceStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={
+                      entry.name === 'Payées' ? COLORS.paid :
+                      entry.name === 'En attente' ? COLORS.pending :
+                      COLORS.overdue
+                    } 
+                  />
                 ))}
               </Pie>
               <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
                 formatter={(value: number, name: string) => [
-                  `${value.toLocaleString('fr-FR')} €`, name
+                  new Intl.NumberFormat('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                  }).format(value), 
+                  name
                 ]}
               />
-              <Legend />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value, entry) => (
+                  <span style={{ color: entry.color }}>
+                    {value}
+                  </span>
+                )}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>
