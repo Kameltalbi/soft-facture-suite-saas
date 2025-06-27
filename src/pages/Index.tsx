@@ -1,9 +1,7 @@
-
 import { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { Dashboard } from '@/components/modules/Dashboard';
-import { Sales } from '@/components/modules/Sales';
 import { Products } from '@/components/modules/Products';
 import { Clients } from '@/components/modules/Clients';
 import Invoices from './Invoices';
@@ -23,8 +21,6 @@ const Index = () => {
         return <Quotes />;
       case 'delivery-notes':
         return <DeliveryNotes />;
-      case 'sales':
-        return <Sales />;
       case 'products':
         return <Products />;
       case 'clients':

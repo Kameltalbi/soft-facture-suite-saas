@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { 
@@ -26,7 +25,6 @@ const modules = [
   { id: 'invoices', label: 'Factures', icon: FileText },
   { id: 'quotes', label: 'Devis', icon: FileCheck },
   { id: 'delivery-notes', label: 'Bons de livraison', icon: Truck },
-  { id: 'sales', label: 'Tous les documents', icon: Receipt },
   { id: 'products', label: 'Produits & Services', icon: Package },
   { id: 'categories', label: 'Catégories', icon: FolderOpen },
   { id: 'clients', label: 'Clients', icon: Users },
