@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PDFViewer } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 interface TemplatePreviewModalProps {
   isOpen: boolean;
@@ -73,25 +75,45 @@ const documentTypeLabels: Record<string, string> = {
 };
 
 export function TemplatePreviewModal({ isOpen, onClose, template, documentType }: TemplatePreviewModalProps) {
+  const pdfDocument = (
+    <TemplatedInvoicePDF
+      template={template}
+      invoiceData={mockInvoiceData}
+      lineItems={mockLineItems}
+      client={mockClient}
+      company={mockCompany}
+      settings={mockSettings}
+      documentType={documentTypeLabels[documentType] || documentType}
+    />
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>
-            Aperçu du template {template} - {documentTypeLabels[documentType] || documentType}
+      <DialogContent className="max-w-5xl h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center justify-between">
+            <span>Aperçu du template {template} - {documentTypeLabels[documentType] || documentType}</span>
+            <PDFDownloadLink
+              document={pdfDocument}
+              fileName={`template-${template}-${documentType}.pdf`}
+            >
+              {({ loading }) => (
+                <Button variant="outline" size="sm" disabled={loading}>
+                  <Download className="h-4 w-4 mr-2" />
+                  {loading ? 'Préparation...' : 'Télécharger'}
+                </Button>
+              )}
+            </PDFDownloadLink>
           </DialogTitle>
         </DialogHeader>
-        <div className="flex-1 min-h-0">
-          <PDFViewer width="100%" height="100%">
-            <TemplatedInvoicePDF
-              template={template}
-              invoiceData={mockInvoiceData}
-              lineItems={mockLineItems}
-              client={mockClient}
-              company={mockCompany}
-              settings={mockSettings}
-              documentType={documentTypeLabels[documentType] || documentType}
-            />
+        <div className="flex-1 min-h-0 border rounded-lg overflow-hidden bg-gray-50">
+          <PDFViewer 
+            width="100%" 
+            height="100%"
+            showToolbar={true}
+            style={{ border: 'none' }}
+          >
+            {pdfDocument}
           </PDFViewer>
         </div>
       </DialogContent>
