@@ -15,6 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
 import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
+import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -278,6 +279,33 @@ const Quotes = () => {
                     status: getQuoteStatus(quote.status)
                   };
 
+                  // Prepare data for PDF
+                  const pdfData = {
+                    quoteData: {
+                      number: quote.quote_number,
+                      date: quote.date,
+                      validUntil: quote.valid_until,
+                      notes: quote.notes
+                    },
+                    lineItems: quote.quote_items || [],
+                    client: {
+                      name: quote.clients?.name || '',
+                      company: quote.clients?.company || '',
+                      address: quote.clients?.address || '',
+                      email: quote.clients?.email || ''
+                    },
+                    company: {
+                      name: organization?.name || 'Soft Facture',
+                      address: organization?.address || '',
+                      email: organization?.email || '',
+                      phone: organization?.phone || ''
+                    },
+                    settings: {
+                      showVat: true,
+                      footer_content: 'Soft Facture - Merci pour votre confiance'
+                    }
+                  };
+
                   return (
                     <TableRow key={quote.id} className="hover:bg-neutral-50">
                       <TableCell>
@@ -312,6 +340,7 @@ const Quotes = () => {
                       <TableCell className="text-right">
                         <QuoteActionsMenu
                           quote={convertedQuote}
+                          pdfComponent={<QuotePDF {...pdfData} />}
                           onView={() => handleViewQuote(quote)}
                           onEdit={() => handleEditQuote(quote)}
                           onDuplicate={() => handleDuplicateQuote(quote)}
