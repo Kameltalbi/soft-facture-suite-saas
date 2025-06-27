@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Plus, Search, FileText, Eye, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, FileText, Eye, Edit, Trash2, MoreHorizontal, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,8 +20,11 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
+import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
 
 const BonsCommandePage = () => {
+  const { exportToPDF } = useBonCommandePDF();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
@@ -56,6 +58,10 @@ const BonsCommandePage = () => {
       dateCreation: '2025-01-14T14:30:00Z'
     }
   ]);
+
+  const handleExportPDF = (bonCommande: BonCommandeFournisseur) => {
+    exportToPDF(bonCommande);
+  };
 
   const handleCreateBonCommande = () => {
     setSelectedBonCommande(null);
@@ -208,6 +214,10 @@ const BonsCommandePage = () => {
                           <DropdownMenuItem onClick={() => handleEditBonCommande(bonCommande)}>
                             <Edit size={16} className="mr-2" />
                             Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExportPDF(bonCommande)}>
+                            <Download size={16} className="mr-2" />
+                            Exporter en PDF
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDeleteBonCommande(bonCommande.id)}

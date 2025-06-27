@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, CalendarIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,7 @@ import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
 import { Fournisseur } from '@/types/fournisseur';
+import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
 
 interface BonCommandeModalProps {
   isOpen: boolean;
@@ -42,7 +43,8 @@ interface BonCommandeModalProps {
 }
 
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
-  const [formData, setFormData] = useState<{
+  const { exportToPDF } = useBonCommandePDF();
+  const [formData, setFormData<{
     numero: string;
     fournisseurId: string;
     dateCommande: Date;
@@ -171,6 +173,31 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
     };
 
     onSave(bonCommandeData);
+  };
+
+  const handleExportPDF = () => {
+    if (bonCommande) {
+      exportToPDF(bonCommande);
+    } else {
+      // Créer un bon de commande temporaire pour l'aperçu
+      const totaux = calculerTotaux();
+      const tempBonCommande: BonCommandeFournisseur = {
+        id: 'temp',
+        numero: formData.numero,
+        fournisseurId: formData.fournisseurId,
+        fournisseurNom: fournisseurs.find(f => f.id === formData.fournisseurId)?.nom || '',
+        dateCommande: selectedDate?.toISOString().split('T')[0] || '',
+        statut: formData.statut,
+        montantHT: totaux.totalHTApresRemise,
+        montantTTC: totaux.totalTTC,
+        remise: formData.remise,
+        remarques: formData.remarques,
+        lignes,
+        organisationId: 'org1',
+        dateCreation: new Date().toISOString()
+      };
+      exportToPDF(tempBonCommande);
+    }
   };
 
   const totaux = calculerTotaux();
@@ -395,17 +422,28 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
           </div>
 
           {/* Boutons */}
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
+          <div className="flex justify-between">
             <Button 
-              onClick={handleSubmit}
-              className="bg-[#6A9C89] hover:bg-[#5A8B7A]"
-              disabled={!formData.fournisseurId || lignes.length === 0}
+              variant="outline" 
+              onClick={handleExportPDF}
+              className="flex items-center gap-2"
             >
-              {bonCommande ? 'Modifier' : 'Créer'} le bon de commande
+              <FileText size={16} />
+              Aperçu PDF
             </Button>
+            
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                className="bg-[#6A9C89] hover:bg-[#5A8B7A]"
+                disabled={!formData.fournisseurId || lignes.length === 0}
+              >
+                {bonCommande ? 'Modifier' : 'Créer'} le bon de commande
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
