@@ -190,35 +190,33 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
         </CardContent>
       </Card>
 
-      {/* CA par client */}
+      {/* CA par catégorie - Camembert */}
       <Card className="border-0 shadow-sm rounded-xl bg-white">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">Top clients</CardTitle>
-          <CardDescription className="text-gray-600">Chiffre d'affaires par client</CardDescription>
+          <CardTitle className="text-xl font-semibold text-gray-900">CA par catégorie</CardTitle>
+          <CardDescription className="text-gray-600">Répartition du chiffre d'affaires par catégorie</CardDescription>
         </CardHeader>
         <CardContent className="pt-2">
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart 
-              data={data.clientRevenue}
-              layout="horizontal"
-              margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis 
-                type="number"
-                stroke="#64748B"
-                tick={{ fontSize: 12, fill: '#64748B' }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-              />
-              <YAxis 
-                type="category"
-                dataKey="name"
-                stroke="#64748B"
-                tick={{ fontSize: 11, fill: '#64748B' }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                width={70}
-              />
+            <PieChart>
+              <Pie
+                data={data.categorySales}
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                dataKey="amount"
+                label={({ category, percent }) => 
+                  `${category}: ${(percent * 100).toFixed(1)}%`
+                }
+                labelLine={false}
+              >
+                {data.categorySales.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS.category[index % COLORS.category.length]} 
+                  />
+                ))}
+              </Pie>
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'white',
@@ -228,12 +226,16 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 }}
                 formatter={(value: number) => [formatCurrency(value), 'CA']}
               />
-              <Bar 
-                dataKey="revenue" 
-                fill={COLORS.client}
-                radius={[0, 6, 6, 0]}
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value) => (
+                  <span style={{ fontWeight: 500 }}>
+                    {value}
+                  </span>
+                )}
               />
-            </BarChart>
+            </PieChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
