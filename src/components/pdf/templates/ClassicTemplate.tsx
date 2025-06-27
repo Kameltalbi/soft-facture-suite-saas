@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
@@ -27,8 +28,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   logo: {
-    width: 62,
-    height: 47,
+    width: 64,
+    height: 49,
     objectFit: 'contain',
   },
   titleSection: {
@@ -168,12 +169,6 @@ const styles = StyleSheet.create({
     color: '#666666',
     borderTop: '1pt solid #8B4513',
     paddingTop: 10,
-  },
-  ornament: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#8B4513',
-    marginBottom: 10,
   },
 });
 
