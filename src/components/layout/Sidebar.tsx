@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { 
@@ -11,7 +12,8 @@ import {
   FolderOpen,
   Receipt,
   FileCheck,
-  Truck
+  Truck,
+  Archive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -27,6 +29,7 @@ const modules = [
   { id: 'delivery-notes', label: 'Bons de livraison', icon: Truck },
   { id: 'products', label: 'Produits & Services', icon: Package },
   { id: 'categories', label: 'Catégories', icon: FolderOpen },
+  { id: 'stock', label: 'Gestion des stocks', icon: Archive },
   { id: 'clients', label: 'Clients', icon: Users },
   { id: 'credits', label: 'Avoirs', icon: Receipt },
   { id: 'settings', label: 'Paramètres', icon: Settings },

@@ -9,6 +9,7 @@ import { Clients } from '@/components/modules/Clients';
 import Invoices from './Invoices';
 import Quotes from './Quotes';
 import DeliveryNotes from './DeliveryNotes';
+import Stock from './Stock';
 import Settings from './Settings';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
@@ -27,10 +28,12 @@ const Index = () => {
         return <DeliveryNotes />;
       case 'products':
         return <Products />;
-      case 'clients':
-        return <Clients />;
       case 'categories':
         return <Categories />;
+      case 'stock':
+        return <Stock />;
+      case 'clients':
+        return <Clients />;
       case 'credits':
         return <div className="p-6"><h1 className="text-2xl font-bold">Avoirs</h1><p>Module en cours de développement</p></div>;
       case 'settings':
