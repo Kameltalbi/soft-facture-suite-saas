@@ -1,0 +1,55 @@
+
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+
+export function HeroSection() {
+  return (
+    <section className="py-20 bg-gradient-to-b from-white to-[#F7F9FA]">
+      <div className="container mx-auto px-4">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8">
+            <div className="space-y-6">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                Votre facturation, 
+                <span className="text-[#6A9C89]"> simplifiée</span> et 
+                <span className="text-[#6A9C89]"> professionnelle</span>.
+              </h1>
+              <p className="text-xl text-gray-600 leading-relaxed">
+                Gagnez du temps, organisez vos documents, et améliorez votre image. 
+                Idéal pour artisans, indépendants, TPE et PME.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                size="lg"
+                className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white px-8 py-3 text-lg"
+              >
+                Commencer l'essai gratuit
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="border-[#6A9C89] text-[#6A9C89] hover:bg-[#6A9C89] hover:text-white px-8 py-3 text-lg"
+              >
+                Voir les fonctionnalités
+              </Button>
+            </div>
+          </div>
+          
+          <div className="lg:pl-8">
+            <Card className="p-6 shadow-2xl bg-white rounded-2xl">
+              <div className="aspect-video bg-gradient-to-br from-[#6A9C89] to-[#5A8A75] rounded-xl flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-xl font-semibold">Dashboard Soft Facture</p>
+                  <p className="text-sm opacity-90">Aperçu de votre application</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
