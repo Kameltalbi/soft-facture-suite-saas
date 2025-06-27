@@ -17,7 +17,10 @@ export const TemplatedInvoicePDF = ({
   documentType = 'FACTURE',
   ...props 
 }: TemplatedInvoicePDFProps) => {
-  const templateProps = { ...props, documentType };
+  const templateProps = { 
+    ...props, 
+    documentType: documentType || 'FACTURE' // S'assurer que le documentType est bien passé
+  };
   
   switch (template) {
     case 'modern':
