@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, Trash2, Package, Wrench } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Package, Wrench, Tag } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -14,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ProductModal } from '@/components/modals/ProductModal';
+import { CategoryModal } from '@/components/modals/CategoryModal';
 
 interface Product {
   id: string;
@@ -80,6 +80,7 @@ const mockProducts: Product[] = [
 export function Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showProductModal, setShowProductModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const filteredProducts = mockProducts.filter(product =>
@@ -105,6 +106,15 @@ export function Products() {
     categories: [...new Set(mockProducts.map(p => p.category))].length
   };
 
+  const handleNewCategory = () => {
+    setShowCategoryModal(true);
+  };
+
+  const handleSaveCategory = (category: any) => {
+    console.log('Catégorie sauvegardée:', category);
+    // TODO: Intégrer avec la logique de sauvegarde
+  };
+
   return (
     <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
       {/* Header Actions */}
@@ -119,13 +129,23 @@ export function Products() {
           />
         </div>
 
-        <Button 
-          onClick={handleNewProduct}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <Plus size={16} className="mr-2" />
-          Nouveau Produit/Service
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={handleNewCategory}
+            variant="outline"
+            className="border-success text-success hover:bg-success hover:text-white"
+          >
+            <Tag size={16} className="mr-2" />
+            + Catégorie
+          </Button>
+          <Button 
+            onClick={handleNewProduct}
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus size={16} className="mr-2" />
+            Nouveau Produit/Service
+          </Button>
+        </div>
       </div>
 
       {/* Quick Stats */}
@@ -270,6 +290,13 @@ export function Products() {
         open={showProductModal}
         onClose={() => setShowProductModal(false)}
         product={editingProduct}
+      />
+
+      {/* Category Modal */}
+      <CategoryModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onSave={handleSaveCategory}
       />
     </div>
   );
