@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface InvoiceModalProps {
   open: boolean;
@@ -30,6 +31,7 @@ interface LineItem {
 
 export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
   const { generateInvoicePDF } = usePDFGeneration();
+  const { currency } = useCurrency();
 
   const [invoiceData, setInvoiceData] = useState({
     number: document?.number || 'FAC-2024-002',
@@ -352,7 +354,7 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
                     
                     <div className="text-right">
                       <span className="text-sm font-semibold">
-                        Total: {item.total.toFixed(2)} €
+                        Total: {item.total.toFixed(2)} {currency.symbol}
                       </span>
                     </div>
                   </div>
@@ -367,25 +369,25 @@ export function InvoiceModal({ open, onClose, document }: InvoiceModalProps) {
               <CardContent className="space-y-2">
                 <div className="flex justify-between">
                   <span>Sous-total HT:</span>
-                  <span className="font-semibold">{subtotalHT.toFixed(2)} €</span>
+                  <span className="font-semibold">{subtotalHT.toFixed(2)} {currency.symbol}</span>
                 </div>
                 {settings.showVat && (
                   <div className="flex justify-between">
                     <span>TVA:</span>
-                    <span className="font-semibold">{totalVAT.toFixed(2)} €</span>
+                    <span className="font-semibold">{totalVAT.toFixed(2)} {currency.symbol}</span>
                   </div>
                 )}
                 <Separator />
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total TTC:</span>
-                  <span>{totalTTC.toFixed(2)} €</span>
+                  <span>{totalTTC.toFixed(2)} {currency.symbol}</span>
                 </div>
                 {settings.amountInWords && (
                   <div className="text-sm text-neutral-600 mt-2">
                     <strong>Montant en lettres:</strong><br />
                     {(() => {
                       if (totalTTC === 0) return 'zéro';
-                      return `${Math.floor(totalTTC)} euros et ${Math.round((totalTTC % 1) * 100)} centimes`;
+                      return `${Math.floor(totalTTC)} ${currency.name.toLowerCase()} et ${Math.round((totalTTC % 1) * 100)} centimes`;
                     })()}
                   </div>
                 )}
