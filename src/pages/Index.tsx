@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
@@ -7,6 +8,7 @@ import { Clients } from '@/components/modules/Clients';
 import Invoices from './Invoices';
 import Quotes from './Quotes';
 import DeliveryNotes from './DeliveryNotes';
+import Settings from './Settings';
 
 const Index = () => {
   const [activeModule, setActiveModule] = useState('dashboard');
@@ -30,7 +32,7 @@ const Index = () => {
       case 'credits':
         return <div className="p-6"><h1 className="text-2xl font-bold">Avoirs</h1><p>Module en cours de développement</p></div>;
       case 'settings':
-        return <div className="p-6"><h1 className="text-2xl font-bold">Paramètres</h1><p>Module en cours de développement</p></div>;
+        return <Settings />;
       default:
         return <Dashboard />;
     }
