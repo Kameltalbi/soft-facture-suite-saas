@@ -7,39 +7,39 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Trash2, Building2, User } from 'lucide-react';
+import { Search, Plus, Trash2, Package, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
-interface LineItem {
+interface DeliveryItem {
   id: string;
   description: string;
   quantity: number;
-  unitPrice: number;
-  vatRate: number;
-  total: number;
+  deliveredQuantity?: number;
+  status: 'pending' | 'delivered' | 'partial';
 }
 
-interface InvoiceModalProps {
+interface DeliveryNoteModalProps {
   open: boolean;
   onClose: () => void;
-  invoice?: any;
+  deliveryNote?: any;
   onSave: (data: any) => void;
 }
 
-export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalProps) {
+export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: DeliveryNoteModalProps) {
   const { organization, user } = useAuth();
   
   // Form state
-  const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || 'FAC-2025-001');
-  const [invoiceDate, setInvoiceDate] = useState(invoice?.date || new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState(invoice?.dueDate || '');
+  const [deliveryNumber, setDeliveryNumber] = useState(deliveryNote?.number || 'BL-2025-001');
+  const [deliveryDate, setDeliveryDate] = useState(deliveryNote?.date || new Date().toISOString().split('T')[0]);
+  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState(deliveryNote?.expectedDeliveryDate || '');
   const [clientSearch, setClientSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState(invoice?.client || null);
-  const [notes, setNotes] = useState(invoice?.notes || '');
+  const [selectedClient, setSelectedClient] = useState(deliveryNote?.client || null);
+  const [notes, setNotes] = useState(deliveryNote?.notes || '');
+  const [deliveryAddress, setDeliveryAddress] = useState(deliveryNote?.deliveryAddress || '');
   
-  // Line items
-  const [lineItems, setLineItems] = useState<LineItem[]>(invoice?.lineItems || [
-    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, total: 0 }
+  // Delivery items
+  const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>(deliveryNote?.items || [
+    { id: '1', description: '', quantity: 1, deliveredQuantity: 0, status: 'pending' }
   ]);
   
   // Product search
@@ -54,9 +54,10 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   
   // Mock products for search
   const mockProducts = [
-    { id: '1', name: 'Consultation', price: 150, vat: 20 },
-    { id: '2', name: 'Développement web', price: 80, vat: 20 },
-    { id: '3', name: 'Formation', price: 120, vat: 20 }
+    { id: '1', name: 'Ordinateur portable', unit: 'pièce' },
+    { id: '2', name: 'Écran 24 pouces', unit: 'pièce' },
+    { id: '3', name: 'Clavier sans fil', unit: 'pièce' },
+    { id: '4', name: 'Souris optique', unit: 'pièce' }
   ];
   
   const filteredClients = mockClients.filter(client =>
@@ -68,24 +69,32 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     product.name.toLowerCase().includes(productSearch.toLowerCase())
   );
   
-  const addLineItem = () => {
-    const newItem: LineItem = {
+  const addDeliveryItem = () => {
+    const newItem: DeliveryItem = {
       id: Date.now().toString(),
       description: '',
       quantity: 1,
-      unitPrice: 0,
-      vatRate: 20,
-      total: 0
+      deliveredQuantity: 0,
+      status: 'pending'
     };
-    setLineItems([...lineItems, newItem]);
+    setDeliveryItems([...deliveryItems, newItem]);
   };
   
-  const updateLineItem = (id: string, field: keyof LineItem, value: any) => {
-    setLineItems(lineItems.map(item => {
+  const updateDeliveryItem = (id: string, field: keyof DeliveryItem, value: any) => {
+    setDeliveryItems(deliveryItems.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
-        if (field === 'quantity' || field === 'unitPrice') {
-          updated.total = updated.quantity * updated.unitPrice;
+        // Update status based on delivered quantity
+        if (field === 'deliveredQuantity' || field === 'quantity') {
+          const delivered = field === 'deliveredQuantity' ? value : item.deliveredQuantity || 0;
+          const total = field === 'quantity' ? value : item.quantity;
+          if (delivered === 0) {
+            updated.status = 'pending';
+          } else if (delivered >= total) {
+            updated.status = 'delivered';
+          } else {
+            updated.status = 'partial';
+          }
         }
         return updated;
       }
@@ -93,29 +102,34 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }));
   };
   
-  const removeLineItem = (id: string) => {
-    setLineItems(lineItems.filter(item => item.id !== id));
+  const removeDeliveryItem = (id: string) => {
+    setDeliveryItems(deliveryItems.filter(item => item.id !== id));
   };
   
-  const calculateTotals = () => {
-    const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
-    const totalVAT = lineItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
-    return { subtotalHT, totalVAT, totalTTC: subtotalHT + totalVAT };
+  const getStatusBadge = (status: DeliveryItem['status']) => {
+    const variants = {
+      pending: { label: 'En attente', variant: 'secondary' as const },
+      delivered: { label: 'Livré', variant: 'default' as const },
+      partial: { label: 'Partiel', variant: 'outline' as const }
+    };
+    return (
+      <Badge variant={variants[status].variant}>
+        {variants[status].label}
+      </Badge>
+    );
   };
-  
-  const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
   
   const handleSave = () => {
-    const invoiceData = {
-      number: invoiceNumber,
-      date: invoiceDate,
-      dueDate,
+    const deliveryData = {
+      number: deliveryNumber,
+      date: deliveryDate,
+      expectedDeliveryDate,
       client: selectedClient,
-      lineItems,
-      notes,
-      totals: { subtotalHT, totalVAT, totalTTC }
+      deliveryAddress,
+      items: deliveryItems,
+      notes
     };
-    onSave(invoiceData);
+    onSave(deliveryData);
     onClose();
   };
 
@@ -123,8 +137,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-blue-600">
-            {invoice ? 'Modifier la facture' : 'Nouvelle facture'}
+          <DialogTitle className="text-2xl font-bold text-green-600">
+            {deliveryNote ? 'Modifier le bon de livraison' : 'Nouveau bon de livraison'}
           </DialogTitle>
         </DialogHeader>
 
@@ -145,34 +159,34 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                   </div>
                 </div>
                 <div className="text-right">
-                  <h2 className="text-2xl font-bold text-blue-600">FACTURE</h2>
+                  <h2 className="text-2xl font-bold text-green-600">BON DE LIVRAISON</h2>
                   <div className="space-y-2 mt-2">
                     <div>
-                      <Label htmlFor="invoiceNumber">Numéro</Label>
+                      <Label htmlFor="deliveryNumber">Numéro</Label>
                       <Input
-                        id="invoiceNumber"
-                        value={invoiceNumber}
-                        onChange={(e) => setInvoiceNumber(e.target.value)}
+                        id="deliveryNumber"
+                        value={deliveryNumber}
+                        onChange={(e) => setDeliveryNumber(e.target.value)}
                         className="w-40"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="invoiceDate">Date</Label>
+                      <Label htmlFor="deliveryDate">Date</Label>
                       <Input
-                        id="invoiceDate"
+                        id="deliveryDate"
                         type="date"
-                        value={invoiceDate}
-                        onChange={(e) => setInvoiceDate(e.target.value)}
+                        value={deliveryDate}
+                        onChange={(e) => setDeliveryDate(e.target.value)}
                         className="w-40"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="dueDate">Échéance</Label>
+                      <Label htmlFor="expectedDeliveryDate">Livraison prévue</Label>
                       <Input
-                        id="dueDate"
+                        id="expectedDeliveryDate"
                         type="date"
-                        value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
+                        value={expectedDeliveryDate}
+                        onChange={(e) => setExpectedDeliveryDate(e.target.value)}
                         className="w-40"
                       />
                     </div>
@@ -187,7 +201,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             <CardHeader>
               <CardTitle className="flex items-center">
                 <User className="mr-2 h-5 w-5" />
-                Facturer à
+                Livrer à
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -211,6 +225,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         onClick={() => {
                           setSelectedClient(client);
                           setClientSearch('');
+                          setDeliveryAddress(client.address);
                         }}
                       >
                         <div className="font-medium">{client.company}</div>
@@ -222,12 +237,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 )}
                 
                 {selectedClient && (
-                  <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="bg-green-50 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-semibold">{selectedClient.company}</h4>
                         <p className="text-sm text-gray-600">{selectedClient.name}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.address}</p>
                         <p className="text-sm text-gray-600">{selectedClient.email}</p>
                       </div>
                       <Button
@@ -240,15 +254,29 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     </div>
                   </div>
                 )}
+                
+                <div>
+                  <Label htmlFor="deliveryAddress">Adresse de livraison</Label>
+                  <textarea
+                    id="deliveryAddress"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    placeholder="Adresse de livraison..."
+                    className="w-full h-20 p-3 border rounded-md resize-none mt-1"
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Table des produits */}
+          {/* Table des articles */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>Articles / Services</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Package className="mr-2 h-5 w-5" />
+                  Articles à livrer
+                </CardTitle>
                 <div className="flex items-center space-x-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -259,7 +287,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       className="pl-10 w-64"
                     />
                   </div>
-                  <Button onClick={addLineItem} size="sm">
+                  <Button onClick={addDeliveryItem} size="sm" className="bg-green-600 hover:bg-green-700">
                     <Plus className="h-4 w-4 mr-1" />
                     Ajouter
                   </Button>
@@ -274,20 +302,19 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       key={product.id}
                       className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
                       onClick={() => {
-                        const newItem: LineItem = {
+                        const newItem: DeliveryItem = {
                           id: Date.now().toString(),
                           description: product.name,
                           quantity: 1,
-                          unitPrice: product.price,
-                          vatRate: product.vat,
-                          total: product.price
+                          deliveredQuantity: 0,
+                          status: 'pending'
                         };
-                        setLineItems([...lineItems, newItem]);
+                        setDeliveryItems([...deliveryItems, newItem]);
                         setProductSearch('');
                       }}
                     >
                       <span>{product.name}</span>
-                      <span className="text-sm text-gray-500">{product.price}€</span>
+                      <span className="text-sm text-gray-500">{product.unit}</span>
                     </div>
                   ))}
                 </div>
@@ -297,62 +324,56 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40%]">Description</TableHead>
-                    <TableHead className="w-[15%] text-center">Quantité</TableHead>
-                    <TableHead className="w-[15%] text-right">Prix unitaire HT</TableHead>
-                    <TableHead className="w-[15%] text-center">TVA</TableHead>
-                    <TableHead className="w-[15%] text-right">Total HT</TableHead>
+                    <TableHead className="w-[15%] text-center">Qté commandée</TableHead>
+                    <TableHead className="w-[15%] text-center">Qté livrée</TableHead>
+                    <TableHead className="w-[15%] text-center">Statut</TableHead>
+                    <TableHead className="w-[10%] text-center">État</TableHead>
                     <TableHead className="w-[5%]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lineItems.map((item) => (
+                  {deliveryItems.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Input
                           value={item.description}
-                          onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
-                          placeholder="Description du produit/service"
+                          onChange={(e) => updateDeliveryItem(item.id, 'description', e.target.value)}
+                          placeholder="Description de l'article"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
                           value={item.quantity}
-                          onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateDeliveryItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
                           className="text-center"
                           min="0"
-                          step="0.1"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
-                          value={item.unitPrice}
-                          onChange={(e) => updateLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          className="text-right"
-                          min="0"
-                          step="0.01"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.vatRate}
-                          onChange={(e) => updateLineItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                          value={item.deliveredQuantity || 0}
+                          onChange={(e) => updateDeliveryItem(item.id, 'deliveredQuantity', parseInt(e.target.value) || 0)}
                           className="text-center"
                           min="0"
-                          max="100"
+                          max={item.quantity}
                         />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {item.total.toFixed(2)} €
+                      <TableCell className="text-center">
+                        <span className="text-sm">
+                          {item.deliveredQuantity || 0}/{item.quantity}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {getStatusBadge(item.status)}
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => removeLineItem(item.id)}
-                          disabled={lineItems.length === 1}
+                          onClick={() => removeDeliveryItem(item.id)}
+                          disabled={deliveryItems.length === 1}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
@@ -364,32 +385,28 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardContent>
           </Card>
 
-          {/* Section Totaux */}
-          <div className="flex justify-end">
-            <Card className="w-80">
-              <CardHeader>
-                <CardTitle>Totaux</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Sous-total HT:</span>
-                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>TVA:</span>
-                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
-                  </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total TTC:</span>
-                      <span className="text-blue-600">{totalTTC.toFixed(2)} €</span>
-                    </div>
+          {/* Section signatures (pour impression) */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Signatures</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <Label className="font-medium">Signature du livreur :</Label>
+                  <div className="h-20 border-2 border-dashed border-gray-300 rounded-lg mt-2 flex items-center justify-center text-gray-500">
+                    Zone de signature
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <div>
+                  <Label className="font-medium">Signature du client :</Label>
+                  <div className="h-20 border-2 border-dashed border-gray-300 rounded-lg mt-2 flex items-center justify-center text-gray-500">
+                    Zone de signature
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Notes */}
           <Card>
@@ -400,7 +417,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes additionnelles..."
+                placeholder="Notes de livraison..."
                 className="w-full h-24 p-3 border rounded-md resize-none"
               />
             </CardContent>
@@ -411,8 +428,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-              {invoice ? 'Mettre à jour' : 'Créer la facture'}
+            <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+              {deliveryNote ? 'Mettre à jour' : 'Créer le bon de livraison'}
             </Button>
           </div>
         </div>

@@ -1,107 +1,517 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Quote } from '@/types/quote';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
-interface QuoteModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  quote?: Quote | null;
-  onSave: (data: Partial<Quote>) => void;
+interface QuoteItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  discount: number;
+  total: number;
 }
 
-export function QuoteModal({ isOpen, onClose, quote, onSave }: QuoteModalProps) {
-  const [formData, setFormData] = useState({
-    clientNom: '',
-    objet: '',
-    remarques: '',
-    dateValidite: ''
-  });
+interface QuoteModalProps {
+  open: boolean;
+  onClose: () => void;
+  quote?: any;
+  onSave: (data: any) => void;
+}
 
-  useEffect(() => {
-    if (quote) {
-      setFormData({
-        clientNom: quote.clientNom,
-        objet: quote.objet,
-        remarques: quote.remarques,
-        dateValidite: quote.dateValidite
-      });
-    } else {
-      setFormData({
-        clientNom: '',
-        objet: '',
-        remarques: '',
-        dateValidite: ''
-      });
+export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
+  const { organization, user } = useAuth();
+  
+  // Form state
+  const [quoteNumber, setQuoteNumber] = useState(quote?.number || 'DEV-2025-001');
+  const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
+  const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
+  const [clientSearch, setClientSearch] = useState('');
+  const [selectedClient, setSelectedClient] = useState(quote?.client || null);
+  const [subject, setSubject] = useState(quote?.subject || '');
+  const [notes, setNotes] = useState(quote?.notes || '');
+  const [conditions, setConditions] = useState(quote?.conditions || '');
+  
+  // Quote items
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>(quote?.items || [
+    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
+  ]);
+  
+  // Product search
+  const [productSearch, setProductSearch] = useState('');
+  
+  // Mock clients for search
+  const mockClients = [
+    { id: '1', name: 'Client Premium', company: 'Premium Corp', address: '123 Rue de la Paix, 75001 Paris', email: 'contact@premium.fr' },
+    { id: '2', name: 'Entreprise ABC', company: 'ABC Solutions', address: '456 Avenue République, 69000 Lyon', email: 'info@abc.fr' },
+    { id: '3', name: 'Société Tech', company: 'Tech Innovation', address: '789 Boulevard Tech, 31000 Toulouse', email: 'hello@tech.fr' }
+  ];
+  
+  // Mock services for search
+  const mockServices = [
+    { id: '1', name: 'Consultation stratégique', price: 200, vat: 20 },
+    { id: '2', name: 'Développement web sur mesure', price: 85, vat: 20 },
+    { id: '3', name: 'Formation équipe', price: 150, vat: 20 },
+    { id: '4', name: 'Audit technique', price: 120, vat: 20 }
+  ];
+  
+  const filteredClients = mockClients.filter(client =>
+    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    client.company.toLowerCase().includes(clientSearch.toLowerCase())
+  );
+  
+  const filteredServices = mockServices.filter(service =>
+    service.name.toLowerCase().includes(productSearch.toLowerCase())
+  );
+  
+  const addQuoteItem = () => {
+    const newItem: QuoteItem = {
+      id: Date.now().toString(),
+      description: '',
+      quantity: 1,
+      unitPrice: 0,
+      vatRate: 20,
+      discount: 0,
+      total: 0
+    };
+    setQuoteItems([...quoteItems, newItem]);
+  };
+  
+  const updateQuoteItem = (id: string, field: keyof QuoteItem, value: any) => {
+    setQuoteItems(quoteItems.map(item => {
+      if (item.id === id) {
+        const updated = { ...item, [field]: value };
+        if (field === 'quantity' || field === 'unitPrice' || field === 'discount') {
+          const subtotal = updated.quantity * updated.unitPrice;
+          const discountAmount = subtotal * (updated.discount / 100);
+          updated.total = subtotal - discountAmount;
+        }
+        return updated;
+      }
+      return item;
+    }));
+  };
+  
+  const removeQuoteItem = (id: string) => {
+    setQuoteItems(quoteItems.filter(item => item.id !== id));
+  };
+  
+  const calculateTotals = () => {
+    const subtotalHT = quoteItems.reduce((sum, item) => sum + item.total, 0);
+    const totalDiscount = quoteItems.reduce((sum, item) => {
+      const subtotal = item.quantity * item.unitPrice;
+      return sum + (subtotal * item.discount / 100);
+    }, 0);
+    const totalVAT = quoteItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
+    const totalTTC = subtotalHT + totalVAT;
+    
+    return { subtotalHT, totalDiscount, totalVAT, totalTTC };
+  };
+  
+  const { subtotalHT, totalDiscount, totalVAT, totalTTC } = calculateTotals();
+  
+  // Set default validity (30 days from now)
+  React.useEffect(() => {
+    if (!validUntil) {
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 30);
+      setValidUntil(defaultDate.toISOString().split('T')[0]);
     }
-  }, [quote]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(formData);
+  }, [validUntil]);
+  
+  const handleSave = () => {
+    const quoteData = {
+      number: quoteNumber,
+      date: quoteDate,
+      validUntil,
+      client: selectedClient,
+      subject,
+      items: quoteItems,
+      notes,
+      conditions,
+      totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
+    };
+    onSave(quoteData);
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {quote ? 'Modifier le devis' : 'Créer un nouveau devis'}
+          <DialogTitle className="text-2xl font-bold text-purple-600">
+            {quote ? 'Modifier le devis' : 'Nouveau devis'}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="clientNom">Client</Label>
-              <Input
-                id="clientNom"
-                value={formData.clientNom}
-                onChange={(e) => setFormData(prev => ({ ...prev, clientNom: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="dateValidite">Date de validité</Label>
-              <Input
-                id="dateValidite"
-                type="date"
-                value={formData.dateValidite}
-                onChange={(e) => setFormData(prev => ({ ...prev, dateValidite: e.target.value }))}
-                required
-              />
-            </div>
+
+        <div className="space-y-6">
+          {/* Header avec logo et infos organisation */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div className="flex items-center space-x-4">
+                  {organization?.logo_url && (
+                    <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
+                    <p className="text-sm text-gray-600">{organization?.address || user?.user_metadata?.company_address}</p>
+                    <p className="text-sm text-gray-600">{organization?.email || user?.email}</p>
+                    <p className="text-sm text-gray-600">{organization?.phone || user?.user_metadata?.company_phone}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <h2 className="text-2xl font-bold text-purple-600">DEVIS</h2>
+                  <div className="space-y-2 mt-2">
+                    <div>
+                      <Label htmlFor="quoteNumber">Numéro</Label>
+                      <Input
+                        id="quoteNumber"
+                        value={quoteNumber}
+                        onChange={(e) => setQuoteNumber(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="quoteDate">Date</Label>
+                      <Input
+                        id="quoteDate"
+                        type="date"
+                        value={quoteDate}
+                        onChange={(e) => setQuoteDate(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="validUntil">Valide jusqu'au</Label>
+                      <Input
+                        id="validUntil"
+                        type="date"
+                        value={validUntil}
+                        onChange={(e) => setValidUntil(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Section Client */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="mr-2 h-5 w-5" />
+                Devis pour
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Rechercher un client..."
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {clientSearch && !selectedClient && (
+                  <div className="border rounded-lg max-h-48 overflow-y-auto">
+                    {filteredClients.map((client) => (
+                      <div
+                        key={client.id}
+                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setClientSearch('');
+                        }}
+                      >
+                        <div className="font-medium">{client.company}</div>
+                        <div className="text-sm text-gray-600">{client.name}</div>
+                        <div className="text-sm text-gray-500">{client.address}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {selectedClient && (
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-semibold">{selectedClient.company}</h4>
+                        <p className="text-sm text-gray-600">{selectedClient.name}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.address}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.email}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedClient(null)}
+                      >
+                        Changer
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="subject">Objet du devis</Label>
+                  <Input
+                    id="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="Objet du devis..."
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Table des services */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Services / Prestations
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Rechercher un service..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="pl-10 w-64"
+                    />
+                  </div>
+                  <Button onClick={addQuoteItem} size="sm" className="bg-purple-600 hover:bg-purple-700">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {productSearch && (
+                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
+                  {filteredServices.map((service) => (
+                    <div
+                      key={service.id}
+                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
+                      onClick={() => {
+                        const newItem: QuoteItem = {
+                          id: Date.now().toString(),
+                          description: service.name,
+                          quantity: 1,
+                          unitPrice: service.price,
+                          vatRate: service.vat,
+                          discount: 0,
+                          total: service.price
+                        };
+                        setQuoteItems([...quoteItems, newItem]);
+                        setProductSearch('');
+                      }}
+                    >
+                      <span>{service.name}</span>
+                      <span className="text-sm text-gray-500">{service.price}€/h</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[35%]">Description</TableHead>
+                    <TableHead className="w-[12%] text-center">Quantité</TableHead>
+                    <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
+                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
+                    <TableHead className="w-[10%] text-center">TVA</TableHead>
+                    <TableHead className="w-[12%] text-right">Total HT</TableHead>
+                    <TableHead className="w-[5%]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quoteItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateQuoteItem(item.id, 'description', e.target.value)}
+                          placeholder="Description du service"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateQuoteItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          step="0.5"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.unitPrice}
+                          onChange={(e) => updateQuoteItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="text-right"
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.discount}
+                          onChange={(e) => updateQuoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          max="100"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.vatRate}
+                          onChange={(e) => updateQuoteItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          max="100"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {item.total.toFixed(2)} €
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeQuoteItem(item.id)}
+                          disabled={quoteItems.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Section Totaux */}
+          <div className="flex justify-end">
+            <Card className="w-80">
+              <CardHeader>
+                <CardTitle>Totaux</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Sous-total HT:</span>
+                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
+                  </div>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Remise totale:</span>
+                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Net HT:</span>
+                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>TVA:</span>
+                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
+                  </div>
+                  <div className="border-t pt-2">
+                    <div className="flex justify-between text-lg font-bold">
+                      <span>Total TTC:</span>
+                      <span className="text-purple-600">{totalTTC.toFixed(2)} €</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div>
-            <Label htmlFor="objet">Objet</Label>
-            <Input
-              id="objet"
-              value={formData.objet}
-              onChange={(e) => setFormData(prev => ({ ...prev, objet: e.target.value }))}
-              required
-            />
+
+          {/* Validité */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5" />
+                Validité du devis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <p className="text-sm">
+                  <strong>Ce devis est valable jusqu'au {validUntil ? new Date(validUntil).toLocaleDateString('fr-FR') : 'Non spécifiée'}</strong>
+                </p>
+                <p className="text-xs text-gray-600 mt-2">
+                  Passé cette date, les prix et conditions pourront être révisés.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Conditions et Notes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Conditions particulières</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <textarea
+                  value={conditions}
+                  onChange={(e) => setConditions(e.target.value)}
+                  placeholder="Conditions de réalisation, délais, modalités de paiement..."
+                  className="w-full h-32 p-3 border rounded-md resize-none"
+                />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Notes additionnelles..."
+                  className="w-full h-32 p-3 border rounded-md resize-none"
+                />
+              </CardContent>
+            </Card>
           </div>
-          <div>
-            <Label htmlFor="remarques">Remarques</Label>
-            <Textarea
-              id="remarques"
-              value={formData.remarques}
-              onChange={(e) => setFormData(prev => ({ ...prev, remarques: e.target.value }))}
-              rows={3}
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-[#6A9C89] hover:bg-[#5A8B7A]">
-              {quote ? 'Modifier' : 'Créer'}
+            <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
+              {quote ? 'Mettre à jour' : 'Créer le devis'}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
