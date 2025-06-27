@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,102 @@ const mockInvoices: Invoice[] = [
     client: 'Client Premium',
     amount: 2100.00,
     status: 'overdue'
+  },
+  {
+    id: '4',
+    number: 'FAC-2024-004',
+    date: '2024-01-28',
+    client: 'Tech Solutions SARL',
+    amount: 3200.50,
+    status: 'paid'
+  },
+  {
+    id: '5',
+    number: 'FAC-2024-005',
+    date: '2024-01-30',
+    client: 'Startup Innovation',
+    amount: 750.00,
+    status: 'draft'
+  },
+  {
+    id: '6',
+    number: 'FAC-2024-006',
+    date: '2024-02-02',
+    client: 'Groupe Industriel SA',
+    amount: 4500.00,
+    status: 'sent'
+  },
+  {
+    id: '7',
+    number: 'FAC-2024-007',
+    date: '2024-02-05',
+    client: 'Commerce Digital',
+    amount: 1800.75,
+    status: 'paid'
+  },
+  {
+    id: '8',
+    number: 'FAC-2024-008',
+    date: '2024-02-08',
+    client: 'Consulting Pro',
+    amount: 2250.00,
+    status: 'overdue'
+  },
+  {
+    id: '9',
+    number: 'FAC-2024-009',
+    date: '2024-02-12',
+    client: 'Restaurant Le Gourmet',
+    amount: 980.00,
+    status: 'sent'
+  },
+  {
+    id: '10',
+    number: 'FAC-2024-010',
+    date: '2024-02-15',
+    client: 'Agence Marketing Plus',
+    amount: 3750.00,
+    status: 'paid'
+  },
+  {
+    id: '11',
+    number: 'FAC-2024-011',
+    date: '2024-02-18',
+    client: 'Boutique Mode Chic',
+    amount: 1200.00,
+    status: 'draft'
+  },
+  {
+    id: '12',
+    number: 'FAC-2024-012',
+    date: '2024-02-22',
+    client: 'Cabinet Avocat & Associés',
+    amount: 5200.00,
+    status: 'sent'
+  },
+  {
+    id: '13',
+    number: 'FAC-2024-013',
+    date: '2024-02-25',
+    client: 'Clinique Dentaire Sourire',
+    amount: 2800.00,
+    status: 'paid'
+  },
+  {
+    id: '14',
+    number: 'FAC-2024-014',
+    date: '2024-02-28',
+    client: 'Garage Auto Expert',
+    amount: 1650.50,
+    status: 'overdue'
+  },
+  {
+    id: '15',
+    number: 'FAC-2024-015',
+    date: '2024-03-01',
+    client: 'Hôtel Beau Séjour',
+    amount: 4200.00,
+    status: 'sent'
   }
 ];
 
