@@ -614,6 +614,41 @@ export type Database = {
           },
         ]
       }
+      organization_history: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          organization_id: string
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          organization_id: string
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          organization_id?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
@@ -623,7 +658,12 @@ export type Database = {
           logo_url: string | null
           name: string
           phone: string | null
+          plan: string | null
+          status: string | null
+          subscription_end: string | null
+          subscription_start: string | null
           updated_at: string | null
+          updated_by: string | null
           vat_number: string | null
           website: string | null
         }
@@ -635,7 +675,12 @@ export type Database = {
           logo_url?: string | null
           name: string
           phone?: string | null
+          plan?: string | null
+          status?: string | null
+          subscription_end?: string | null
+          subscription_start?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           vat_number?: string | null
           website?: string | null
         }
@@ -647,7 +692,12 @@ export type Database = {
           logo_url?: string | null
           name?: string
           phone?: string | null
+          plan?: string | null
+          status?: string | null
+          subscription_end?: string | null
+          subscription_start?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           vat_number?: string | null
           website?: string | null
         }
