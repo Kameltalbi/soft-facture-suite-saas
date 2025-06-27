@@ -28,7 +28,6 @@ interface RegisterFormData {
   organizationPhone: string;
   organizationWebsite: string;
   organizationVatNumber: string;
-  organizationLogo?: FileList;
 }
 
 const AuthPage = () => {
@@ -36,6 +35,7 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const { toast } = useToast();
   const { signIn, signUp, loading } = useAuth();
   const navigate = useNavigate();
@@ -66,6 +66,7 @@ const AuthPage = () => {
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setLogoFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target?.result as string);
@@ -121,7 +122,7 @@ const AuthPage = () => {
       data.lastName,
       data.organizationName,
       organizationData,
-      data.organizationLogo?.[0]
+      logoFile || undefined
     );
 
     if (error) {
@@ -478,7 +479,6 @@ const AuthPage = () => {
                           accept="image/*"
                           className="hidden"
                           onChange={handleLogoChange}
-                          {...registerForm.register('organizationLogo')}
                         />
                       </label>
                     </div>
