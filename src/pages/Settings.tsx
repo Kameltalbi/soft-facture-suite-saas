@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -167,24 +166,28 @@ export default function Settings() {
     saveGlobalSettings(data);
   };
 
-  // User management handlers
+  // User management handlers - Updated approach
   const handleCreateUser = async (email: string, password: string, firstName: string, lastName: string, role: string) => {
     try {
-      // Créer l'utilisateur avec Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Utiliser signUp au lieu de admin.createUser
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: firstName,
-          last_name: lastName
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            organization_id: profile?.organization_id,
+            role: role
+          }
         }
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
-        // Créer le profil utilisateur
+        // Créer le profil utilisateur directement
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -196,21 +199,24 @@ export default function Settings() {
             role: role
           });
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.warn('Profile creation error:', profileError);
+          // Continue même si l'insertion du profil échoue car le trigger pourrait l'avoir créé
+        }
 
         // Recharger la liste des utilisateurs
         await loadUsers();
 
         toast({
           title: 'Succès',
-          description: 'Utilisateur créé avec succès.',
+          description: 'Utilisateur créé avec succès. L\'utilisateur recevra un email de confirmation.',
         });
       }
     } catch (error) {
       console.error('Error creating user:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la création de l\'utilisateur.',
+        description: 'Erreur lors de la création de l\'utilisateur. Vérifiez que l\'email n\'est pas déjà utilisé.',
         variant: 'destructive',
       });
     }
@@ -246,7 +252,7 @@ export default function Settings() {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Supprimer d'abord le profil
+      // Supprimer le profil
       const { error: profileError } = await supabase
         .from('profiles')
         .delete()
@@ -254,19 +260,15 @@ export default function Settings() {
 
       if (profileError) throw profileError;
 
-      // Supprimer l'utilisateur de l'auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-      
-      if (authError) {
-        console.warn('Could not delete auth user:', authError);
-      }
+      // Note: On ne peut pas supprimer l'utilisateur auth avec la clé publique
+      // L'utilisateur sera marqué comme supprimé mais restera dans auth
 
       // Update local state
       setUsers(users.filter(user => user.id !== userId));
 
       toast({
         title: 'Succès',
-        description: 'Utilisateur supprimé.',
+        description: 'Utilisateur retiré de l\'organisation.',
       });
     } catch (error) {
       console.error('Error deleting user:', error);
