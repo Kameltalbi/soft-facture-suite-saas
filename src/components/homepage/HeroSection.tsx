@@ -41,7 +41,7 @@ export function HeroSection() {
             <Card className="p-6 shadow-2xl bg-white rounded-2xl">
               <div className="aspect-video bg-white rounded-xl overflow-hidden">
                 <img 
-                  src="/lovable-uploads/137f4872-2bc2-421e-bd39-ba486b894243.png" 
+                  src="/lovable-uploads/aa6d5b72-4a25-4522-94b2-7dfd5d462531.png" 
                   alt="Dashboard Soft Facture - Aperçu de votre application de facturation"
                   className="w-full h-full object-cover rounded-xl"
                 />
