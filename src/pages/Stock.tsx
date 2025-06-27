@@ -78,6 +78,24 @@ const Stock = () => {
 
   const recentMovements = movements.slice(0, 10);
 
+  // Convert products to the format expected by the modals
+  const productsForModals = products.map(product => ({
+    id: product.id,
+    nom: product.name,
+    unite: product.unit || 'pièces',
+    stock_actuel: product.stock_quantity || 0
+  }));
+
+  const handleStockEntry = (productId: string, quantity: number, comment: string) => {
+    console.log('Stock entry:', productId, quantity, comment);
+    setShowEntryModal(false);
+  };
+
+  const handleStockExit = (productId: string, quantity: number, reason: string, comment: string) => {
+    console.log('Stock exit:', productId, quantity, reason, comment);
+    setShowExitModal(false);
+  };
+
   if (productsLoading || movementsLoading) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -350,13 +368,15 @@ const Stock = () => {
         <StockEntryModal
           isOpen={showEntryModal}
           onClose={() => setShowEntryModal(false)}
-          product={selectedProduct}
+          products={productsForModals}
+          onSave={handleStockEntry}
         />
 
         <StockExitModal
           isOpen={showExitModal}
           onClose={() => setShowExitModal(false)}
-          product={selectedProduct}
+          products={productsForModals}
+          onSave={handleStockExit}
         />
 
         <StockHistoryModal

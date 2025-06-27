@@ -253,12 +253,22 @@ const Quotes = () => {
               </TableHeader>
               <TableBody>
                 {filteredQuotes.map((quote) => {
-                  // Convert to expected format for the actions menu
+                  // Convert to expected format for the actions menu with proper status mapping
                   const convertedQuote = {
                     number: quote.quote_number,
                     client: quote.clients?.name || '',
                     amount: quote.total_amount || 0,
                     validUntil: quote.valid_until,
+                    status: (() => {
+                      const statusMap: { [key: string]: 'accepted' | 'draft' | 'sent' | 'rejected' | 'expired' } = {
+                        'accepted': 'accepted',
+                        'draft': 'draft',
+                        'pending': 'sent',
+                        'rejected': 'rejected',
+                        'expired': 'expired'
+                      };
+                      return statusMap[quote.status || 'draft'] || 'draft';
+                    })(),
                     ...quote
                   };
 

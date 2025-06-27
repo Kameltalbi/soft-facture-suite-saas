@@ -14,6 +14,8 @@ interface Client {
   postal_code: string | null;
   country: string | null;
   vat_number: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export function useClients() {
@@ -47,7 +49,7 @@ export function useClients() {
     fetchClients();
   }, [organization?.id]);
 
-  const createClient = async (clientData: Omit<Client, 'id'>) => {
+  const createClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
     if (!organization?.id) return { error: 'Organization not found' };
 
     try {

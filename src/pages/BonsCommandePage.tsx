@@ -16,11 +16,12 @@ import { Badge } from '@/components/ui/badge';
 import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
 import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActionsMenu';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
+import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
 
 const BonsCommandePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBonCommande, setSelectedBonCommande] = useState(null);
+  const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
 
   const { purchaseOrders, loading, createPurchaseOrder } = usePurchaseOrders();
 
@@ -29,47 +30,47 @@ const BonsCommandePage = () => {
     setIsModalOpen(true);
   };
 
-  const handleViewBonCommande = (bonCommande) => {
-    console.log('Viewing bon de commande:', bonCommande.purchase_order_number);
+  const handleViewBonCommande = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Viewing bon de commande:', bonCommande.numero);
   };
 
-  const handleEditBonCommande = (bonCommande) => {
+  const handleEditBonCommande = (bonCommande: BonCommandeFournisseur) => {
     setSelectedBonCommande(bonCommande);
     setIsModalOpen(true);
   };
 
-  const handleDuplicateBonCommande = (bonCommande) => {
-    console.log('Duplicating bon de commande:', bonCommande.purchase_order_number);
+  const handleDuplicateBonCommande = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Duplicating bon de commande:', bonCommande.numero);
   };
 
-  const handleConvertToDelivery = (bonCommande) => {
-    console.log('Converting bon de commande to delivery:', bonCommande.purchase_order_number);
+  const handleConvertToDelivery = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Converting bon de commande to delivery:', bonCommande.numero);
   };
 
-  const handleDeleteBonCommande = (bonCommande) => {
-    console.log('Deleting bon de commande:', bonCommande.purchase_order_number);
+  const handleDeleteBonCommande = (bonCommande: BonCommandeFournisseur) => {
+    console.log('Deleting bon de commande:', bonCommande.numero);
   };
 
-  const handleEmailSent = (emailData) => {
+  const handleEmailSent = (emailData: any) => {
     console.log('Sending email:', emailData);
   };
 
-  const handleStatusChange = (bonCommande, newStatus) => {
-    console.log('Changing status for bon de commande:', bonCommande.purchase_order_number, 'to:', newStatus);
+  const handleStatusChange = (bonCommande: BonCommandeFournisseur, newStatus: string) => {
+    console.log('Changing status for bon de commande:', bonCommande.numero, 'to:', newStatus);
   };
 
-  const handleSaveBonCommande = async (data) => {
+  const handleSaveBonCommande = async (data: any) => {
     console.log('Saving bon de commande:', data);
     setIsModalOpen(false);
   };
 
-  const getStatutBadge = (statut) => {
+  const getStatutBadge = (statut: string) => {
     const variants = {
-      'draft': 'secondary',
-      'pending': 'default',
-      'confirmed': 'default',
-      'delivered': 'default',
-      'cancelled': 'destructive'
+      'draft': 'secondary' as const,
+      'pending': 'default' as const,
+      'confirmed': 'default' as const,
+      'delivered': 'default' as const,
+      'cancelled': 'destructive' as const
     };
 
     const labels = {
@@ -81,17 +82,17 @@ const BonsCommandePage = () => {
     };
 
     return (
-      <Badge variant={variants[statut] || 'secondary'}>
-        {labels[statut] || statut}
+      <Badge variant={variants[statut as keyof typeof variants] || 'secondary'}>
+        {labels[statut as keyof typeof labels] || statut}
       </Badge>
     );
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
   };
 
@@ -100,19 +101,35 @@ const BonsCommandePage = () => {
     bonCommande.suppliers?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Convert purchase orders to the expected format
-  const convertedBonsCommande = filteredBonsCommande.map(po => ({
+  // Convert purchase orders to the expected format with proper ligne mapping
+  const convertedBonsCommande: BonCommandeFournisseur[] = filteredBonsCommande.map(po => ({
     id: po.id,
     numero: po.purchase_order_number,
     fournisseurId: po.supplier_id,
-    fournisseurNom: po.suppliers?.name,
+    fournisseurNom: po.suppliers?.name || '',
     dateCommande: po.date,
     dateCreation: po.created_at,
-    statut: po.status as 'brouillon' | 'en_attente' | 'validee' | 'livree' | 'annulee',
+    statut: (() => {
+      const statusMap: { [key: string]: BonCommandeFournisseur['statut'] } = {
+        'draft': 'brouillon',
+        'pending': 'en_attente',
+        'confirmed': 'validee',
+        'delivered': 'livree',
+        'cancelled': 'annulee'
+      };
+      return statusMap[po.status || 'draft'] || 'brouillon';
+    })(),
     montantHT: po.subtotal,
     montantTTC: po.total_amount,
-    remarques: po.notes,
-    lignes: po.purchase_order_items || [],
+    remarques: po.notes || '',
+    lignes: (po.purchase_order_items || []).map(item => ({
+      id: item.id,
+      designation: item.description,
+      quantite: Number(item.quantity),
+      prixUnitaireHT: Number(item.unit_price),
+      tva: Number(item.tax_rate),
+      totalHT: Number(item.total_price)
+    } as LigneBonCommande)),
     organisationId: po.organization_id,
     remise: po.discount || 0
   }));
