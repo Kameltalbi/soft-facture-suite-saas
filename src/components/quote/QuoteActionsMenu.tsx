@@ -6,6 +6,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -18,21 +21,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, ArrowRight, Trash } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, ArrowRight, Trash, CheckCircle } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { EmailModal } from '@/components/modals/EmailModal';
-import { Quote } from '@/types/quote';
+
+interface QuoteForActions {
+  id: string;
+  number: string;
+  client: string;
+  amount: number;
+  status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
+  validUntil: string;
+}
 
 interface QuoteActionsMenuProps {
-  quote: Quote;
+  quote: QuoteForActions;
   pdfComponent: React.ReactNode;
   onView: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
-  onConvert: () => void;
+  onConvertToInvoice: () => void;
+  onStatusChange: (status: QuoteForActions['status']) => void;
   onDelete: () => void;
   onEmailSent: (emailData: any) => void;
 }
+
+const statusLabels = {
+  draft: { label: 'Brouillon', variant: 'secondary' as const },
+  sent: { label: 'Envoyé', variant: 'default' as const },
+  accepted: { label: 'Accepté', variant: 'default' as const },
+  rejected: { label: 'Refusé', variant: 'destructive' as const },
+  expired: { label: 'Expiré', variant: 'secondary' as const }
+};
 
 export function QuoteActionsMenu({
   quote,
@@ -40,24 +61,30 @@ export function QuoteActionsMenu({
   onView,
   onEdit,
   onDuplicate,
-  onConvert,
+  onConvertToInvoice,
+  onStatusChange,
   onDelete,
   onEmailSent
 }: QuoteActionsMenuProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
+  const canEdit = quote.status === 'draft' || quote.status === 'sent';
+  const canConvertToInvoice = quote.status === 'accepted';
+
   const handleDelete = () => {
     onDelete();
     setShowDeleteDialog(false);
+  };
+
+  const handleStatusChange = (newStatus: QuoteForActions['status']) => {
+    onStatusChange(newStatus);
   };
 
   const handleEmailSent = (emailData: any) => {
     onEmailSent(emailData);
     setShowEmailModal(false);
   };
-
-  const canConvert = quote.statut === 'acceptee';
 
   return (
     <>
@@ -67,7 +94,7 @@ export function QuoteActionsMenu({
             <MoreHorizontal size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-56 bg-white border shadow-lg">
           <DropdownMenuItem onClick={onView}>
             <Eye size={16} className="mr-2" />
             Voir le devis
@@ -75,7 +102,7 @@ export function QuoteActionsMenu({
 
           <PDFDownloadLink
             document={pdfComponent as any}
-            fileName={`${quote.numero}.pdf`}
+            fileName={`${quote.number}.pdf`}
           >
             {({ loading }) => (
               <DropdownMenuItem disabled={loading}>
@@ -92,9 +119,9 @@ export function QuoteActionsMenu({
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem onClick={onEdit}>
+          <DropdownMenuItem onClick={onEdit} disabled={!canEdit}>
             <Edit size={16} className="mr-2" />
-            Modifier
+            Modifier le devis
           </DropdownMenuItem>
 
           <DropdownMenuItem onClick={onDuplicate}>
@@ -102,12 +129,35 @@ export function QuoteActionsMenu({
             Dupliquer
           </DropdownMenuItem>
 
-          {canConvert && (
-            <DropdownMenuItem onClick={onConvert} className="text-primary">
+          {canConvertToInvoice && (
+            <DropdownMenuItem onClick={onConvertToInvoice} className="text-primary">
               <ArrowRight size={16} className="mr-2" />
               Convertir en facture
             </DropdownMenuItem>
           )}
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <CheckCircle size={16} className="mr-2" />
+              Changer le statut
+              <Badge variant={statusLabels[quote.status].variant} className="ml-auto text-xs">
+                {statusLabels[quote.status].label}
+              </Badge>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="bg-white border shadow-lg">
+              {Object.entries(statusLabels).map(([status, { label }]) => (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => handleStatusChange(status as QuoteForActions['status'])}
+                  disabled={quote.status === status}
+                >
+                  {label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
 
           <DropdownMenuSeparator />
 
@@ -121,12 +171,13 @@ export function QuoteActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer le devis</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer le devis {quote.numero} ?
+              Êtes-vous sûr de vouloir supprimer le devis {quote.number} ?
               Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -142,13 +193,14 @@ export function QuoteActionsMenu({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Email Modal */}
       <EmailModal
         open={showEmailModal}
         onClose={() => setShowEmailModal(false)}
         document={{
           id: quote.id,
-          number: quote.numero,
-          client: quote.clientNom,
+          number: quote.number,
+          client: quote.client,
           type: 'Devis'
         }}
         onSend={handleEmailSent}
