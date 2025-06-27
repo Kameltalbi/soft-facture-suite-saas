@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
-import { QuoteActionsMenu } from '@/components/quote/QuoteActionsMenu';
+import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
 import { TemplatedInvoicePDF } from '@/components/pdf/TemplatedInvoicePDF';
 import { Quote } from '@/types/quote';
 import { useAuth } from '@/hooks/useAuth';
