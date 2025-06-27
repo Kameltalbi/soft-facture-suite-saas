@@ -14,11 +14,6 @@ import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Organization, User } from '@/types/settings';
 
-interface AuthUser {
-  id: string;
-  email?: string;
-}
-
 export default function Settings() {
   const { toast } = useToast();
   const { organization, profile } = useAuth();
@@ -42,7 +37,7 @@ export default function Settings() {
     updateRole
   } = useSettings();
 
-  // Load users from the organization with emails
+  // Load users from the organization
   const loadUsers = async () => {
     if (!profile?.organization_id) {
       setUsersLoading(false);
@@ -50,7 +45,7 @@ export default function Settings() {
     }
 
     try {
-      // First get users from profiles table
+      // Get users from profiles table with email
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -59,6 +54,7 @@ export default function Settings() {
           first_name,
           last_name,
           role,
+          email,
           created_at,
           organization_id
         `)
@@ -66,21 +62,11 @@ export default function Settings() {
 
       if (profilesError) throw profilesError;
 
-      // Then get auth users to get emails
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.warn('Could not fetch auth users for emails:', authError);
-      }
-
       // Transform data to match User interface
       const transformedUsers: User[] = (profilesData || []).map(user => {
-        // Find corresponding auth user for email
-        const authUser = (authUsers?.users as AuthUser[] || []).find((au: AuthUser) => au.id === user.user_id);
-        
         return {
           id: user.user_id,
-          email: authUser?.email || 'Email non disponible',
+          email: user.email || 'Email non disponible',
           full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur',
           role: user.role || 'user',
           status: 'active' as const,
