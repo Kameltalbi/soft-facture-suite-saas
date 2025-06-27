@@ -46,6 +46,15 @@ interface OrganizationHistory {
   created_at: string;
 }
 
+// Type guards for validation
+const isValidStatus = (status: string): status is 'active' | 'suspended' | 'pending' => {
+  return ['active', 'suspended', 'pending'].includes(status);
+};
+
+const isValidPlan = (plan: string): plan is 'free' | 'standard' | 'premium' => {
+  return ['free', 'standard', 'premium'].includes(plan);
+};
+
 const OrganisationsAdminPage = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([]);
@@ -83,8 +92,22 @@ const OrganisationsAdminPage = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrganizations(data || []);
-      setFilteredOrganizations(data || []);
+      
+      // Transform the data with proper type validation
+      const transformedData: Organization[] = (data || []).map(org => ({
+        id: org.id,
+        name: org.name,
+        email: org.email || '',
+        status: isValidStatus(org.status) ? org.status : 'pending',
+        plan: isValidPlan(org.plan) ? org.plan : 'free',
+        subscription_start: org.subscription_start,
+        subscription_end: org.subscription_end,
+        created_at: org.created_at,
+        updated_at: org.updated_at
+      }));
+      
+      setOrganizations(transformedData);
+      setFilteredOrganizations(transformedData);
     } catch (error) {
       console.error('Error loading organizations:', error);
       toast({
@@ -165,9 +188,13 @@ const OrganisationsAdminPage = () => {
   const handleEditSubmit = async () => {
     if (!selectedOrganization) return;
 
+    // Validate the form values before submitting
+    const status = isValidStatus(editForm.status) ? editForm.status : 'pending';
+    const plan = isValidPlan(editForm.plan) ? editForm.plan : 'free';
+
     await updateOrganization(selectedOrganization.id, {
-      status: editForm.status as any,
-      plan: editForm.plan as any,
+      status,
+      plan,
       subscription_start: editForm.subscription_start,
       subscription_end: editForm.subscription_end || null
     });
@@ -201,7 +228,11 @@ const OrganisationsAdminPage = () => {
 
   // Handle upgrade plan
   const handleUpgrade = async (org: Organization) => {
-    const planHierarchy = { free: 'standard', standard: 'premium', premium: 'premium' };
+    const planHierarchy: Record<string, 'free' | 'standard' | 'premium'> = { 
+      free: 'standard', 
+      standard: 'premium', 
+      premium: 'premium' 
+    };
     const newPlan = planHierarchy[org.plan];
     
     if (newPlan !== org.plan) {
