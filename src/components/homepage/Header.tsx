@@ -1,12 +1,13 @@
 
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
+        <div className="flex items-center justify-start">
+          <div className="flex items-center mr-16">
             <h1 className="text-2xl font-bold text-[#6A9C89]">Soft Facture</h1>
           </div>
           
@@ -17,26 +18,24 @@ export function Header() {
             <a href="#tarifs" className="text-gray-600 hover:text-[#6A9C89] transition-colors">
               Tarifs
             </a>
-            <a href="#temoignages" className="text-gray-600 hover:text-[#6A9C89] transition-colors">
-              Témoignages
-            </a>
-            <a href="#" className="text-gray-600 hover:text-[#6A9C89] transition-colors">
-              Connexion
-            </a>
-            <Button 
-              className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
-            >
-              Essai gratuit 14 jours
-            </Button>
+            <Link to="/login">
+              <Button 
+                className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
+              >
+                Connexion
+              </Button>
+            </Link>
           </nav>
           
-          <div className="md:hidden">
-            <Button 
-              className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
-              size="sm"
-            >
-              Essai gratuit
-            </Button>
+          <div className="md:hidden ml-auto">
+            <Link to="/login">
+              <Button 
+                className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
+                size="sm"
+              >
+                Connexion
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
