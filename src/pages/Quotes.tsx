@@ -277,7 +277,10 @@ const Quotes = () => {
                     amount: quote.total_amount || 0,
                     validUntil: quote.valid_until || '',
                     status: getQuoteStatus(quote.status),
-                    ...quote
+                    // Spread the rest of the quote data but ensure status is not overridden
+                    ...Object.fromEntries(
+                      Object.entries(quote).filter(([key]) => key !== 'status')
+                    )
                   };
 
                   // Prepare data for PDF
