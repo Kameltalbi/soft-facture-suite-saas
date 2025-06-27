@@ -1,8 +1,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 export function HeroSection() {
+  const navigate = useNavigate();
+
   return (
     <section className="py-20 bg-gradient-to-b from-white to-[#F7F9FA]">
       <div className="container mx-auto px-4">
@@ -24,6 +27,7 @@ export function HeroSection() {
               <Button 
                 size="lg"
                 className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white px-8 py-3 text-lg"
+                onClick={() => navigate('/auth')}
               >
                 Commencer l'essai gratuit
               </Button>

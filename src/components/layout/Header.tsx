@@ -1,37 +1,90 @@
 
-import { Bell, User, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
+import { LogOut, User, Building } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface HeaderProps {
   activeModule: string;
 }
 
+const moduleNames: Record<string, string> = {
+  dashboard: 'Tableau de bord',
+  invoices: 'Factures',
+  quotes: 'Devis',
+  'delivery-notes': 'Bons de livraison',
+  'bons-commande': 'Bons de commande',
+  products: 'Produits',
+  categories: 'Catégories',
+  stock: 'Stock',
+  clients: 'Clients',
+  fournisseurs: 'Fournisseurs',
+  credits: 'Avoirs',
+  reports: 'Rapports',
+  settings: 'Paramètres',
+};
+
 export function Header({ activeModule }: HeaderProps) {
+  const { user, profile, organization, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
-    <header className="bg-white border-b border-neutral-200 px-6 py-4">
-      <div className="flex items-center justify-end">
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-            <Input
-              placeholder="Rechercher..."
-              className="pl-10 w-64 bg-neutral-50 border-neutral-200 focus:bg-white"
-            />
-          </div>
-          
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              3
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          {moduleNames[activeModule] || 'Soft Facture'}
+        </h1>
+        {organization && (
+          <p className="text-sm text-gray-600 flex items-center gap-1">
+            <Building className="h-4 w-4" />
+            {organization.name}
+          </p>
+        )}
+      </div>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              {profile?.first_name && profile?.last_name 
+                ? `${profile.first_name} ${profile.last_name}`
+                : user?.email
+              }
             </span>
           </Button>
-          
-          <Button variant="ghost" size="sm">
-            <User size={20} />
-          </Button>
-        </div>
-      </div>
-    </header>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled>
+            <User className="mr-2 h-4 w-4" />
+            <span>{user?.email}</span>
+          </DropdownMenuItem>
+          {profile?.role && (
+            <DropdownMenuItem disabled>
+              <span className="mr-2 text-xs bg-gray-100 px-2 py-1 rounded">
+                {profile.role}
+              </span>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Déconnexion</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
