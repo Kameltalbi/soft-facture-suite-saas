@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, Building } from 'lucide-react';
 import { Organization } from '@/types/settings';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface OrganizationSettingsProps {
   organization?: Organization;
@@ -14,6 +16,9 @@ interface OrganizationSettingsProps {
 }
 
 export function OrganizationSettings({ organization, onSave }: OrganizationSettingsProps) {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState<Partial<Organization>>({
     name: organization?.name || '',
     address: organization?.address || '',
@@ -36,6 +41,63 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
 
   const handleInputChange = (field: keyof Organization, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleLogoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !organization?.id) return;
+
+    setUploading(true);
+    try {
+      // Generate a unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${organization.id}-${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('organization-logos')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('organization-logos')
+        .getPublicUrl(fileName);
+
+      // Update the organization in the database
+      const { error: updateError } = await supabase
+        .from('organizations')
+        .update({ logo_url: publicUrl })
+        .eq('id', organization.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Update local state
+      onSave({ logo: publicUrl });
+
+      toast({
+        title: 'Succès',
+        description: 'Logo mis à jour avec succès.',
+      });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors du téléchargement du logo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -62,10 +124,22 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                   <Upload className="h-8 w-8 text-gray-400" />
                 )}
               </div>
-              <Button type="button" variant="outline">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleLogoClick}
+                disabled={uploading}
+              >
                 <Upload className="h-4 w-4 mr-2" />
-                Changer le logo
+                {uploading ? 'Téléchargement...' : 'Changer le logo'}
               </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
             </div>
           </div>
 
