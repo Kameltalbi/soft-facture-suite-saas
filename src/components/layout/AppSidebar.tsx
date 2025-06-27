@@ -9,7 +9,8 @@ import {
   Warehouse, 
   UsersRound, 
   Receipt, 
-  Settings2
+  Settings2,
+  BarChart3
 } from 'lucide-react';
 
 import {
@@ -76,6 +77,11 @@ const menuItems = [
     id: 'credits', 
     label: 'Avoirs', 
     icon: Receipt 
+  },
+  { 
+    id: 'reports', 
+    label: 'Rapports', 
+    icon: BarChart3 
   },
   { 
     id: 'settings', 

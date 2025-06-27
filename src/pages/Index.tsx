@@ -11,6 +11,7 @@ import Quotes from './Quotes';
 import DeliveryNotes from './DeliveryNotes';
 import Stock from './Stock';
 import Settings from './Settings';
+import Reports from './Reports';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import Avoirs from './Avoirs';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
@@ -38,6 +39,8 @@ const Index = () => {
         return <Clients />;
       case 'credits':
         return <Avoirs />;
+      case 'reports':
+        return <Reports />;
       case 'settings':
         return <Settings />;
       default:
