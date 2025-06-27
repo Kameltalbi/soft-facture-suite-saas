@@ -29,11 +29,11 @@ export function Header({ activeModule }: HeaderProps) {
           <img 
             src={organization.logo_url} 
             alt={`${organization.name} logo`}
-            className="h-10 w-auto object-contain"
+            className="h-12 w-auto object-contain"
           />
         ) : (
-          <div className="h-10 w-10 bg-[#6A9C89] rounded-lg flex items-center justify-center">
-            <Building className="h-6 w-6 text-white" />
+          <div className="h-12 w-12 bg-[#6A9C89] rounded-lg flex items-center justify-center">
+            <Building className="h-7 w-7 text-white" />
           </div>
         )}
       </div>
