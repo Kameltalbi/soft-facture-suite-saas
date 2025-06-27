@@ -11,6 +11,7 @@ import {
   TrendingUp,
   TrendingDown
 } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface KpiData {
   totalInvoices: number;
@@ -28,6 +29,8 @@ interface DashboardKpisProps {
 }
 
 export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
+  const { currency } = useCurrency();
+  
   const kpis = [
     {
       title: 'Total factures',
@@ -43,7 +46,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: CheckCircle2,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
-      format: 'number'
+      format: 'currency'
     },
     {
       title: 'En attente',
@@ -51,7 +54,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: Clock4,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50',
-      format: 'number'
+      format: 'currency'
     },
     {
       title: 'En retard',
@@ -59,7 +62,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: AlertCircle,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      format: 'number'
+      format: 'currency'
     },
     {
       title: 'Total avoirs',
@@ -67,7 +70,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: Receipt,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
-      format: 'number'
+      format: 'currency'
     },
     {
       title: 'Chiffre d\'affaires TTC',
@@ -75,7 +78,7 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: BarChart2,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',
-      format: 'number'
+      format: 'currency'
     },
     {
       title: 'Total TVA collectée',
@@ -83,12 +86,17 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
       icon: PercentCircle,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
-      format: 'number'
+      format: 'currency'
     },
   ];
 
   const formatValue = (value: number, format: string) => {
     if (loading) return '...';
+    
+    if (format === 'currency') {
+      return `${value.toLocaleString('fr-FR')} ${currency.symbol}`;
+    }
+    
     return value.toLocaleString('fr-FR');
   };
 

@@ -15,6 +15,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ChartData {
   monthlyComparison: Array<{
@@ -44,6 +45,8 @@ interface DashboardChartsProps {
 }
 
 export function DashboardCharts({ data, selectedYear, loading = false }: DashboardChartsProps) {
+  const { currency } = useCurrency();
+  
   const COLORS = {
     currentYear: '#6A9C89',
     previousYear: '#64B5F6',
@@ -52,6 +55,10 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
     paid: '#81C784',
     pending: '#FFB74D',
     overdue: '#E57373'
+  };
+
+  const formatCurrency = (value: number) => {
+    return `${value.toLocaleString('fr-FR')} ${currency.symbol}`;
   };
 
   if (loading) {
@@ -94,7 +101,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
               <YAxis 
                 stroke="#666"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
                 contentStyle={{
@@ -104,10 +111,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
                 formatter={(value: number, name: string) => [
-                  new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'EUR'
-                  }).format(value),
+                  formatCurrency(value),
                   name === 'currentYear' ? selectedYear.toString() : (selectedYear - 1).toString()
                 ]}
               />
@@ -153,7 +157,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                 type="number" 
                 stroke="#666"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               />
               <YAxis 
                 dataKey="name" 
@@ -169,12 +173,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value: number) => [
-                  new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'EUR'
-                  }).format(value), 'CA'
-                ]}
+                formatter={(value: number) => [formatCurrency(value), 'CA']}
               />
               <Bar 
                 dataKey="revenue" 
@@ -210,7 +209,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
               <YAxis 
                 stroke="#666"
                 tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
               />
               <Tooltip 
                 contentStyle={{
@@ -219,12 +218,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value: number) => [
-                  new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'EUR'
-                  }).format(value), 'CA'
-                ]}
+                formatter={(value: number) => [formatCurrency(value), 'CA']}
               />
               <Bar 
                 dataKey="amount" 
@@ -275,13 +269,7 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
                   borderRadius: '8px',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
-                formatter={(value: number, name: string) => [
-                  new Intl.NumberFormat('fr-FR', {
-                    style: 'currency',
-                    currency: 'EUR'
-                  }).format(value), 
-                  name
-                ]}
+                formatter={(value: number, name: string) => [formatCurrency(value), name]}
               />
               <Legend 
                 verticalAlign="bottom" 

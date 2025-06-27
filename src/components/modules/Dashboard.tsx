@@ -4,6 +4,7 @@ import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
+import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 // Données de simulation - À remplacer par des appels Supabase
 const generateMockData = (year: number, month: number) => {
@@ -75,31 +76,33 @@ export function Dashboard() {
   }, [filters.selectedYear, filters.selectedMonth]);
 
   return (
-    <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Vue d'ensemble de votre activité commerciale</p>
+    <CurrencyProvider>
+      <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Vue d'ensemble de votre activité commerciale</p>
+        </div>
+
+        <DashboardFilters
+          selectedYear={filters.selectedYear}
+          selectedMonth={filters.selectedMonth}
+          availableYears={availableYears}
+          months={months}
+          onYearChange={updateYear}
+          onMonthChange={updateMonth}
+        />
+
+        <DashboardKpis 
+          data={dashboardData.kpiData} 
+          loading={loading}
+        />
+
+        <DashboardCharts 
+          data={dashboardData.chartData}
+          selectedYear={filters.selectedYear}
+          loading={loading}
+        />
       </div>
-
-      <DashboardFilters
-        selectedYear={filters.selectedYear}
-        selectedMonth={filters.selectedMonth}
-        availableYears={availableYears}
-        months={months}
-        onYearChange={updateYear}
-        onMonthChange={updateMonth}
-      />
-
-      <DashboardKpis 
-        data={dashboardData.kpiData} 
-        loading={loading}
-      />
-
-      <DashboardCharts 
-        data={dashboardData.chartData}
-        selectedYear={filters.selectedYear}
-        loading={loading}
-      />
-    </div>
+    </CurrencyProvider>
   );
 }
