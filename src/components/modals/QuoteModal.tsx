@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface QuoteItem {
   id: string;
@@ -49,15 +51,18 @@ interface QuoteModalProps {
 
 export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { organization, user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // State for clients and products
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [clientsLoading, setClientsLoading] = useState(false);
   const [productsLoading, setProductsLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   
   // Form state
-  const [quoteNumber, setQuoteNumber] = useState(quote?.number || 'DEV-2025-001');
+  const [quoteNumber, setQuoteNumber] = useState(quote?.number || `DEVIS-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`);
   const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
   const [clientSearch, setClientSearch] = useState('');
@@ -190,20 +195,101 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     }
   }, [validUntil]);
   
-  const handleSave = () => {
-    const quoteData = {
-      number: quoteNumber,
-      date: quoteDate,
-      validUntil,
-      client: selectedClient,
-      subject,
-      items: quoteItems,
-      notes,
-      conditions,
-      totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
-    };
-    onSave(quoteData);
-    onClose();
+  const handleSave = async () => {
+    if (!organization?.id || !selectedClient) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un client",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (quoteItems.length === 0 || quoteItems.every(item => !item.description.trim())) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez ajouter au moins un service",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Save quote to database
+      const { data: savedQuote, error: quoteError } = await supabase
+        .from('quotes')
+        .insert({
+          quote_number: quoteNumber,
+          date: quoteDate,
+          valid_until: validUntil,
+          client_id: selectedClient.id,
+          organization_id: organization.id,
+          status: 'draft',
+          notes,
+          subtotal: subtotalHT,
+          tax_amount: totalVAT,
+          total_amount: totalTTC
+        })
+        .select()
+        .single();
+
+      if (quoteError) throw quoteError;
+
+      // Save quote items
+      const quoteItemsToSave = quoteItems
+        .filter(item => item.description.trim())
+        .map(item => ({
+          quote_id: savedQuote.id,
+          organization_id: organization.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          tax_rate: item.vatRate,
+          total_price: item.total
+        }));
+
+      if (quoteItemsToSave.length > 0) {
+        const { error: itemsError } = await supabase
+          .from('quote_items')
+          .insert(quoteItemsToSave);
+
+        if (itemsError) throw itemsError;
+      }
+
+      // Refresh quotes list
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+
+      toast({
+        title: "Succès",
+        description: "Le devis a été créé avec succès"
+      });
+
+      const quoteData = {
+        number: quoteNumber,
+        date: quoteDate,
+        validUntil,
+        client: selectedClient,
+        subject,
+        items: quoteItems,
+        notes,
+        conditions,
+        totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
+      };
+      
+      onSave(quoteData);
+      onClose();
+    } catch (error) {
+      console.error('Error saving quote:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la création du devis",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -575,11 +661,15 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
           {/* Actions */}
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={saving}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
-              {quote ? 'Mettre à jour' : 'Créer le devis'}
+            <Button 
+              onClick={handleSave} 
+              className="bg-purple-600 hover:bg-purple-700"
+              disabled={saving}
+            >
+              {saving ? 'Enregistrement...' : (quote ? 'Mettre à jour' : 'Créer le devis')}
             </Button>
           </div>
         </div>
