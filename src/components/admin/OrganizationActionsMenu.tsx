@@ -12,18 +12,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
-interface Organization {
-  id: string;
-  name: string;
-  email: string;
-  status: 'active' | 'suspended' | 'pending';
-  plan: 'free' | 'standard' | 'premium';
-  subscription_start: string;
-  subscription_end: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { Organization } from '@/types/organization';
 
 interface OrganizationActionsMenuProps {
   organization: Organization;
@@ -67,7 +56,7 @@ export function OrganizationActionsMenu({
     try {
       const { error } = await supabase
         .from('organizations')
-        .update({ ...updates, updated_by: user?.id })
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', orgId);
 
       if (error) throw error;

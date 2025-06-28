@@ -27,20 +27,7 @@ import { OrganizationActionsMenu } from '@/components/admin/OrganizationActionsM
 import { SubscriptionStatusBadge } from '@/components/admin/SubscriptionStatusBadge';
 import { SubscriptionEditModal } from '@/components/admin/SubscriptionEditModal';
 import { Header } from '@/components/layout/Header';
-
-interface Organization {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  status: string;
-  plan: string;
-  created_at: string;
-  subscription_start: string;
-  subscription_end: string | null;
-  logo_url: string | null;
-}
+import { Organization } from '@/types/organization';
 
 export default function OrganisationsAdminPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -72,10 +59,6 @@ export default function OrganisationsAdminPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchOrganizations();
-  }, []);
 
   const handleRefresh = () => {
     fetchOrganizations();
@@ -190,6 +173,26 @@ export default function OrganisationsAdminPage() {
       </div>
     );
   }
+
+  // Placeholder handlers for OrganizationActionsMenu
+  const handleEdit = (org: Organization) => {
+    console.log('Edit organization:', org);
+    // TODO: Implement edit functionality
+  };
+
+  const handleViewUsers = (org: Organization) => {
+    console.log('View users for organization:', org);
+    // TODO: Implement view users functionality
+  };
+
+  const handleViewHistory = (org: Organization) => {
+    console.log('View history for organization:', org);
+    // TODO: Implement view history functionality
+  };
+
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -383,10 +386,11 @@ export default function OrganisationsAdminPage() {
                           <TableCell>
                             <OrganizationActionsMenu 
                               organization={org}
+                              onEdit={handleEdit}
                               onEditSubscription={handleEditSubscription}
-                              onExtendSubscription={handleExtendSubscription}
-                              onAbrogateSubscription={handleAbrogateSubscription}
-                              onUpgradeOrganization={handleUpgradeOrganization}
+                              onViewUsers={handleViewUsers}
+                              onViewHistory={handleViewHistory}
+                              onRefresh={handleRefresh}
                             />
                           </TableCell>
                         </TableRow>
