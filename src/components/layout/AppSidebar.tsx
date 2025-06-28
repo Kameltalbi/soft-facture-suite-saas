@@ -11,8 +11,7 @@ import {
   Receipt, 
   Settings2,
   BarChart3,
-  Building2,
-  AlertTriangle
+  Building2
 } from 'lucide-react';
 
 import {
@@ -61,11 +60,6 @@ const menuItems = [
     icon: Receipt 
   },
   { 
-    id: 'recouvrement', 
-    label: 'Recouvrement', 
-    icon: AlertTriangle 
-  },
-  { 
     id: 'clients', 
     label: 'Clients', 
     icon: UsersRound 
@@ -111,14 +105,6 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
-  const handleModuleChange = (moduleId: string) => {
-    if (moduleId === 'recouvrement') {
-      window.location.href = '/recouvrement';
-    } else {
-      onModuleChange(moduleId);
-    }
-  };
-
   return (
     <Sidebar collapsible="icon" className="border-r border-gray-200 bg-[#F6F7F9]">
       <SidebarHeader className="border-b border-gray-200 px-6 py-4 bg-[#F6F7F9]">
@@ -151,7 +137,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
-                      onClick={() => handleModuleChange(item.id)}
+                      onClick={() => onModuleChange(item.id)}
                       isActive={isActive}
                       tooltip={isCollapsed ? item.label : undefined}
                       className="h-10 px-3 font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-[#6A9C89] data-[active=true]:text-white data-[active=true]:shadow-sm"
