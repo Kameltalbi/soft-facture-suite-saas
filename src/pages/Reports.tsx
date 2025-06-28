@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Package, TrendingUp, Calendar, Trophy, Users, Receipt, Archive } from 'lucide-react';
+import { FileText, Package, TrendingUp, Calendar, Trophy, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Reports = () => {
@@ -13,7 +13,7 @@ const Reports = () => {
       description: 'Liste détaillée des factures avec statuts et montants pour la période sélectionnée',
       icon: FileText,
       color: 'bg-blue-500',
-      route: '/dashboard/reports/invoices'
+      route: '/reports/invoices'
     },
     {
       id: 'product-revenue',
@@ -21,7 +21,7 @@ const Reports = () => {
       description: 'Chiffre d\'affaires généré par chaque produit et service sur la période',
       icon: Package,
       color: 'bg-green-500',
-      route: '/dashboard/reports/product-revenue'
+      route: '/reports/product-revenue'
     },
     {
       id: 'monthly-revenue',
@@ -29,7 +29,7 @@ const Reports = () => {
       description: 'Évolution du chiffre d\'affaires mois par mois avec graphique de tendance',
       icon: TrendingUp,
       color: 'bg-purple-500',
-      route: '/dashboard/reports/monthly-revenue'
+      route: '/reports/monthly-revenue'
     },
     {
       id: 'year-comparison',
@@ -37,7 +37,7 @@ const Reports = () => {
       description: 'CA vs année précédente avec analyse des écarts et tendances',
       icon: Calendar,
       color: 'bg-orange-500',
-      route: '/dashboard/reports/year-comparison'
+      route: '/reports/year-comparison'
     },
     {
       id: 'product-ranking',
@@ -45,7 +45,7 @@ const Reports = () => {
       description: 'Top des produits classés par chiffre d\'affaires décroissant avec performance',
       icon: Trophy,
       color: 'bg-yellow-500',
-      route: '/dashboard/reports/product-ranking'
+      route: '/reports/product-ranking'
     },
     {
       id: 'client-revenue',
@@ -53,23 +53,7 @@ const Reports = () => {
       description: 'Revenus générés par chaque client avec analyse du portefeuille',
       icon: Users,
       color: 'bg-red-500',
-      route: '/dashboard/reports/client-revenue'
-    },
-    {
-      id: 'vat-report',
-      title: 'TVA collectée',
-      description: 'Rapport TVA collectée par mois avec cumul annuel et détail des taux',
-      icon: Receipt,
-      color: 'bg-indigo-500',
-      route: '/dashboard/reports/vat-report'
-    },
-    {
-      id: 'stock-movements',
-      title: 'Mouvements de stock',
-      description: 'Suivi des mouvements de stock par produit et par mois avec analyse des tendances',
-      icon: Archive,
-      color: 'bg-teal-500',
-      route: '/dashboard/reports/stock-movements'
+      route: '/reports/client-revenue'
     }
   ];
 

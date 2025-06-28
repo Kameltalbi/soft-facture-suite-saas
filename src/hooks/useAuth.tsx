@@ -259,8 +259,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(null);
       setProfile(null);
       setOrganization(null);
-      // Redirection vers la homepage après déconnexion
-      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
     }

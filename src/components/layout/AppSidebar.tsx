@@ -28,8 +28,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-import { useNavigate } from 'react-router-dom';
-
 interface AppSidebarProps {
   activeModule: string;
   onModuleChange: (module: string) => void;
@@ -39,92 +37,73 @@ const menuItems = [
   { 
     id: 'dashboard', 
     label: 'Dashboard', 
-    icon: LayoutDashboard,
-    route: '/dashboard'
+    icon: LayoutDashboard 
   },
   { 
     id: 'quotes', 
     label: 'Devis', 
-    icon: ClipboardList,
-    route: '/dashboard/quotes'
+    icon: ClipboardList 
   },
   { 
     id: 'invoices', 
     label: 'Factures', 
-    icon: FileText,
-    route: '/dashboard/invoices'
+    icon: FileText 
   },
   { 
     id: 'delivery-notes', 
     label: 'Bons de livraison', 
-    icon: Truck,
-    route: '/dashboard/delivery-notes'
+    icon: Truck 
   },
   { 
     id: 'credits', 
     label: 'Avoirs', 
-    icon: Receipt,
-    route: '/dashboard/credits'
+    icon: Receipt 
   },
   { 
     id: 'clients', 
     label: 'Clients', 
-    icon: UsersRound,
-    route: '/dashboard/clients'
+    icon: UsersRound 
   },
   { 
     id: 'products', 
     label: 'Produits & Services', 
-    icon: Package,
-    route: '/dashboard/products'
+    icon: Package 
   },
   { 
     id: 'categories', 
     label: 'Catégories', 
-    icon: Folders,
-    route: '/dashboard/categories'
+    icon: Folders 
   },
   { 
     id: 'stock', 
     label: 'Gestion des stocks', 
-    icon: Warehouse,
-    route: '/dashboard/stock'
+    icon: Warehouse 
   },
   { 
     id: 'fournisseurs', 
     label: 'Fournisseurs', 
-    icon: Building2,
-    route: '/dashboard/fournisseurs'
+    icon: Building2 
   },
   { 
     id: 'bons-commande', 
     label: 'Bons de commande', 
-    icon: Receipt,
-    route: '/dashboard/bons-commande'
+    icon: Receipt 
   },
   { 
     id: 'reports', 
     label: 'Rapports', 
-    icon: BarChart3,
-    route: '/dashboard/reports'
+    icon: BarChart3 
   },
   { 
     id: 'settings', 
     label: 'Paramètres', 
-    icon: Settings2,
-    route: '/dashboard/settings'
+    icon: Settings2 
   },
 ];
 
 export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   const { state } = useSidebar();
-  const navigate = useNavigate();
   const isCollapsed = state === 'collapsed';
-
-  const handleNavigation = (item: typeof menuItems[0]) => {
-    onModuleChange(item.id);
-    navigate(item.route);
-  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-gray-200 bg-[#F6F7F9]">
@@ -158,7 +137,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
-                      onClick={() => handleNavigation(item)}
+                      onClick={() => onModuleChange(item.id)}
                       isActive={isActive}
                       tooltip={isCollapsed ? item.label : undefined}
                       className="h-10 px-3 font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-[#6A9C89] data-[active=true]:text-white data-[active=true]:shadow-sm"

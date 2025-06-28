@@ -25,11 +25,11 @@ export function useCategories() {
 
     try {
       setLoading(true);
-      setError(null);
       const { data, error } = await supabase
         .from('categories')
         .select('*')
         .eq('organization_id', organization.id)
+        .eq('active', true)
         .order('name');
 
       if (error) throw error;
@@ -61,8 +61,8 @@ export function useCategories() {
 
       if (error) throw error;
       
-      // Ajouter la nouvelle catégorie à la liste existante
-      setCategories(prev => [...prev, data]);
+      // Refresh the categories list
+      await fetchCategories();
       
       return { data, error: null };
     } catch (err) {
@@ -74,67 +74,11 @@ export function useCategories() {
     }
   };
 
-  const updateCategory = async (id: string, categoryData: Omit<Category, 'id' | 'organization_id' | 'created_at' | 'updated_at'>) => {
-    if (!organization?.id) return { error: 'Organization not found' };
-
-    try {
-      const { data, error } = await supabase
-        .from('categories')
-        .update({
-          ...categoryData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-        .eq('organization_id', organization.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      // Mettre à jour la catégorie dans la liste
-      setCategories(prev => prev.map(cat => cat.id === id ? data : cat));
-      
-      return { data, error: null };
-    } catch (err) {
-      console.error('Error updating category:', err);
-      return { 
-        data: null, 
-        error: err instanceof Error ? err.message : 'Erreur lors de la modification de la catégorie' 
-      };
-    }
-  };
-
-  const deleteCategory = async (id: string) => {
-    if (!organization?.id) return { error: 'Organization not found' };
-
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id)
-        .eq('organization_id', organization.id);
-
-      if (error) throw error;
-      
-      // Supprimer la catégorie de la liste
-      setCategories(prev => prev.filter(cat => cat.id !== id));
-      
-      return { error: null };
-    } catch (err) {
-      console.error('Error deleting category:', err);
-      return { 
-        error: err instanceof Error ? err.message : 'Erreur lors de la suppression de la catégorie' 
-      };
-    }
-  };
-
   return {
     categories,
     loading,
     error,
     fetchCategories,
-    createCategory,
-    updateCategory,
-    deleteCategory
+    createCategory
   };
 }

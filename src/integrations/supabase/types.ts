@@ -61,10 +61,8 @@ export type Database = {
           id: string
           name: string
           organization_id: string
-          payment_terms: number | null
           phone: string | null
           postal_code: string | null
-          status: string | null
           updated_at: string | null
           vat_number: string | null
         }
@@ -78,10 +76,8 @@ export type Database = {
           id?: string
           name: string
           organization_id: string
-          payment_terms?: number | null
           phone?: string | null
           postal_code?: string | null
-          status?: string | null
           updated_at?: string | null
           vat_number?: string | null
         }
@@ -95,10 +91,8 @@ export type Database = {
           id?: string
           name?: string
           organization_id?: string
-          payment_terms?: number | null
           phone?: string | null
           postal_code?: string | null
-          status?: string | null
           updated_at?: string | null
           vat_number?: string | null
         }
@@ -724,8 +718,6 @@ export type Database = {
           price: number
           sku: string | null
           stock_quantity: number | null
-          tax_rate: number | null
-          track_stock: boolean | null
           unit: string | null
           updated_at: string | null
         }
@@ -740,8 +732,6 @@ export type Database = {
           price?: number
           sku?: string | null
           stock_quantity?: number | null
-          tax_rate?: number | null
-          track_stock?: boolean | null
           unit?: string | null
           updated_at?: string | null
         }
@@ -756,8 +746,6 @@ export type Database = {
           price?: number
           sku?: string | null
           stock_quantity?: number | null
-          tax_rate?: number | null
-          track_stock?: boolean | null
           unit?: string | null
           updated_at?: string | null
         }

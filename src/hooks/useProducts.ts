@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,15 +8,11 @@ interface Product {
   name: string;
   description: string | null;
   price: number;
-  sku: string | null;
-  category: string | null;
   unit: string | null;
   stock_quantity: number | null;
-  track_stock: boolean | null;
+  category: string | null;
+  sku: string | null;
   active: boolean | null;
-  tax_rate: number | null;
-  created_at: string;
-  updated_at: string;
 }
 
 export function useProducts() {
@@ -29,7 +26,6 @@ export function useProducts() {
 
     try {
       setLoading(true);
-      setError(null);
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -51,7 +47,7 @@ export function useProducts() {
     fetchProducts();
   }, [organization?.id]);
 
-  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
+  const createProduct = async (productData: Omit<Product, 'id'>) => {
     if (!organization?.id) return { error: 'Organization not found' };
 
     try {
@@ -66,8 +62,8 @@ export function useProducts() {
 
       if (error) throw error;
       
-      // Ajouter le nouveau produit à la liste existante
-      setProducts(prev => [...prev, data]);
+      // Refresh the products list
+      await fetchProducts();
       
       return { data, error: null };
     } catch (err) {
@@ -79,27 +75,22 @@ export function useProducts() {
     }
   };
 
-  const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at'>>) => {
+  const updateProduct = async (productId: string, productData: Partial<Product>) => {
     if (!organization?.id) return { error: 'Organization not found' };
 
     try {
       const { data, error } = await supabase
         .from('products')
-        .update({
-          ...productData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
+        .update(productData)
+        .eq('id', productId)
         .eq('organization_id', organization.id)
         .select()
         .single();
 
       if (error) throw error;
       
-      // Mettre à jour le produit dans la liste existante
-      setProducts(prev => prev.map(product => 
-        product.id === id ? data : product
-      ));
+      // Refresh the products list
+      await fetchProducts();
       
       return { data, error: null };
     } catch (err) {
@@ -111,37 +102,12 @@ export function useProducts() {
     }
   };
 
-  const deleteProduct = async (id: string) => {
-    if (!organization?.id) return { error: 'Organization not found' };
-
-    try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id)
-        .eq('organization_id', organization.id);
-
-      if (error) throw error;
-      
-      // Supprimer le produit de la liste existante
-      setProducts(prev => prev.filter(product => product.id !== id));
-      
-      return { error: null };
-    } catch (err) {
-      console.error('Error deleting product:', err);
-      return { 
-        error: err instanceof Error ? err.message : 'Erreur lors de la suppression du produit' 
-      };
-    }
-  };
-
   return {
     products,
     loading,
     error,
     fetchProducts,
     createProduct,
-    updateProduct,
-    deleteProduct
+    updateProduct
   };
 }

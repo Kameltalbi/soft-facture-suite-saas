@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,14 +22,12 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { ProductModal } from '@/components/modals/ProductModal';
 import { useProducts } from '@/hooks/useProducts';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
-  const { currency } = useCurrency();
+  const { products, loading, createProduct, updateProduct } = useProducts();
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -55,14 +54,9 @@ const Products = () => {
     setShowModal(false);
   };
 
-  const handleDeleteProduct = async (id) => {
+  const handleDeleteProduct = (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      const result = await deleteProduct(id);
-      if (result.error) {
-        console.error('Error deleting product:', result.error);
-      } else {
-        console.log('Product deleted successfully');
-      }
+      console.log('Deleting product:', id);
     }
   };
 
@@ -71,14 +65,14 @@ const Products = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
   };
 
   const stats = {
     totalProducts: products.length,
-    lowStock: products.filter(p => p.track_stock && (p.stock_quantity || 0) < 10).length,
-    outOfStock: products.filter(p => p.track_stock && (p.stock_quantity || 0) === 0).length,
-    totalValue: products.reduce((sum, p) => sum + (p.price * (p.track_stock ? (p.stock_quantity || 0) : 0)), 0)
+    lowStock: products.filter(p => (p.stock_quantity || 0) < 10).length,
+    outOfStock: products.filter(p => (p.stock_quantity || 0) === 0).length,
+    totalValue: products.reduce((sum, p) => sum + (p.price * (p.stock_quantity || 0)), 0)
   };
 
   if (loading) {
@@ -216,25 +210,21 @@ const Products = () => {
                     <span className="font-medium">{formatCurrency(product.price)}</span>
                   </TableCell>
                   <TableCell>
-                    {product.track_stock ? (
-                      <div className="flex items-center">
-                        <span className={`font-medium ${
-                          (product.stock_quantity || 0) === 0 ? 'text-red-600' :
-                          (product.stock_quantity || 0) < 10 ? 'text-orange-600' :
-                          'text-success'
-                        }`}>
-                          {product.stock_quantity || 0}
-                        </span>
-                        {(product.stock_quantity || 0) === 0 && (
-                          <AlertTriangle size={16} className="ml-2 text-red-600" />
-                        )}
-                        {(product.stock_quantity || 0) > 0 && (product.stock_quantity || 0) < 10 && (
-                          <AlertTriangle size={16} className="ml-2 text-orange-600" />
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-neutral-400 text-sm">Non suivi</span>
-                    )}
+                    <div className="flex items-center">
+                      <span className={`font-medium ${
+                        (product.stock_quantity || 0) === 0 ? 'text-red-600' :
+                        (product.stock_quantity || 0) < 10 ? 'text-orange-600' :
+                        'text-success'
+                      }`}>
+                        {product.stock_quantity || 0}
+                      </span>
+                      {(product.stock_quantity || 0) === 0 && (
+                        <AlertTriangle size={16} className="ml-2 text-red-600" />
+                      )}
+                      {(product.stock_quantity || 0) > 0 && (product.stock_quantity || 0) < 10 && (
+                        <AlertTriangle size={16} className="ml-2 text-orange-600" />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">{product.unit || 'pièce'}</span>

@@ -19,19 +19,17 @@ interface ProductModalProps {
 
 export function ProductModal({ open, onClose, product }: ProductModalProps) {
   const { categories, loading: categoriesLoading } = useCategories();
-  const { createProduct, updateProduct } = useProducts();
+  const { createProduct } = useProducts();
   
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: '',
+    price: 0,
     unit: 'unité',
     category: '',
     stock_quantity: 0,
     sku: '',
-    active: true,
-    track_stock: false, // Par défaut fermé
-    tax_rate: '' // Nouveau champ TVA
+    active: true
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,27 +39,23 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
       setFormData({
         name: product.name || '',
         description: product.description || '',
-        price: product.price?.toString() || '',
+        price: product.price || 0,
         unit: product.unit || 'unité',
         category: product.category || '',
         stock_quantity: product.stock_quantity || 0,
         sku: product.sku || '',
-        active: product.active ?? true,
-        track_stock: product.track_stock ?? false,
-        tax_rate: product.tax_rate?.toString() || ''
+        active: product.active ?? true
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        price: '',
+        price: 0,
         unit: 'unité',
         category: '',
         stock_quantity: 0,
         sku: '',
-        active: true,
-        track_stock: false, // Par défaut fermé
-        tax_rate: ''
+        active: true
       });
     }
   }, [product, open]);
@@ -70,26 +64,13 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Préparer les données avec le prix et la TVA convertis en nombre
-    const submitData = {
-      ...formData,
-      price: parseFloat(formData.price) || 0,
-      tax_rate: parseFloat(formData.tax_rate) || 0
-    };
-
     try {
       if (product) {
-        // Mode édition
-        const result = await updateProduct(product.id, submitData);
-        if (result.error) {
-          console.error('Error updating product:', result.error);
-        } else {
-          console.log('Product updated successfully');
-          onClose();
-        }
+        // Mode édition - à implémenter plus tard
+        console.log('Update product:', formData);
       } else {
         // Mode création
-        const result = await createProduct(submitData);
+        const result = await createProduct(formData);
         if (result.error) {
           console.error('Error creating product:', result.error);
         } else {
@@ -125,7 +106,6 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Basic Information */}
             <div className="space-y-4">
@@ -180,30 +160,15 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
             {/* Pricing and Units */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="price">Prix unitaire (€) *</Label>
+                <Label htmlFor="price">Prix unitaire *</Label>
                 <Input
                   id="price"
                   type="number"
                   min="0"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  placeholder="0.00"
+                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                   required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="tax_rate">Taux TVA (%)</Label>
-                <Input
-                  id="tax_rate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={formData.tax_rate}
-                  onChange={(e) => setFormData({...formData, tax_rate: e.target.value})}
-                  placeholder="20.00"
                 />
               </div>
 
@@ -221,18 +186,16 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
                 </Select>
               </div>
 
-              {formData.track_stock && (
-                <div>
-                  <Label htmlFor="stock">Stock initial</Label>
-                  <Input
-                    id="stock"
-                    type="number"
-                    min="0"
-                    value={formData.stock_quantity}
-                    onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-              )}
+              <div>
+                <Label htmlFor="stock">Stock initial</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min="0"
+                  value={formData.stock_quantity}
+                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
+                />
+              </div>
             </div>
           </div>
 
@@ -245,23 +208,6 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               placeholder="Description détaillée du produit ou service"
               rows={3}
-            />
-          </div>
-
-          {/* Stock Tracking Option - Couleur rouge par défaut */}
-          <div className="flex items-center justify-between p-4 border rounded-lg bg-red-50 border-red-200">
-            <div>
-              <Label htmlFor="track_stock" className="text-sm font-medium text-red-800">
-                Suivi de stock
-              </Label>
-              <p className="text-xs text-red-600">
-                Activez si vous souhaitez suivre les quantités en stock pour ce produit
-              </p>
-            </div>
-            <Switch
-              id="track_stock"
-              checked={formData.track_stock}
-              onCheckedChange={(checked) => setFormData({...formData, track_stock: checked, stock_quantity: checked ? formData.stock_quantity : 0})}
             />
           </div>
 

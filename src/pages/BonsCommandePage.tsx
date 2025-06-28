@@ -17,15 +17,13 @@ import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
 import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActionsMenu';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 const BonsCommandePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
 
-  const { purchaseOrders, loading, createPurchaseOrder, fetchPurchaseOrders } = usePurchaseOrders();
-  const { currency } = useCurrency();
+  const { purchaseOrders, loading, createPurchaseOrder } = usePurchaseOrders();
 
   const handleCreateBonCommande = () => {
     setSelectedBonCommande(null);
@@ -63,51 +61,7 @@ const BonsCommandePage = () => {
 
   const handleSaveBonCommande = async (data: any) => {
     console.log('Saving bon de commande:', data);
-    
-    try {
-      // Créer le bon de commande dans la base de données
-      const orderData = {
-        purchase_order_number: data.numero,
-        supplier_id: data.fournisseurId,
-        date: data.dateCommande,
-        status: data.statut === 'brouillon' ? 'draft' : 
-               data.statut === 'en_attente' ? 'pending' :
-               data.statut === 'validee' ? 'confirmed' :
-               data.statut === 'livree' ? 'delivered' : 'cancelled',
-        subtotal: data.montantHT,
-        tax_amount: data.montantTTC - data.montantHT,
-        total_amount: data.montantTTC,
-        discount: data.remise,
-        notes: data.remarques,
-        expected_delivery_date: null,
-        delivery_address: null
-      };
-
-      const items = data.lignes.map((ligne: any) => ({
-        description: ligne.designation,
-        quantity: ligne.quantite,
-        unit_price: ligne.prixUnitaireHT,
-        tax_rate: ligne.tva,
-        total_price: ligne.totalHT,
-        received_quantity: 0,
-        product_id: null
-      }));
-
-      const result = await createPurchaseOrder(orderData, items);
-      
-      if (result.error) {
-        console.error('Error creating purchase order:', result.error);
-        // Ici vous pourriez ajouter une notification d'erreur
-      } else {
-        console.log('Purchase order created successfully:', result.data);
-        // Rafraîchir la liste des bons de commande
-        await fetchPurchaseOrders();
-        setIsModalOpen(false);
-        // Ici vous pourriez ajouter une notification de succès
-      }
-    } catch (error) {
-      console.error('Error in handleSaveBonCommande:', error);
-    }
+    setIsModalOpen(false);
   };
 
   const getStatutBadge = (statut: string) => {
@@ -139,7 +93,7 @@ const BonsCommandePage = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toFixed(2)} ${currency.symbol}`;
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
   };
 
   const filteredBonsCommande = purchaseOrders.filter(bonCommande =>

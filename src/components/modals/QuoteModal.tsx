@@ -1,26 +1,22 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2 } from 'lucide-react';
-import { useClients } from '@/hooks/useClients';
-import { useProductsForModals } from '@/hooks/useProductsForModals';
-import { supabase } from '@/integrations/supabase/client';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { useClients } from '@/hooks/useClients';
+import { useProducts } from '@/hooks/useProducts';
 
 interface QuoteItem {
   id: string;
-  product_id?: string;
   description: string;
   quantity: number;
-  unit_price: number;
-  tax_rate: number;
+  unitPrice: number;
+  vatRate: number;
+  discount: number;
   total: number;
 }
 
@@ -32,497 +28,489 @@ interface QuoteModalProps {
 }
 
 export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
+  const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
-  const { products, loading: productsLoading } = useProductsForModals();
-  const { organization } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { products, loading: productsLoading } = useProducts();
   
-  const [formData, setFormData] = useState({
-    quote_number: '',
-    client_id: '',
-    date: new Date().toISOString().split('T')[0],
-    valid_until: '',
-    notes: ''
-  });
-
-  const [items, setItems] = useState<QuoteItem[]>([
-    {
-      id: '1',
-      description: '',
-      quantity: 1,
-      unit_price: 0,
-      tax_rate: 20,
-      total: 0
-    }
+  // Form state
+  const [quoteNumber, setQuoteNumber] = useState(quote?.number || 'DEV-2025-001');
+  const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
+  const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
+  const [clientSearch, setClientSearch] = useState('');
+  const [selectedClient, setSelectedClient] = useState(quote?.client || null);
+  const [subject, setSubject] = useState(quote?.subject || '');
+  const [notes, setNotes] = useState(quote?.notes || '');
+  const [conditions, setConditions] = useState(quote?.conditions || '');
+  
+  // Quote items
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>(quote?.items || [
+    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
-
-  // Reset form when modal opens/closes or quote changes
-  useEffect(() => {
-    if (open) {
-      if (quote) {
-        setFormData({
-          quote_number: quote.quote_number || '',
-          client_id: quote.client_id || '',
-          date: quote.date || new Date().toISOString().split('T')[0],
-          valid_until: quote.valid_until || '',
-          notes: quote.notes || ''
-        });
-        
-        if (quote.quote_items && quote.quote_items.length > 0) {
-          const convertedItems = quote.quote_items.map((item: any, index: number) => ({
-            id: item.id || `${index + 1}`,
-            product_id: item.product_id || '',
-            description: item.description || '',
-            quantity: Number(item.quantity) || 1,
-            unit_price: Number(item.unit_price) || 0,
-            tax_rate: Number(item.tax_rate) || 20,
-            total: Number(item.total_price) || 0
-          }));
-          setItems(convertedItems);
-        } else {
-          setItems([{
-            id: '1',
-            description: '',
-            quantity: 1,
-            unit_price: 0,
-            tax_rate: 20,
-            total: 0
-          }]);
-        }
-      } else {
-        // Reset form for new quote
-        setFormData({
-          quote_number: '',
-          client_id: '',
-          date: new Date().toISOString().split('T')[0],
-          valid_until: '',
-          notes: ''
-        });
-        setItems([{
-          id: '1',
-          description: '',
-          quantity: 1,
-          unit_price: 0,
-          tax_rate: 20,
-          total: 0
-        }]);
-      }
-      setIsSubmitting(false);
-    }
-  }, [open, quote]);
-
-  const addItem = () => {
+  
+  // Product search
+  const [productSearch, setProductSearch] = useState('');
+  
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
+  );
+  
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
+  );
+  
+  
+  const addQuoteItem = () => {
     const newItem: QuoteItem = {
       id: Date.now().toString(),
       description: '',
       quantity: 1,
-      unit_price: 0,
-      tax_rate: 20,
+      unitPrice: 0,
+      vatRate: 20,
+      discount: 0,
       total: 0
     };
-    setItems([...items, newItem]);
+    setQuoteItems([...quoteItems, newItem]);
   };
-
-  const removeItem = (id: string) => {
-    if (items.length > 1) {
-      setItems(items.filter(item => item.id !== id));
-    }
-  };
-
-  const updateItem = (id: string, field: keyof QuoteItem, value: any) => {
-    setItems(items.map(item => {
+  
+  const updateQuoteItem = (id: string, field: keyof QuoteItem, value: any) => {
+    setQuoteItems(quoteItems.map(item => {
       if (item.id === id) {
-        const updatedItem = { ...item, [field]: value };
-        
-        // Recalculer le total
-        if (field === 'quantity' || field === 'unit_price') {
-          updatedItem.total = updatedItem.quantity * updatedItem.unit_price;
+        const updated = { ...item, [field]: value };
+        if (field === 'quantity' || field === 'unitPrice' || field === 'discount') {
+          const subtotal = updated.quantity * updated.unitPrice;
+          const discountAmount = subtotal * (updated.discount / 100);
+          updated.total = subtotal - discountAmount;
         }
-        
-        return updatedItem;
+        return updated;
       }
       return item;
     }));
   };
-
-  const handleProductSelect = (itemId: string, productId: string) => {
-    const selectedProduct = products.find(p => p.id === productId);
-    if (selectedProduct) {
-      updateItem(itemId, 'product_id', productId);
-      updateItem(itemId, 'description', selectedProduct.name);
-      updateItem(itemId, 'unit_price', selectedProduct.unit_price);
-      updateItem(itemId, 'tax_rate', selectedProduct.tax_rate);
-      
-      // Recalculer le total avec la nouvelle quantité
-      const currentItem = items.find(item => item.id === itemId);
-      if (currentItem) {
-        updateItem(itemId, 'total', currentItem.quantity * selectedProduct.unit_price);
-      }
-    }
+  
+  const removeQuoteItem = (id: string) => {
+    setQuoteItems(quoteItems.filter(item => item.id !== id));
   };
-
-  const calculateSubtotal = () => {
-    return items.reduce((sum, item) => sum + item.total, 0);
-  };
-
-  const calculateTotalTax = () => {
-    return items.reduce((sum, item) => sum + (item.total * item.tax_rate / 100), 0);
-  };
-
-  const calculateTotalTTC = () => {
-    return calculateSubtotal() + calculateTotalTax();
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  
+  const calculateTotals = () => {
+    const subtotalHT = quoteItems.reduce((sum, item) => sum + item.total, 0);
+    const totalDiscount = quoteItems.reduce((sum, item) => {
+      const subtotal = item.quantity * item.unitPrice;
+      return sum + (subtotal * item.discount / 100);
+    }, 0);
+    const totalVAT = quoteItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
+    const totalTTC = subtotalHT + totalVAT;
     
-    if (!organization?.id) {
-      toast.error('Organisation non trouvée');
-      return;
-    }
-
-    if (!formData.quote_number.trim()) {
-      toast.error('Le numéro de devis est requis');
-      return;
-    }
-
-    if (!formData.client_id) {
-      toast.error('Veuillez sélectionner un client');
-      return;
-    }
-
-    if (items.length === 0 || !items.some(item => item.description.trim())) {
-      toast.error('Veuillez ajouter au moins un article');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const quoteData = {
-        quote_number: formData.quote_number,
-        client_id: formData.client_id,
-        organization_id: organization.id,
-        date: formData.date,
-        valid_until: formData.valid_until || null,
-        notes: formData.notes || null,
-        status: 'draft',
-        subtotal: calculateSubtotal(),
-        tax_amount: calculateTotalTax(),
-        total_amount: calculateTotalTTC()
-      };
-
-      let result;
-      if (quote?.id) {
-        // Update existing quote
-        const { data: updatedQuote, error: updateError } = await supabase
-          .from('quotes')
-          .update(quoteData)
-          .eq('id', quote.id)
-          .select()
-          .single();
-
-        if (updateError) throw updateError;
-        result = updatedQuote;
-
-        // Delete existing items
-        await supabase
-          .from('quote_items')
-          .delete()
-          .eq('quote_id', quote.id);
-      } else {
-        // Create new quote
-        const { data: newQuote, error: createError } = await supabase
-          .from('quotes')
-          .insert(quoteData)
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        result = newQuote;
-      }
-
-      // Insert quote items with organization_id
-      const quoteItems = items
-        .filter(item => item.description.trim())
-        .map(item => ({
-          quote_id: result.id,
-          organization_id: organization.id,
-          product_id: item.product_id || null,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          tax_rate: item.tax_rate,
-          total_price: item.total
-        }));
-
-      if (quoteItems.length > 0) {
-        const { error: itemsError } = await supabase
-          .from('quote_items')
-          .insert(quoteItems);
-
-        if (itemsError) throw itemsError;
-      }
-
-      toast.success(quote ? 'Devis modifié avec succès' : 'Devis créé avec succès');
-      onSave(result);
-      onClose();
-    } catch (error) {
-      console.error('Error saving quote:', error);
-      toast.error('Erreur lors de la sauvegarde du devis');
-    } finally {
-      setIsSubmitting(false);
-    }
+    return { subtotalHT, totalDiscount, totalVAT, totalTTC };
   };
-
-  const handleClose = () => {
-    if (!isSubmitting) {
-      onClose();
+  
+  const { subtotalHT, totalDiscount, totalVAT, totalTTC } = calculateTotals();
+  
+  // Set default validity (30 days from now)
+  React.useEffect(() => {
+    if (!validUntil) {
+      const defaultDate = new Date();
+      defaultDate.setDate(defaultDate.getDate() + 30);
+      setValidUntil(defaultDate.toISOString().split('T')[0]);
     }
+  }, [validUntil]);
+  
+  const handleSave = () => {
+    const quoteData = {
+      number: quoteNumber,
+      date: quoteDate,
+      validUntil,
+      client: selectedClient,
+      subject,
+      items: quoteItems,
+      notes,
+      conditions,
+      totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
+    };
+    onSave(quoteData);
+    onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={(newOpen) => {
-      if (!newOpen && !isSubmitting) {
-        onClose();
-      }
-    }}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {quote ? 'Modifier le devis' : 'Créer un nouveau devis'}
+          <DialogTitle className="text-2xl font-bold text-purple-600">
+            {quote ? 'Modifier le devis' : 'Nouveau devis'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Informations générales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="quote_number">Numéro de devis *</Label>
-              <Input
-                id="quote_number"
-                value={formData.quote_number}
-                onChange={(e) => setFormData({ ...formData, quote_number: e.target.value })}
-                placeholder="DEV-2024-001"
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="client_id">Client *</Label>
-              <Select
-                value={formData.client_id}
-                onValueChange={(value) => setFormData({ ...formData, client_id: value })}
-                required
-                disabled={isSubmitting || clientsLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {!clientsLoading && clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name} {client.company && `(${client.company})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="date">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="valid_until">Valide jusqu'au</Label>
-              <Input
-                id="valid_until"
-                type="date"
-                value={formData.valid_until}
-                onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
-                disabled={isSubmitting}
-              />
-            </div>
-          </div>
-
-          {/* Articles */}
+        <div className="space-y-6">
+          {/* Header avec logo et infos organisation */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Articles
-                <Button 
-                  type="button" 
-                  onClick={addItem} 
-                  size="sm" 
-                  variant="outline"
-                  disabled={isSubmitting}
-                >
-                  <Plus size={16} className="mr-2" />
-                  Ajouter un article
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {items.map((item, index) => (
-                <div key={item.id} className="grid grid-cols-12 gap-2 items-end border-b pb-4">
-                  <div className="col-span-3">
-                    <Label>Produit</Label>
-                    <Select
-                      value={item.product_id || ''}
-                      onValueChange={(value) => handleProductSelect(item.id, value)}
-                      disabled={isSubmitting || productsLoading}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un produit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="custom">Produit personnalisé</SelectItem>
-                        {!productsLoading && products.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name} - {product.unit_price.toFixed(2)}€
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="col-span-3">
-                    <Label>Description *</Label>
-                    <Input
-                      value={item.description}
-                      onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                      placeholder="Description de l'article"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <Label>Quantité</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <Label>Prix unitaire HT</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={item.unit_price}
-                      onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <Label>TVA (%)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={item.tax_rate}
-                      onChange={(e) => updateItem(item.id, 'tax_rate', parseFloat(e.target.value) || 0)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <Label>Total HT</Label>
-                    <Input
-                      type="number"
-                      value={item.total.toFixed(2)}
-                      readOnly
-                      className="bg-gray-50"
-                    />
-                  </div>
-
-                  <div className="col-span-1">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeItem(item.id)}
-                      disabled={items.length === 1 || isSubmitting}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
+              <div className="flex justify-between items-start">
+                <div className="flex items-center space-x-4">
+                  {organization?.logo_url && (
+                    <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
+                    <p className="text-sm text-gray-600">{organization?.address || user?.user_metadata?.company_address}</p>
+                    <p className="text-sm text-gray-600">{organization?.email || user?.email}</p>
+                    <p className="text-sm text-gray-600">{organization?.phone || user?.user_metadata?.company_phone}</p>
                   </div>
                 </div>
-              ))}
-            </CardContent>
+                <div className="text-right">
+                  <h2 className="text-2xl font-bold text-purple-600">DEVIS</h2>
+                  <div className="space-y-2 mt-2">
+                    <div>
+                      <Label htmlFor="quoteNumber">Numéro</Label>
+                      <Input
+                        id="quoteNumber"
+                        value={quoteNumber}
+                        onChange={(e) => setQuoteNumber(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="quoteDate">Date</Label>
+                      <Input
+                        id="quoteDate"
+                        type="date"
+                        value={quoteDate}
+                        onChange={(e) => setQuoteDate(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="validUntil">Valide jusqu'au</Label>
+                      <Input
+                        id="validUntil"
+                        type="date"
+                        value={validUntil}
+                        onChange={(e) => setValidUntil(e.target.value)}
+                        className="w-40"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
           </Card>
 
-          {/* Totaux */}
+          {/* Section Client */}
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex justify-end">
-                <div className="w-64 space-y-2">
-                  <div className="flex justify-between">
-                    <span>Sous-total HT :</span>
-                    <span>{calculateSubtotal().toFixed(2)} €</span>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="mr-2 h-5 w-5" />
+                Devis pour
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Rechercher un client..."
+                    value={clientSearch}
+                    onChange={(e) => setClientSearch(e.target.value)}
+                    className="pl-10"
+                    disabled={clientsLoading}
+                  />
+                  {clientsLoading && <p className="text-sm text-gray-500 mt-2">Chargement des clients...</p>}
+                </div>
+                
+                {clientSearch && !selectedClient && (
+                  <div className="border rounded-lg max-h-48 overflow-y-auto">
+                    {filteredClients.map((client) => (
+                      <div
+                        key={client.id}
+                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          setClientSearch('');
+                        }}
+                      >
+                        <div className="font-medium">{client.company || client.name}</div>
+                        <div className="text-sm text-gray-600">{client.name}</div>
+                        <div className="text-sm text-gray-500">{client.address}, {client.city}</div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex justify-between">
-                    <span>TVA :</span>
-                    <span>{calculateTotalTax().toFixed(2)} €</span>
+                )}
+                
+                {selectedClient && (
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-semibold">{selectedClient.company || selectedClient.name}</h4>
+                        <p className="text-sm text-gray-600">{selectedClient.name}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.address}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.city} {selectedClient.postal_code}</p>
+                        <p className="text-sm text-gray-600">{selectedClient.email}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedClient(null)}
+                      >
+                        Changer
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span>Total TTC :</span>
-                    <span>{calculateTotalTTC().toFixed(2)} €</span>
-                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="subject">Objet du devis</Label>
+                  <Input
+                    id="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="Objet du devis..."
+                    className="mt-1"
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Notes */}
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Notes additionnelles..."
-              rows={3}
-              disabled={isSubmitting}
-            />
+          {/* Table des services */}
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  Services / Prestations
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Rechercher un service..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="pl-10 w-64"
+                      disabled={productsLoading}
+                    />
+                    {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
+                  </div>
+                  <Button onClick={addQuoteItem} size="sm" className="bg-purple-600 hover:bg-purple-700">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Ajouter
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {productSearch && (
+                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
+                  {filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
+                      onClick={() => {
+                        const newItem: QuoteItem = {
+                          id: Date.now().toString(),
+                          description: product.name,
+                          quantity: 1,
+                          unitPrice: product.price,
+                          vatRate: 20,
+                          discount: 0,
+                          total: product.price
+                        };
+                        setQuoteItems([...quoteItems, newItem]);
+                        setProductSearch('');
+                      }}
+                    >
+                      <div>
+                        <span className="font-medium">{product.name}</span>
+                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
+                      </div>
+                      <span className="text-sm text-gray-500">{product.price}€</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[35%]">Description</TableHead>
+                    <TableHead className="w-[12%] text-center">Quantité</TableHead>
+                    <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
+                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
+                    <TableHead className="w-[10%] text-center">TVA</TableHead>
+                    <TableHead className="w-[12%] text-right">Total HT</TableHead>
+                    <TableHead className="w-[5%]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {quoteItems.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateQuoteItem(item.id, 'description', e.target.value)}
+                          placeholder="Description du service"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateQuoteItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          step="0.5"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.unitPrice}
+                          onChange={(e) => updateQuoteItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="text-right"
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.discount}
+                          onChange={(e) => updateQuoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          max="100"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.vatRate}
+                          onChange={(e) => updateQuoteItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          max="100"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {item.total.toFixed(2)} €
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeQuoteItem(item.id)}
+                          disabled={quoteItems.length === 1}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          
+          
+          {/* Section Totaux */}
+          <div className="flex justify-end">
+            <Card className="w-80">
+              <CardHeader>
+                <CardTitle>Totaux</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Sous-total HT:</span>
+                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
+                  </div>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Remise totale:</span>
+                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Net HT:</span>
+                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>TVA:</span>
+                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
+                  </div>
+                  <div className="border-t pt-2">
+                    <div className="flex justify-between text-lg font-bold">
+                      <span>Total TTC:</span>
+                      <span className="text-purple-600">{totalTTC.toFixed(2)} €</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Validité */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5" />
+                Validité du devis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <p className="text-sm">
+                  <strong>Ce devis est valable jusqu'au {validUntil ? new Date(validUntil).toLocaleDateString('fr-FR') : 'Non spécifiée'}</strong>
+                </p>
+                <p className="text-xs text-gray-600 mt-2">
+                  Passé cette date, les prix et conditions pourront être révisés.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Conditions et Notes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Conditions particulières</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <textarea
+                  value={conditions}
+                  onChange={(e) => setConditions(e.target.value)}
+                  placeholder="Conditions de réalisation, délais, modalités de paiement..."
+                  className="w-full h-32 p-3 border rounded-md resize-none"
+                />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Notes additionnelles..."
+                  className="w-full h-32 p-3 border rounded-md resize-none"
+                />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button 
-              type="submit" 
-              className="bg-[#6A9C89] hover:bg-[#5A8B7A]"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Sauvegarde...' : (quote ? 'Modifier' : 'Créer')} le devis
+            <Button onClick={handleSave} className="bg-purple-600 hover:bg-purple-700">
+              {quote ? 'Mettre à jour' : 'Créer le devis'}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

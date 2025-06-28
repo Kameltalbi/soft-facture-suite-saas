@@ -22,14 +22,12 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { CategoryModal } from '@/components/modals/CategoryModal';
 import { useCategories } from '@/hooks/useCategories';
-import { useToast } from '@/hooks/use-toast';
 
 const Categories = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
-  const { toast } = useToast();
+  const { categories, loading, createCategory } = useCategories();
 
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,60 +45,18 @@ const Categories = () => {
   };
 
   const handleSaveCategory = async (data) => {
-    try {
-      if (editingCategory) {
-        const result = await updateCategory(editingCategory.id, data);
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        toast({
-          title: "Catégorie modifiée",
-          description: `La catégorie "${data.name}" a été modifiée avec succès.`,
-        });
-      } else {
-        const result = await createCategory(data);
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        toast({
-          title: "Catégorie créée",
-          description: `La catégorie "${data.name}" a été créée avec succès.`,
-        });
-      }
-      setShowModal(false);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la sauvegarde.",
-        variant: "destructive",
-      });
-    }
+    await createCategory(data);
+    setShowModal(false);
   };
 
-  const handleDeleteCategory = async (id, name) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${name}" ?`)) {
-      try {
-        const result = await deleteCategory(id);
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        toast({
-          title: "Catégorie supprimée",
-          description: `La catégorie "${name}" a été supprimée avec succès.`,
-        });
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: error.message || "Une erreur est survenue lors de la suppression.",
-          variant: "destructive",
-        });
-      }
+  const handleDeleteCategory = (id) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
+      console.log('Deleting category:', id);
     }
   };
 
   const handleViewCategory = (category) => {
     console.log('Viewing category:', category);
-    // TODO: Implémenter la vue détaillée de la catégorie
   };
 
   const formatDate = (dateString) => {
@@ -280,7 +236,7 @@ const Categories = () => {
                           Modifier
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDeleteCategory(category.id, category.name)}
+                          onClick={() => handleDeleteCategory(category.id)}
                           className="text-destructive"
                         >
                           <Trash2 size={16} className="mr-2" />

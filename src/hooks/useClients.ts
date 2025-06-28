@@ -14,8 +14,6 @@ interface Client {
   postal_code: string | null;
   country: string | null;
   vat_number: string | null;
-  payment_terms: number | null;
-  status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,7 +29,6 @@ export function useClients() {
 
     try {
       setLoading(true);
-      setError(null);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -67,8 +64,8 @@ export function useClients() {
 
       if (error) throw error;
       
-      // Ajouter le nouveau client à la liste existante
-      setClients(prev => [...prev, data]);
+      // Refresh the clients list
+      await fetchClients();
       
       return { data, error: null };
     } catch (err) {
