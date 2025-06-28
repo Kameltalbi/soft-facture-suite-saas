@@ -60,7 +60,7 @@ const ProductRankingReportPage = () => {
       <div className="flex items-center gap-4">
         <Button 
           variant="outline" 
-          onClick={() => navigate('/app')}
+          onClick={() => navigate('/dashboard/reports')}
           style={{ borderColor: '#D96C4F', color: '#D96C4F' }}
           className="hover:bg-[#D96C4F] hover:text-white"
         >
