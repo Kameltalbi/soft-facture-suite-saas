@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
+import { useInvoiceNumber } from '@/hooks/useInvoiceNumber';
 
 interface InvoiceItem {
   id: string;
@@ -32,9 +32,10 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
+  const { nextInvoiceNumber, generateNextInvoiceNumber, isLoading: numberLoading } = useInvoiceNumber();
   
   // Form state
-  const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || 'FAC-2025-001');
+  const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || '');
   const [invoiceDate, setInvoiceDate] = useState(invoice?.date || new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(invoice?.dueDate || '');
   const [clientSearch, setClientSearch] = useState('');
@@ -50,6 +51,13 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   // Product search
   const [productSearch, setProductSearch] = useState('');
   
+  // Set default invoice number when modal opens for new invoice
+  React.useEffect(() => {
+    if (open && !invoice && nextInvoiceNumber && !invoiceNumber) {
+      setInvoiceNumber(nextInvoiceNumber);
+    }
+  }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
+
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
@@ -115,9 +123,15 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [dueDate]);
   
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Si c'est une nouvelle facture et que le numéro n'a pas été modifié, générer un nouveau numéro unique
+    let finalInvoiceNumber = invoiceNumber;
+    if (!invoice && (!invoiceNumber || invoiceNumber === nextInvoiceNumber)) {
+      finalInvoiceNumber = await generateNextInvoiceNumber();
+    }
+
     const invoiceData = {
-      number: invoiceNumber,
+      number: finalInvoiceNumber,
       date: invoiceDate,
       dueDate,
       client: selectedClient,
@@ -165,6 +179,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         value={invoiceNumber}
                         onChange={(e) => setInvoiceNumber(e.target.value)}
                         className="w-40"
+                        placeholder={numberLoading ? "Génération..." : "FAC-2025-001"}
+                        disabled={numberLoading}
                       />
                     </div>
                     <div>
