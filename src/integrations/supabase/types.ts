@@ -553,7 +553,6 @@ export type Database = {
       }
       invoices: {
         Row: {
-          amount_paid: number | null
           client_id: string
           created_at: string | null
           date: string
@@ -569,7 +568,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          amount_paid?: number | null
           client_id: string
           created_at?: string | null
           date?: string
@@ -585,7 +583,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          amount_paid?: number | null
           client_id?: string
           created_at?: string | null
           date?: string
@@ -1286,20 +1283,6 @@ export type Database = {
       extend_subscription: {
         Args: { org_id: string; months: number }
         Returns: undefined
-      }
-      get_recouvrement_data: {
-        Args: { sel_year: number; sel_month: number }
-        Returns: {
-          id: string
-          invoice_number: string
-          client_id: string
-          client_name: string
-          date: string
-          amount_total: number
-          amount_paid: number
-          status: string
-          days_late: number
-        }[]
       }
       get_subscription_status: {
         Args: { start_date: string; end_date: string }
