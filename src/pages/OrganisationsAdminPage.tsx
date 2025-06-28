@@ -30,6 +30,8 @@ import { Header } from '@/components/layout/Header';
 import { Organization } from '@/types/organization';
 
 export default function OrganisationsAdminPage() {
+  console.log('🏢 OrganisationsAdminPage - Début du rendu');
+  
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,7 +41,10 @@ export default function OrganisationsAdminPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { toast } = useToast();
 
+  console.log('🏢 OrganisationsAdminPage - État des hooks initialisés');
+
   const fetchOrganizations = async () => {
+    console.log('📊 Début fetchOrganizations');
     try {
       const { data, error } = await supabase
         .from('organizations')
@@ -55,9 +60,10 @@ export default function OrganisationsAdminPage() {
         plan: org.plan as 'free' | 'standard' | 'premium'
       }));
       
+      console.log('📊 Organizations récupérées:', typedData.length);
       setOrganizations(typedData);
     } catch (error) {
-      console.error('Error fetching organizations:', error);
+      console.error('❌ Error fetching organizations:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les organisations",
@@ -65,6 +71,7 @@ export default function OrganisationsAdminPage() {
       });
     } finally {
       setLoading(false);
+      console.log('📊 fetchOrganizations terminé');
     }
   };
 
@@ -174,13 +181,21 @@ export default function OrganisationsAdminPage() {
     premium: organizations.filter(org => org.plan === 'premium').length,
   };
 
+  useEffect(() => {
+    console.log('🔄 useEffect - Appel de fetchOrganizations');
+    fetchOrganizations();
+  }, []);
+
   if (loading) {
+    console.log('⏳ OrganisationsAdminPage - Affichage du loader');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A9C89]"></div>
       </div>
     );
   }
+
+  console.log('🎨 OrganisationsAdminPage - Rendu de l\'interface principale');
 
   // Placeholder handlers for OrganizationActionsMenu
   const handleEdit = (org: Organization) => {
@@ -198,22 +213,21 @@ export default function OrganisationsAdminPage() {
     // TODO: Implement view history functionality
   };
 
-  useEffect(() => {
-    fetchOrganizations();
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50">
+      {console.log('🎨 Rendu du header')}
       <div className="border-b bg-white px-6 py-4">
         <Header activeModule="admin" />
       </div>
       
+      {console.log('🎨 Rendu du contenu principal')}
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Administration Superadmin</h1>
           <p className="text-gray-600 mt-2">Gestion globale des organisations et utilisateurs</p>
         </div>
 
+        {console.log('🎨 Rendu des onglets')}
         <Tabs defaultValue="organizations" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="organizations" className="flex items-center gap-2">

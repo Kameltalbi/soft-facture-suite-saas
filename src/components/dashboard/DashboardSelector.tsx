@@ -46,7 +46,21 @@ export const DashboardSelector = () => {
   // Si l'utilisateur est superadmin, afficher la page de gestion des organisations
   if (profile?.role === 'superadmin') {
     console.log('🔥 SUPERADMIN DÉTECTÉ - Affichage de OrganisationsAdminPage');
-    return <OrganisationsAdminPage />;
+    console.log('🚀 Tentative de rendu de OrganisationsAdminPage...');
+    try {
+      return <OrganisationsAdminPage />;
+    } catch (error) {
+      console.error('❌ ERREUR lors du rendu de OrganisationsAdminPage:', error);
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-red-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-4">Erreur de chargement</h1>
+            <p className="text-red-500">Impossible de charger la page superadmin</p>
+            <pre className="text-xs mt-4 bg-red-100 p-4 rounded">{error?.toString()}</pre>
+          </div>
+        </div>
+      );
+    }
   }
 
   console.log('👤 Utilisateur standard - Affichage du dashboard normal');
