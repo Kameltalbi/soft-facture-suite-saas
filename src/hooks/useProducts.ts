@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +13,7 @@ interface Product {
   stock_quantity: number | null;
   track_stock: boolean | null;
   active: boolean | null;
+  tax_rate: number | null;
   created_at: string;
   updated_at: string;
 }

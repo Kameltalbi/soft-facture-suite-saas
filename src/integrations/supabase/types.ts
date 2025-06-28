@@ -724,6 +724,7 @@ export type Database = {
           price: number
           sku: string | null
           stock_quantity: number | null
+          tax_rate: number | null
           track_stock: boolean | null
           unit: string | null
           updated_at: string | null
@@ -739,6 +740,7 @@ export type Database = {
           price?: number
           sku?: string | null
           stock_quantity?: number | null
+          tax_rate?: number | null
           track_stock?: boolean | null
           unit?: string | null
           updated_at?: string | null
@@ -754,6 +756,7 @@ export type Database = {
           price?: number
           sku?: string | null
           stock_quantity?: number | null
+          tax_rate?: number | null
           track_stock?: boolean | null
           unit?: string | null
           updated_at?: string | null
