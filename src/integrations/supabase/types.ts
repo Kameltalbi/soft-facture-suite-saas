@@ -1280,6 +1280,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_emails: {
+        Args: { user_ids: string[] }
+        Returns: {
+          id: string
+          email: string
+        }[]
+      }
       get_user_organization_id: {
         Args: Record<PropertyKey, never>
         Returns: string

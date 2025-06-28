@@ -43,6 +43,11 @@ interface User {
   organization_name: string;
 }
 
+interface AuthUser {
+  id: string;
+  email: string;
+}
+
 interface UserManagementSectionProps {
   organizationId?: string;
 }
@@ -85,9 +90,10 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
 
       if (error) throw error;
 
-      // Récupérer les emails depuis auth.users via une fonction
+      // Récupérer les emails depuis auth.users via la fonction RPC
+      const userIds = data?.map(u => u.user_id) || [];
       const { data: authData, error: authError } = await supabase.rpc('get_user_emails', {
-        user_ids: data?.map(u => u.user_id) || []
+        user_ids: userIds
       });
 
       if (authError) {
@@ -96,7 +102,7 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
 
       const usersWithEmails = data?.map(user => ({
         ...user,
-        email: authData?.find((au: any) => au.id === user.user_id)?.email || 'N/A',
+        email: (authData as AuthUser[])?.find((au: AuthUser) => au.id === user.user_id)?.email || 'N/A',
         organization_name: user.organizations?.name || 'N/A'
       })) || [];
 
