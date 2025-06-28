@@ -422,7 +422,8 @@ export default function Invoices() {
       name: organization?.name || 'Mon Entreprise',
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
-      phone: organization?.phone || 'Téléphone'
+      phone: organization?.phone || 'Téléphone',
+      logo: organization?.logo_url || organization?.logo // Utiliser logo_url depuis l'organisation
     };
 
     const client = {
