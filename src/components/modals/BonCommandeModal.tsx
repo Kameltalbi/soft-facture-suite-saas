@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
 import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
 import { useFournisseurs } from '@/hooks/useFournisseurs';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface BonCommandeModalProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ interface BonCommandeModalProps {
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
   const { exportToPDF } = useBonCommandePDF();
   const { fournisseurs, loading: fournisseursLoading } = useFournisseurs();
+  const { currency } = useCurrency();
   
   const [formData, setFormData] = useState<{
     numero: string;
@@ -138,19 +140,24 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
     };
   };
 
+  const formatCurrency = (amount: number) => {
+    return `${amount.toFixed(2)} ${currency.symbol}`;
+  };
+
   const handleSubmit = () => {
     const totaux = calculerTotaux();
     const fournisseurSelectionne = fournisseurs.find(f => f.id === formData.fournisseurId);
     
     const bonCommandeData = {
       ...formData,
-      fournisseurNom: fournisseurSelectionne?.nom || '',
+      fournisseurNom: fournisseurSelectionne?.name || '',
       dateCommande: selectedDate?.toISOString().split('T')[0] || '',
       montantHT: totaux.totalHTApresRemise,
       montantTTC: totaux.totalTTC,
       lignes,
     };
 
+    console.log('Saving bon de commande:', bonCommandeData);
     onSave(bonCommandeData);
   };
 
@@ -164,7 +171,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
         id: 'temp',
         numero: formData.numero,
         fournisseurId: formData.fournisseurId,
-        fournisseurNom: fournisseurs.find(f => f.id === formData.fournisseurId)?.nom || '',
+        fournisseurNom: fournisseurs.find(f => f.id === formData.fournisseurId)?.name || '',
         dateCommande: selectedDate?.toISOString().split('T')[0] || '',
         statut: formData.statut,
         montantHT: totaux.totalHTApresRemise,
@@ -218,7 +225,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                 <SelectContent>
                   {!fournisseursLoading && fournisseurs.map((fournisseur) => (
                     <SelectItem key={fournisseur.id} value={fournisseur.id}>
-                      {fournisseur.nom}
+                      {fournisseur.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -326,7 +333,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                       />
                     </TableCell>
                     <TableCell>
-                      {ligne.totalHT.toFixed(2)} €
+                      {formatCurrency(ligne.totalHT)}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -370,23 +377,23 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Total HT:</span>
-                  <span>{totaux.totalHT.toFixed(2)} €</span>
+                  <span>{formatCurrency(totaux.totalHT)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Remise ({formData.remise}%):</span>
-                  <span>-{totaux.remiseAmount.toFixed(2)} €</span>
+                  <span>-{formatCurrency(totaux.remiseAmount)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total HT après remise:</span>
-                  <span>{totaux.totalHTApresRemise.toFixed(2)} €</span>
+                  <span>{formatCurrency(totaux.totalHTApresRemise)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total TVA:</span>
-                  <span>{totaux.totalTVA.toFixed(2)} €</span>
+                  <span>{formatCurrency(totaux.totalTVA)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-1">
                   <span>Total TTC:</span>
-                  <span>{totaux.totalTTC.toFixed(2)} €</span>
+                  <span>{formatCurrency(totaux.totalTTC)}</span>
                 </div>
               </div>
             </div>
