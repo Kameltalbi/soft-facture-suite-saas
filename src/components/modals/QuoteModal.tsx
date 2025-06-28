@@ -10,6 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
 import { useProductsForModals } from '@/hooks/useProductsForModals';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface QuoteItem {
   id: string;
@@ -31,6 +34,8 @@ interface QuoteModalProps {
 export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProductsForModals();
+  const { organization } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     quote_number: '',
@@ -73,8 +78,27 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
         }));
         setItems(convertedItems);
       }
+    } else {
+      // Reset form for new quote
+      setFormData({
+        quote_number: '',
+        client_id: '',
+        date: new Date().toISOString().split('T')[0],
+        valid_until: '',
+        notes: ''
+      });
+      setItems([
+        {
+          id: '1',
+          description: '',
+          quantity: 1,
+          unit_price: 0,
+          tax_rate: 20,
+          total: 0
+        }
+      ]);
     }
-  }, [quote]);
+  }, [quote, open]);
 
   const addItem = () => {
     const newItem: QuoteItem = {
@@ -138,25 +162,115 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     return calculateSubtotal() + calculateTotalTax();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const quoteData = {
-      ...formData,
-      items: items.map(item => ({
-        ...item,
-        total_price: item.total
-      })),
-      subtotal: calculateSubtotal(),
-      tax_amount: calculateTotalTax(),
-      total_amount: calculateTotalTTC()
-    };
-    
-    onSave(quoteData);
+    if (!organization?.id) {
+      toast.error('Organisation non trouvée');
+      return;
+    }
+
+    if (!formData.quote_number.trim()) {
+      toast.error('Le numéro de devis est requis');
+      return;
+    }
+
+    if (!formData.client_id) {
+      toast.error('Veuillez sélectionner un client');
+      return;
+    }
+
+    if (items.length === 0 || !items.some(item => item.description.trim())) {
+      toast.error('Veuillez ajouter au moins un article');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const quoteData = {
+        quote_number: formData.quote_number,
+        client_id: formData.client_id,
+        organization_id: organization.id,
+        date: formData.date,
+        valid_until: formData.valid_until || null,
+        notes: formData.notes || null,
+        status: 'draft',
+        subtotal: calculateSubtotal(),
+        tax_amount: calculateTotalTax(),
+        total_amount: calculateTotalTTC()
+      };
+
+      let result;
+      if (quote?.id) {
+        // Update existing quote
+        const { data: updatedQuote, error: updateError } = await supabase
+          .from('quotes')
+          .update(quoteData)
+          .eq('id', quote.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        result = updatedQuote;
+
+        // Delete existing items
+        await supabase
+          .from('quote_items')
+          .delete()
+          .eq('quote_id', quote.id);
+      } else {
+        // Create new quote
+        const { data: newQuote, error: createError } = await supabase
+          .from('quotes')
+          .insert(quoteData)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        result = newQuote;
+      }
+
+      // Insert quote items
+      const quoteItems = items
+        .filter(item => item.description.trim())
+        .map(item => ({
+          quote_id: result.id,
+          product_id: item.product_id || null,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate,
+          total_price: item.total
+        }));
+
+      if (quoteItems.length > 0) {
+        const { error: itemsError } = await supabase
+          .from('quote_items')
+          .insert(quoteItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      toast.success(quote ? 'Devis modifié avec succès' : 'Devis créé avec succès');
+      onSave(result);
+      onClose();
+    } catch (error) {
+      console.error('Error saving quote:', error);
+      toast.error('Erreur lors de la sauvegarde du devis');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!isSubmitting) {
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -168,22 +282,24 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           {/* Informations générales */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="quote_number">Numéro de devis</Label>
+              <Label htmlFor="quote_number">Numéro de devis *</Label>
               <Input
                 id="quote_number"
                 value={formData.quote_number}
                 onChange={(e) => setFormData({ ...formData, quote_number: e.target.value })}
                 placeholder="DEV-2024-001"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <Label htmlFor="client_id">Client</Label>
+              <Label htmlFor="client_id">Client *</Label>
               <Select
                 value={formData.client_id}
                 onValueChange={(value) => setFormData({ ...formData, client_id: value })}
                 required
+                disabled={isSubmitting || clientsLoading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un client" />
@@ -206,6 +322,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -216,6 +333,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                 type="date"
                 value={formData.valid_until}
                 onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -225,7 +343,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Articles
-                <Button type="button" onClick={addItem} size="sm" variant="outline">
+                <Button 
+                  type="button" 
+                  onClick={addItem} 
+                  size="sm" 
+                  variant="outline"
+                  disabled={isSubmitting}
+                >
                   <Plus size={16} className="mr-2" />
                   Ajouter un article
                 </Button>
@@ -239,6 +363,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                     <Select
                       value={item.product_id || ''}
                       onValueChange={(value) => handleProductSelect(item.id, value)}
+                      disabled={isSubmitting || productsLoading}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un produit" />
@@ -255,12 +380,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   </div>
 
                   <div className="col-span-3">
-                    <Label>Description</Label>
+                    <Label>Description *</Label>
                     <Input
                       value={item.description}
                       onChange={(e) => updateItem(item.id, 'description', e.target.value)}
                       placeholder="Description de l'article"
                       required
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -272,6 +398,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       step="0.01"
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -283,6 +410,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       step="0.01"
                       value={item.unit_price}
                       onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -294,6 +422,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       step="0.01"
                       value={item.tax_rate}
                       onChange={(e) => updateItem(item.id, 'tax_rate', parseFloat(e.target.value) || 0)}
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -313,7 +442,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => removeItem(item.id)}
-                      disabled={items.length === 1}
+                      disabled={items.length === 1 || isSubmitting}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 size={16} />
@@ -355,16 +484,26 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               placeholder="Notes additionnelles..."
               rows={3}
+              disabled={isSubmitting}
             />
           </div>
 
           {/* Actions */}
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
               Annuler
             </Button>
-            <Button type="submit" className="bg-[#6A9C89] hover:bg-[#5A8B7A]">
-              {quote ? 'Modifier' : 'Créer'} le devis
+            <Button 
+              type="submit" 
+              className="bg-[#6A9C89] hover:bg-[#5A8B7A]"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Sauvegarde...' : (quote ? 'Modifier' : 'Créer')} le devis
             </Button>
           </div>
         </form>

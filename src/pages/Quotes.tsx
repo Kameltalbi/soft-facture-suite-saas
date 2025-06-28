@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,18 +15,20 @@ import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
 import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
 import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const Quotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const { organization } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch quotes from Supabase
-  const { data: quotes = [], isLoading } = useQuery({
+  const { data: quotes = [], isLoading, refetch } = useQuery({
     queryKey: ['quotes', organization?.id],
     queryFn: async () => {
       if (!organization?.id) return [];
@@ -67,24 +68,111 @@ const Quotes = () => {
     setIsModalOpen(true);
   };
 
-  const handleDuplicateQuote = (quote) => {
-    console.log('Duplicating quote:', quote.quote_number);
+  const handleDuplicateQuote = async (quote) => {
+    try {
+      // Create new quote number
+      const newQuoteNumber = `${quote.quote_number}-COPY-${Date.now()}`;
+      
+      const duplicatedQuote = {
+        quote_number: newQuoteNumber,
+        client_id: quote.client_id,
+        organization_id: organization?.id,
+        date: new Date().toISOString().split('T')[0],
+        valid_until: quote.valid_until,
+        notes: quote.notes,
+        status: 'draft',
+        subtotal: quote.subtotal,
+        tax_amount: quote.tax_amount,
+        total_amount: quote.total_amount
+      };
+
+      const { data: newQuote, error } = await supabase
+        .from('quotes')
+        .insert(duplicatedQuote)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Duplicate quote items
+      if (quote.quote_items && quote.quote_items.length > 0) {
+        const duplicatedItems = quote.quote_items.map(item => ({
+          quote_id: newQuote.id,
+          product_id: item.product_id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate,
+          total_price: item.total_price
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('quote_items')
+          .insert(duplicatedItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      toast.success('Devis dupliqué avec succès');
+      refetch();
+    } catch (error) {
+      console.error('Error duplicating quote:', error);
+      toast.error('Erreur lors de la duplication du devis');
+    }
   };
 
   const handleConvertToInvoice = (quote) => {
     console.log('Converting quote to invoice:', quote.quote_number);
+    toast.info('Fonctionnalité en cours de développement');
   };
 
-  const handleDeleteQuote = (quote) => {
-    console.log('Deleting quote:', quote.quote_number);
+  const handleDeleteQuote = async (quote) => {
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', quote.id);
+
+      if (error) throw error;
+
+      toast.success('Devis supprimé avec succès');
+      refetch();
+    } catch (error) {
+      console.error('Error deleting quote:', error);
+      toast.error('Erreur lors de la suppression du devis');
+    }
   };
 
   const handleEmailSent = (emailData) => {
     console.log('Sending email:', emailData);
+    toast.success('Email envoyé avec succès');
   };
 
-  const handleStatusChange = (quote, newStatus) => {
-    console.log('Changing status for quote:', quote.quote_number, 'to:', newStatus);
+  const handleStatusChange = async (quote, newStatus) => {
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .update({ status: newStatus })
+        .eq('id', quote.id);
+
+      if (error) throw error;
+
+      toast.success('Statut du devis mis à jour');
+      refetch();
+    } catch (error) {
+      console.error('Error updating quote status:', error);
+      toast.error('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  const handleSaveQuote = async (data) => {
+    try {
+      // Refresh the quotes list
+      await refetch();
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error after saving quote:', error);
+    }
   };
 
   const getStatutBadge = (statut) => {
@@ -161,7 +249,6 @@ const Quotes = () => {
           </Button>
         </div>
 
-        {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -212,7 +299,6 @@ const Quotes = () => {
           </Card>
         </div>
 
-        {/* Filtres */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Filtres</CardTitle>
@@ -232,7 +318,6 @@ const Quotes = () => {
           </CardContent>
         </Card>
 
-        {/* Tableau des devis */}
         <Card>
           <CardHeader>
             <CardTitle>Liste des devis</CardTitle>
@@ -372,10 +457,7 @@ const Quotes = () => {
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           quote={selectedQuote}
-          onSave={(data) => {
-            console.log('Sauvegarde du devis:', data);
-            setIsModalOpen(false);
-          }}
+          onSave={handleSaveQuote}
         />
       </div>
     </div>
