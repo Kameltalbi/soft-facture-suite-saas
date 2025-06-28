@@ -22,12 +22,14 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { ClientModal } from '@/components/modals/ClientModal';
 import { useClients } from '@/hooks/useClients';
+import { useToast } from '@/hooks/use-toast';
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const { clients, loading, createClient } = useClients();
+  const { toast } = useToast();
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,8 +48,21 @@ const Clients = () => {
   };
 
   const handleSaveClient = async (data) => {
-    await createClient(data);
-    setShowModal(false);
+    const result = await createClient(data);
+    
+    if (result.error) {
+      toast({
+        title: "Erreur",
+        description: result.error,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: "Client créé avec succès",
+      });
+      setShowModal(false);
+    }
   };
 
   const handleDeleteClient = (id) => {

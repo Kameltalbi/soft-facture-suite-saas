@@ -25,6 +25,7 @@ export function useCategories() {
 
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from('categories')
         .select('*')
@@ -61,8 +62,8 @@ export function useCategories() {
 
       if (error) throw error;
       
-      // Refresh the categories list
-      await fetchCategories();
+      // Ajouter la nouvelle catégorie à la liste existante
+      setCategories(prev => [...prev, data]);
       
       return { data, error: null };
     } catch (err) {

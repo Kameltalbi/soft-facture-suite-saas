@@ -29,6 +29,7 @@ export function useClients() {
 
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -64,8 +65,8 @@ export function useClients() {
 
       if (error) throw error;
       
-      // Refresh the clients list
-      await fetchClients();
+      // Ajouter le nouveau client à la liste existante
+      setClients(prev => [...prev, data]);
       
       return { data, error: null };
     } catch (err) {

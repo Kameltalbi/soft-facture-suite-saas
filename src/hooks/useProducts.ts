@@ -26,6 +26,7 @@ export function useProducts() {
 
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -62,8 +63,8 @@ export function useProducts() {
 
       if (error) throw error;
       
-      // Refresh the products list
-      await fetchProducts();
+      // Ajouter le nouveau produit à la liste existante
+      setProducts(prev => [...prev, data]);
       
       return { data, error: null };
     } catch (err) {
@@ -89,8 +90,8 @@ export function useProducts() {
 
       if (error) throw error;
       
-      // Refresh the products list
-      await fetchProducts();
+      // Mettre à jour le produit dans la liste existante
+      setProducts(prev => prev.map(p => p.id === productId ? data : p));
       
       return { data, error: null };
     } catch (err) {
