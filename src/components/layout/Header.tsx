@@ -23,7 +23,7 @@ export function Header({ activeModule }: HeaderProps) {
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between h-24 py-4">
       <div className="flex items-center gap-3">
         {organization?.logo_url ? (
           <img 
