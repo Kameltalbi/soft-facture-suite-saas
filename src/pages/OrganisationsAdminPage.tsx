@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Search, Building2, Calendar, CreditCard, ArrowUp, History, Edit, Pause, Check, Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,8 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { UserManagementSection } from '@/components/admin/UserManagementSection';
+import { NewOrganizationForm } from '@/components/admin/NewOrganizationForm';
+import { OrganizationUsersList } from '@/components/admin/OrganizationUsersList';
 
 interface Organization {
   id: string;
@@ -69,6 +72,7 @@ const OrganisationsAdminPage = () => {
   // Modals state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [usersModalOpen, setUsersModalOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [organizationHistory, setOrganizationHistory] = useState<OrganizationHistory[]>([]);
   
@@ -411,10 +415,13 @@ const OrganisationsAdminPage = () => {
               </Card>
             </div>
 
-            {/* Filtres */}
+            {/* Filtres et bouton création */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Filtres</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle className="text-lg">Filtres</CardTitle>
+                  <NewOrganizationForm onCreated={loadOrganizations} />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -495,6 +502,16 @@ const OrganisationsAdminPage = () => {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedOrganization(org);
+                                  setUsersModalOpen(true);
+                                }}
+                              >
+                                <Users size={14} />
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -685,6 +702,21 @@ const OrganisationsAdminPage = () => {
                 </div>
               )}
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal des utilisateurs */}
+        <Dialog open={usersModalOpen} onOpenChange={setUsersModalOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Utilisateurs de l'organisation</DialogTitle>
+            </DialogHeader>
+            {selectedOrganization && (
+              <OrganizationUsersList 
+                organizationId={selectedOrganization.id}
+                organizationName={selectedOrganization.name}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </div>
