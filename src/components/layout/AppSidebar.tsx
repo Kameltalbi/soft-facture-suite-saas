@@ -142,7 +142,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                       tooltip={isCollapsed ? item.label : undefined}
                       className="h-10 px-3 font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-[#6A9C89] data-[active=true]:text-white data-[active=true]:shadow-sm"
                     >
-                      <Icon className={`h-5 w-5 stroke-[1.5px] ${isActive ? 'text-white' : 'text-[#6A9C89]'}`} />
+                      <Icon className={`h-6 w-6 stroke-[1.5px] ${isActive ? 'text-white' : 'text-[#6A9C89]'}`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
