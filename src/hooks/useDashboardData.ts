@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +15,7 @@ interface DashboardKpiData {
   lowStockProducts: number;
   topProduct: { name: string; revenue: number };
   categorySales: Array<{ name: string; value: number; color: string }>;
+  currency: { code: string; symbol: string; name: string };
 }
 
 interface DashboardChartData {
@@ -58,7 +58,8 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     pendingOrders: 0,
     lowStockProducts: 0,
     topProduct: { name: 'Aucun produit', revenue: 0 },
-    categorySales: []
+    categorySales: [],
+    currency: { code: 'EUR', symbol: '€', name: 'Euro' }
   });
   const [chartData, setChartData] = useState<DashboardChartData>({
     monthlyComparison: [],
@@ -74,14 +75,47 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     }
   }, [profile?.organization_id, selectedYear, selectedMonth]);
 
+  const fetchOrganizationCurrency = async () => {
+    if (!profile?.organization_id) return { code: 'EUR', symbol: '€', name: 'Euro' };
+
+    try {
+      const { data, error } = await supabase
+        .from('currencies')
+        .select('code, symbol, name')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_primary', true)
+        .single();
+
+      if (error || !data) {
+        // Si pas de devise principale trouvée, retourner EUR par défaut
+        return { code: 'EUR', symbol: '€', name: 'Euro' };
+      }
+
+      return {
+        code: data.code,
+        symbol: data.symbol,
+        name: data.name
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération de la devise:', error);
+      return { code: 'EUR', symbol: '€', name: 'Euro' };
+    }
+  };
+
   const fetchDashboardData = async () => {
     if (!profile?.organization_id) return;
 
     setLoading(true);
     try {
+      // Récupérer la devise de l'organisation
+      const currency = await fetchOrganizationCurrency();
+
       // Récupérer les données KPI
       const kpis = await fetchKpiData();
-      setKpiData(kpis);
+      setKpiData({
+        ...kpis,
+        currency
+      });
 
       // Récupérer les données pour les graphiques
       const charts = await fetchChartData();
@@ -93,7 +127,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     }
   };
 
-  const fetchKpiData = async (): Promise<DashboardKpiData> => {
+  const fetchKpiData = async (): Promise<Omit<DashboardKpiData, 'currency'>> => {
     const orgId = profile?.organization_id;
     const startDate = new Date(selectedYear, selectedMonth - 1, 1);
     const endDate = new Date(selectedYear, selectedMonth, 0);

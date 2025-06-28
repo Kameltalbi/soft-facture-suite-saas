@@ -1,25 +1,22 @@
 
-import { useCurrency } from '@/contexts/CurrencyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   FileText, 
-  CheckCircle2, 
-  Clock4, 
-  AlertCircle, 
-  Receipt, 
-  BarChart2, 
-  PercentCircle,
+  CheckCircle, 
+  Clock, 
+  AlertTriangle, 
+  CreditCard, 
   TrendingUp,
-  TrendingDown,
+  Calculator,
   FileCheck,
   Package,
-  TriangleAlert,
-  Star,
+  AlertCircle,
+  Trophy,
   PieChart
 } from 'lucide-react';
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
-interface KpiData {
+interface DashboardKpiData {
   totalInvoices: number;
   paidInvoices: number;
   pendingInvoices: number;
@@ -32,234 +29,31 @@ interface KpiData {
   lowStockProducts: number;
   topProduct: { name: string; revenue: number };
   categorySales: Array<{ name: string; value: number; color: string }>;
+  currency: { code: string; symbol: string; name: string };
 }
 
 interface DashboardKpisProps {
-  data: KpiData;
-  loading?: boolean;
+  data: DashboardKpiData;
+  loading: boolean;
 }
 
-const SparklineChart = ({ data, color = '#648B78' }: { data: number[]; color?: string }) => (
-  <svg width="80" height="24" className="inline-block">
-    <polyline
-      fill="none"
-      stroke={color}
-      strokeWidth="2"
-      points={data.map((value, index) => `${(index * 12)},${24 - (value / Math.max(...data)) * 20}`).join(' ')}
-    />
-  </svg>
-);
-
-const MiniBarChart = ({ value, max }: { value: number; max: number }) => (
-  <div className="inline-block w-16 h-3 bg-gray-100 rounded overflow-hidden">
-    <div 
-      className="h-full bg-[#648B78] transition-all duration-300"
-      style={{ width: `${(value / max) * 100}%` }}
-    />
-  </div>
-);
-
-const MiniPieChart = ({ data }: { data: Array<{ name: string; value: number; color: string }> }) => (
-  <div className="w-20 h-20">
-    <ResponsiveContainer width="100%" height="100%">
-      <RechartsPieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={12}
-          outerRadius={30}
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} />
-          ))}
-        </Pie>
-        <Tooltip 
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #E2E8F0',
-            borderRadius: '8px',
-            fontSize: '11px'
-          }}
-          formatter={(value: number) => [`${value.toLocaleString('fr-FR')} €`, 'CA']}
-        />
-      </RechartsPieChart>
-    </ResponsiveContainer>
-  </div>
-);
-
-export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
-  const { currency } = useCurrency();
-  
-  const sparklineData = [12, 19, 15, 25, 22, 30, 28];
-  
-  const kpis = [
-    {
-      title: 'Total factures',
-      value: data.totalInvoices,
-      icon: FileText,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      cardBg: 'bg-white',
-      format: 'number',
-      evolution: '+8.2%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Factures payées',
-      value: data.paidInvoices,
-      icon: CheckCircle2,
-      color: 'text-[#648B78]',
-      bgColor: 'bg-green-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '+12.5%',
-      evolutionPositive: true,
-      sparkline: sparklineData
-    },
-    {
-      title: 'En attente de paiement',
-      value: data.pendingInvoices,
-      icon: Clock4,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '-3.2%',
-      evolutionPositive: false
-    },
-    {
-      title: 'Factures en retard',
-      value: data.overdueInvoices,
-      icon: AlertCircle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-50',
-      cardBg: 'bg-red-50/30',
-      format: 'currency',
-      evolution: '-15.8%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Total avoirs',
-      value: data.totalCredits,
-      icon: Receipt,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '+2.1%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Chiffre d\'affaires TTC',
-      value: data.totalRevenue,
-      icon: BarChart2,
-      color: 'text-[#648B78]',
-      bgColor: 'bg-green-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '+18.7%',
-      evolutionPositive: true,
-      sparkline: sparklineData
-    },
-    {
-      title: 'Total TVA collectée',
-      value: data.totalVat,
-      icon: PercentCircle,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '+16.3%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Devis envoyés ce mois',
-      value: data.quotesThisMonth,
-      icon: FileCheck,
-      color: 'text-cyan-600',
-      bgColor: 'bg-cyan-50',
-      cardBg: 'bg-white',
-      format: 'number',
-      evolution: '+22.4%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Bons de commande en cours',
-      value: data.pendingOrders,
-      icon: Package,
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-50',
-      cardBg: 'bg-white',
-      format: 'number',
-      evolution: '+5.7%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Produits en stock faible',
-      value: data.lowStockProducts,
-      icon: TriangleAlert,
-      color: 'text-red-500',
-      bgColor: 'bg-red-50',
-      cardBg: 'bg-white',
-      format: 'number',
-      evolution: '-12.3%',
-      evolutionPositive: true
-    },
-    {
-      title: 'Top produit du mois',
-      value: data.topProduct.revenue,
-      label: data.topProduct.name,
-      icon: Star,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '+31.2%',
-      evolutionPositive: true,
-      miniBar: true
-    },
-    {
-      title: 'CA par catégorie',
-      value: data.categorySales.reduce((sum, cat) => sum + cat.value, 0),
-      icon: PieChart,
-      color: 'text-[#648B78]',
-      bgColor: 'bg-green-50',
-      cardBg: 'bg-white',
-      format: 'currency',
-      evolution: '+15.4%',
-      evolutionPositive: true,
-      miniPie: data.categorySales
-    }
-  ];
-
-  const formatValue = (value: number, format: string) => {
-    if (loading) return '...';
-    
-    if (format === 'currency') {
-      return `${value.toLocaleString('fr-FR')} ${currency.symbol}`;
-    }
-    
-    return value.toLocaleString('fr-FR');
+export function DashboardKpis({ data, loading }: DashboardKpisProps) {
+  const formatCurrency = (amount: number) => {
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${data.currency.symbol}`;
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        {Array.from({ length: 12 }).map((_, index) => (
-          <Card key={index} className="animate-pulse border-0 shadow-sm rounded-xl bg-white">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-2 rounded-lg bg-gray-100">
-                  <div className="h-5 w-5 bg-gray-200 rounded"></div>
-                </div>
-                <div className="h-4 w-12 bg-gray-200 rounded"></div>
-              </div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-20 mb-1" />
+              <Skeleton className="h-3 w-32" />
             </CardContent>
           </Card>
         ))}
@@ -267,63 +61,112 @@ export function DashboardKpis({ data, loading = false }: DashboardKpisProps) {
     );
   }
 
+  const kpis = [
+    {
+      title: "Total Factures",
+      value: data.totalInvoices.toString(),
+      description: "Factures créées ce mois",
+      icon: FileText,
+      color: "text-blue-600"
+    },
+    {
+      title: "Factures Payées",
+      value: formatCurrency(data.paidInvoices),
+      description: "Montant encaissé",
+      icon: CheckCircle,
+      color: "text-green-600"
+    },
+    {
+      title: "En Attente",
+      value: formatCurrency(data.pendingInvoices),
+      description: "Factures en attente",
+      icon: Clock,
+      color: "text-orange-600"
+    },
+    {
+      title: "En Retard",
+      value: formatCurrency(data.overdueInvoices),
+      description: "Factures en retard",
+      icon: AlertTriangle,
+      color: "text-red-600"
+    },
+    {
+      title: "Avoirs",
+      value: formatCurrency(data.totalCredits),
+      description: "Montant des avoirs",
+      icon: CreditCard,
+      color: "text-purple-600"
+    },
+    {
+      title: "Chiffre d'Affaires",
+      value: formatCurrency(data.totalRevenue),
+      description: "CA total du mois",
+      icon: TrendingUp,
+      color: "text-green-600"
+    },
+    {
+      title: "TVA Collectée",
+      value: formatCurrency(data.totalVat),
+      description: "Montant de TVA",
+      icon: Calculator,
+      color: "text-blue-600"
+    },
+    {
+      title: "Devis",
+      value: data.quotesThisMonth.toString(),
+      description: "Devis ce mois",
+      icon: FileCheck,
+      color: "text-indigo-600"
+    },
+    {
+      title: "Commandes",
+      value: data.pendingOrders.toString(),
+      description: "Commandes en attente",
+      icon: Package,
+      color: "text-amber-600"
+    },
+    {
+      title: "Stock Faible",
+      value: data.lowStockProducts.toString(),
+      description: "Produits < 10 unités",
+      icon: AlertCircle,
+      color: "text-red-600"
+    },
+    {
+      title: "Top Produit",
+      value: data.topProduct.name,
+      description: formatCurrency(data.topProduct.revenue),
+      icon: Trophy,
+      color: "text-yellow-600"
+    },
+    {
+      title: "Catégories",
+      value: data.categorySales.length.toString(),
+      description: "Catégories actives",
+      icon: PieChart,
+      color: "text-pink-600"
+    }
+  ];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {kpis.map((kpi, index) => {
         const Icon = kpi.icon;
-        const TrendIcon = kpi.evolutionPositive ? TrendingUp : TrendingDown;
-        
         return (
-          <Card 
-            key={kpi.title} 
-            className={`border-0 shadow-sm rounded-xl transition-all duration-200 hover:shadow-md ${kpi.cardBg || 'bg-white'}`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2.5 rounded-xl ${kpi.bgColor}`}>
-                  <Icon className={`h-5 w-5 ${kpi.color}`} />
-                </div>
-                <div className="flex items-center space-x-1">
-                  <TrendIcon className={`h-3.5 w-3.5 ${kpi.evolutionPositive ? 'text-[#648B78]' : 'text-red-500'}`} />
-                  <span className={`text-sm font-medium ${kpi.evolutionPositive ? 'text-[#648B78]' : 'text-red-500'}`}>
-                    {kpi.evolution}
-                  </span>
-                </div>
+          <Card key={index} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                {kpi.title}
+              </CardTitle>
+              <Icon className={`h-4 w-4 ${kpi.color}`} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                {kpi.value}
               </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-600 leading-tight">
-                  {kpi.title}
-                </h3>
-                
-                <div className="flex items-end justify-between">
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900 mb-1">
-                      {formatValue(kpi.value, kpi.format)}
-                    </div>
-                    {kpi.label && (
-                      <div className="text-xs text-gray-500 truncate max-w-[140px]">
-                        {kpi.label}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-shrink-0">
-                    {kpi.sparkline && (
-                      <SparklineChart 
-                        data={kpi.sparkline} 
-                        color={'#648B78'} 
-                      />
-                    )}
-                    {kpi.miniBar && (
-                      <MiniBarChart value={kpi.value} max={50000} />
-                    )}
-                    {kpi.miniPie && (
-                      <MiniPieChart data={kpi.miniPie} />
-                    )}
-                  </div>
-                </div>
-              </div>
+              <p className="text-xs text-gray-500">
+                {kpi.description}
+              </p>
             </CardContent>
           </Card>
         );

@@ -1,79 +1,55 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
-} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
-interface ChartData {
-  monthlyComparison: Array<{
-    month: string;
-    currentYear: number;
-    previousYear: number;
-  }>;
-  topProducts: Array<{
-    name: string;
-    revenue: number;
-  }>;
-  categorySales: Array<{
-    category: string;
-    amount: number;
-  }>;
-  invoiceStatus: Array<{
-    name: string;
-    value: number;
-    color: string;
-  }>;
-  clientRevenue: Array<{
-    name: string;
-    revenue: number;
-  }>;
-}
-
 interface DashboardChartsProps {
-  data: ChartData;
+  data: {
+    monthlyComparison: Array<{
+      month: string;
+      currentYear: number;
+      previousYear: number;
+    }>;
+    topProducts: Array<{
+      name: string;
+      revenue: number;
+    }>;
+    categorySales: Array<{
+      category: string;
+      amount: number;
+    }>;
+    invoiceStatus: Array<{
+      name: string;
+      value: number;
+      color: string;
+    }>;
+    clientRevenue: Array<{
+      name: string;
+      revenue: number;
+    }>;
+  };
   selectedYear: number;
-  loading?: boolean;
+  loading: boolean;
 }
 
-export function DashboardCharts({ data, selectedYear, loading = false }: DashboardChartsProps) {
+export function DashboardCharts({ data, selectedYear, loading }: DashboardChartsProps) {
   const { currency } = useCurrency();
-  
-  const COLORS = {
-    currentYear: '#648B78',
-    previousYear: '#94A3B8',
-    product: '#648B78',
-    category: ['#648B78', '#F59E0B', '#EF4444', '#10B981', '#3B82F6', '#F97316'],
-    client: '#3B82F6'
-  };
 
-  const formatCurrency = (value: number) => {
-    return `${value.toLocaleString('fr-FR')} ${currency.symbol}`;
+  const formatCurrency = (amount: number) => {
+    return `${amount.toLocaleString('fr-FR')} ${currency.symbol}`;
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {[1, 2, 3, 4].map((i) => (
-          <Card key={i} className="animate-pulse border-0 shadow-sm rounded-xl">
-            <CardHeader className="pb-4">
-              <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
             </CardHeader>
             <CardContent>
-              <div className="h-80 bg-gray-200 rounded-lg"></div>
+              <Skeleton className="h-64 w-full" />
             </CardContent>
           </Card>
         ))}
@@ -82,212 +58,103 @@ export function DashboardCharts({ data, selectedYear, loading = false }: Dashboa
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Chiffre d'affaires mensuel */}
-      <Card className="border-0 shadow-sm rounded-xl bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">Chiffre d'affaires mensuel</CardTitle>
-          <CardDescription className="text-gray-600">
-            Comparaison {selectedYear} vs {selectedYear - 1}
-          </CardDescription>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Comparaison mensuelle */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle>Évolution du Chiffre d'Affaires</CardTitle>
         </CardHeader>
-        <CardContent className="pt-2">
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={data.monthlyComparison} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis 
-                dataKey="month" 
-                stroke="#64748B"
-                tick={{ fontSize: 12, fill: '#64748B' }}
-                axisLine={{ stroke: '#E2E8F0' }}
-              />
-              <YAxis 
-                stroke="#64748B"
-                tick={{ fontSize: 12, fill: '#64748B' }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: number, name: string) => [
-                  formatCurrency(value),
-                  name === 'currentYear' ? selectedYear.toString() : (selectedYear - 1).toString()
-                ]}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="currentYear" 
-                stroke={COLORS.currentYear}
-                strokeWidth={3}
-                name={selectedYear.toString()}
-                dot={{ fill: COLORS.currentYear, strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8, stroke: COLORS.currentYear, strokeWidth: 2 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="previousYear" 
-                stroke={COLORS.previousYear}
-                strokeWidth={3}
-                name={(selectedYear - 1).toString()}
-                dot={{ fill: COLORS.previousYear, strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8, stroke: COLORS.previousYear, strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* CA par produit/service */}
-      <Card className="border-0 shadow-sm rounded-xl bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">CA par produit/service</CardTitle>
-          <CardDescription className="text-gray-600">Chiffre d'affaires par produit et service</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart 
-              data={data.topProducts}
-              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-              <XAxis 
-                dataKey="name" 
-                stroke="#64748B"
-                tick={{ fontSize: 11, fill: '#64748B' }}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-                axisLine={{ stroke: '#E2E8F0' }}
-              />
-              <YAxis 
-                stroke="#64748B"
-                tick={{ fontSize: 12, fill: '#64748B' }}
-                axisLine={{ stroke: '#E2E8F0' }}
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: number) => [formatCurrency(value), 'CA']}
-              />
-              <Bar 
-                dataKey="revenue" 
-                fill={COLORS.product}
-                radius={[6, 6, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* CA par catégorie - Camembert */}
-      <Card className="border-0 shadow-sm rounded-xl bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">CA par catégorie</CardTitle>
-          <CardDescription className="text-gray-600">Répartition du chiffre d'affaires par catégorie</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-              <Pie
-                data={data.categorySales}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                dataKey="amount"
-                label={({ category, percent }) => 
-                  `${category}: ${(percent * 100).toFixed(1)}%`
-                }
-                labelLine={false}
-              >
-                {data.categorySales.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS.category[index % COLORS.category.length]} 
-                  />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: number) => [formatCurrency(value), 'CA']}
-              />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => (
-                  <span style={{ fontWeight: 500 }}>
-                    {value}
-                  </span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+        <CardContent>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.monthlyComparison}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#666" />
+                <YAxis stroke="#666" tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
+                <Tooltip 
+                  formatter={(value: number, name: string) => [
+                    formatCurrency(value),
+                    name === 'currentYear' ? selectedYear.toString() : (selectedYear - 1).toString()
+                  ]}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Bar dataKey="currentYear" fill="#6A9C89" name={selectedYear.toString()} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="previousYear" fill="#A8D5BA" name={(selectedYear - 1).toString()} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
 
       {/* Statut des factures */}
-      <Card className="border-0 shadow-sm rounded-xl bg-white">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">Statut des factures</CardTitle>
-          <CardDescription className="text-gray-600">Répartition par statut (% et valeur brute)</CardDescription>
+      <Card>
+        <CardHeader>
+          <CardTitle>Statut des Factures</CardTitle>
         </CardHeader>
-        <CardContent className="pt-2">
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-              <Pie
-                data={data.invoiceStatus}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={120}
-                dataKey="value"
-                label={({ name, percent }) => 
-                  `${name}: ${(percent * 100).toFixed(1)}%`
-                }
-                labelLine={false}
-              >
-                {data.invoiceStatus.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.color} 
+        <CardContent>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data.invoiceStatus}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {data.invoiceStatus.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 space-y-2">
+            {data.invoiceStatus.map((status, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: status.color }}
                   />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #E2E8F0',
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: number) => [formatCurrency(value), 'Montant']}
-              />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value, entry) => (
-                  <span style={{ color: entry.color, fontWeight: 500 }}>
-                    {value}
-                  </span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+                  <span className="text-sm text-gray-600">{status.name}</span>
+                </div>
+                <span className="text-sm font-medium">{formatCurrency(status.value)}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top 5 clients */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Top 5 Clients</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {data.clientRevenue.map((client, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-[#6A9C89] rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    {index + 1}
+                  </div>
+                  <span className="text-sm font-medium">{client.name}</span>
+                </div>
+                <span className="text-sm font-medium text-green-600">
+                  {formatCurrency(client.revenue)}
+                </span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

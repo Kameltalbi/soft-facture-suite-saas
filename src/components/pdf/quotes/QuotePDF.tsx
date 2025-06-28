@@ -138,6 +138,7 @@ interface QuotePDFProps {
   client: any;
   company: any;
   settings: any;
+  currency?: { code: string; symbol: string; name: string };
 }
 
 export const QuotePDF = ({
@@ -145,8 +146,11 @@ export const QuotePDF = ({
   lineItems,
   client,
   company,
-  settings
+  settings,
+  currency
 }: QuotePDFProps) => {
+  const currencySymbol = currency?.symbol || '€';
+  
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
     const totalVAT = lineItems.reduce((sum, item) => {
@@ -218,7 +222,7 @@ export const QuotePDF = ({
               <Text style={[styles.tableCell, { flex: 3 }]}>{item.description}</Text>
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity}</Text>
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
-                {item.unitPrice?.toFixed(2)} €
+                {item.unitPrice?.toFixed(2)} {currencySymbol}
               </Text>
               {settings?.showVat && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
@@ -226,7 +230,7 @@ export const QuotePDF = ({
                 </Text>
               )}
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
-                {item.total?.toFixed(2)} €
+                {item.total?.toFixed(2)} {currencySymbol}
               </Text>
             </View>
           ))}
@@ -236,17 +240,17 @@ export const QuotePDF = ({
         <View style={styles.totalsSection}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Sous-total HT:</Text>
-            <Text style={styles.totalValue}>{subtotalHT.toFixed(2)} €</Text>
+            <Text style={styles.totalValue}>{subtotalHT.toFixed(2)} {currencySymbol}</Text>
           </View>
           {settings?.showVat && (
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>TVA:</Text>
-              <Text style={styles.totalValue}>{totalVAT.toFixed(2)} €</Text>
+              <Text style={styles.totalValue}>{totalVAT.toFixed(2)} {currencySymbol}</Text>
             </View>
           )}
           <View style={styles.grandTotal}>
             <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
-            <Text style={styles.grandTotalText}>{totalTTC.toFixed(2)} €</Text>
+            <Text style={styles.grandTotalText}>{totalTTC.toFixed(2)} {currencySymbol}</Text>
           </View>
         </View>
 
