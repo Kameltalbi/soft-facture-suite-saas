@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,7 +91,7 @@ const AuthPage = () => {
       description: "Bienvenue dans Soft Facture",
     });
     
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const onRegister = async (data: RegisterFormData) => {
