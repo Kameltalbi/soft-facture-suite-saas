@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon, FileText, Eye, Save, Printer, Download, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,9 +46,10 @@ interface BonCommandeModalProps {
   onSave: (data: any) => void;
 }
 
-// Interface étendue pour les lignes avec notes
+// Interface étendue pour les lignes avec notes et remise
 interface LigneBonCommandeEtendue extends LigneBonCommande {
   notes?: string;
+  remise?: number;
 }
 
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
@@ -112,6 +114,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
       tva: 20,
       totalHT: 0,
       notes: '',
+      remise: 0,
     };
     setLignes([...lignes, nouvelleLigne]);
   };
@@ -124,8 +127,10 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
     setLignes(lignes.map(ligne => {
       if (ligne.id === id) {
         const ligneMise = { ...ligne, [champ]: valeur };
-        if (champ === 'quantite' || champ === 'prixUnitaireHT') {
-          ligneMise.totalHT = ligneMise.quantite * ligneMise.prixUnitaireHT;
+        if (champ === 'quantite' || champ === 'prixUnitaireHT' || champ === 'remise') {
+          const prixAvantRemise = ligneMise.quantite * ligneMise.prixUnitaireHT;
+          const remiseAmount = (prixAvantRemise * (ligneMise.remise || 0)) / 100;
+          ligneMise.totalHT = prixAvantRemise - remiseAmount;
         }
         return ligneMise;
       }
@@ -337,12 +342,13 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40%]">Désignation</TableHead>
-                    <TableHead className="w-[8%]">Qté</TableHead>
-                    <TableHead className="w-[12%]">Prix unit. HT</TableHead>
-                    <TableHead className="w-[8%]">TVA (%)</TableHead>
-                    <TableHead className="w-[12%]">Total HT</TableHead>
-                    <TableHead className="w-[8%]">Actions</TableHead>
+                    <TableHead className="w-[30%]">Désignation</TableHead>
+                    <TableHead className="w-[6%]">Qté</TableHead>
+                    <TableHead className="w-[10%]">Prix unit. HT</TableHead>
+                    <TableHead className="w-[8%]">Remise (%)</TableHead>
+                    <TableHead className="w-[6%]">TVA (%)</TableHead>
+                    <TableHead className="w-[10%]">Total HT</TableHead>
+                    <TableHead className="w-[6%]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -379,7 +385,17 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                           onChange={(e) => modifierLigne(ligne.id, 'prixUnitaireHT', Number(e.target.value))}
                           min="0"
                           step="0.01"
-                          className="w-24"
+                          className="w-20"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={ligne.remise || 0}
+                          onChange={(e) => modifierLigne(ligne.id, 'remise', Number(e.target.value))}
+                          min="0"
+                          max="100"
+                          className="w-16"
                         />
                       </TableCell>
                       <TableCell>
@@ -409,7 +425,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                   ))}
                   {lignes.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                         Aucune ligne ajoutée. Cliquez sur "Ajouter une ligne" pour commencer.
                       </TableCell>
                     </TableRow>
