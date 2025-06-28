@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Search, Building2, Calendar, CreditCard, ArrowUp, History, Edit, Pause, Check, Plus } from 'lucide-react';
+import { Search, Building2, Calendar, CreditCard, ArrowUp, History, Edit, Pause, Check, Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,9 +21,11 @@ import {
 } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { UserManagementSection } from '@/components/admin/UserManagementSection';
 
 interface Organization {
   id: string;
@@ -334,243 +335,263 @@ const OrganisationsAdminPage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-neutral-900">Gestion des Organisations</h1>
-            <p className="text-neutral-600">Administration des organisations et abonnements</p>
+            <h1 className="text-2xl font-bold text-neutral-900">Administration Superadmin</h1>
+            <p className="text-neutral-600">Gestion globale des organisations et utilisateurs</p>
           </div>
         </div>
 
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Total</p>
-                  <p className="text-2xl font-bold text-neutral-900">{organizations.length}</p>
-                </div>
-                <Building2 className="h-8 w-8 text-[#6A9C89]" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Onglets */}
+        <Tabs defaultValue="organizations" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="organizations" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Organisations
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Utilisateurs
+            </TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Actives</p>
-                  <p className="text-2xl font-bold text-success">
-                    {organizations.filter(o => o.status === 'active').length}
-                  </p>
-                </div>
-                <Check className="h-8 w-8 text-success" />
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="organizations" className="space-y-6">
+            {/* Statistiques */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-neutral-600">Total</p>
+                      <p className="text-2xl font-bold text-neutral-900">{organizations.length}</p>
+                    </div>
+                    <Building2 className="h-8 w-8 text-[#6A9C89]" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Suspendues</p>
-                  <p className="text-2xl font-bold text-destructive">
-                    {organizations.filter(o => o.status === 'suspended').length}
-                  </p>
-                </div>
-                <Pause className="h-8 w-8 text-destructive" />
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-neutral-600">Actives</p>
+                      <p className="text-2xl font-bold text-success">
+                        {organizations.filter(o => o.status === 'active').length}
+                      </p>
+                    </div>
+                    <Check className="h-8 w-8 text-success" />
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Premium</p>
-                  <p className="text-2xl font-bold text-[#6A9C89]">
-                    {organizations.filter(o => o.plan === 'premium').length}
-                  </p>
-                </div>
-                <ArrowUp className="h-8 w-8 text-[#6A9C89]" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-neutral-600">Suspendues</p>
+                      <p className="text-2xl font-bold text-destructive">
+                        {organizations.filter(o => o.status === 'suspended').length}
+                      </p>
+                    </div>
+                    <Pause className="h-8 w-8 text-destructive" />
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Filtres */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Filtres</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-                <Input
-                  placeholder="Rechercher par nom ou email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filtrer par statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="active">Actif</SelectItem>
-                  <SelectItem value="suspended">Suspendu</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={planFilter} onValueChange={setPlanFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filtrer par plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les plans</SelectItem>
-                  <SelectItem value="free">Gratuit</SelectItem>
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tableau */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Organisations</CardTitle>
-            <CardDescription>
-              {filteredOrganizations.length} organisation(s) trouvée(s)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Organisation</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Début abonnement</TableHead>
-                    <TableHead>Fin abonnement</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedOrganizations.map((org) => (
-                    <TableRow key={org.id}>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Building2 size={16} className="mr-2 text-[#6A9C89]" />
-                          <span className="font-medium">{org.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{org.email || 'N/A'}</TableCell>
-                      <TableCell>{getStatusBadge(org.status)}</TableCell>
-                      <TableCell>{getPlanBadge(org.plan)}</TableCell>
-                      <TableCell>
-                        {org.subscription_start ? new Date(org.subscription_start).toLocaleDateString('fr-FR') : 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        {org.subscription_end ? new Date(org.subscription_end).toLocaleDateString('fr-FR') : 'Illimité'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedOrganization(org);
-                              setEditForm({
-                                status: org.status,
-                                plan: org.plan,
-                                subscription_start: org.subscription_start,
-                                subscription_end: org.subscription_end || ''
-                              });
-                              setEditModalOpen(true);
-                            }}
-                          >
-                            <Edit size={14} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSuspend(org)}
-                          >
-                            <Pause size={14} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleValidatePayment(org)}
-                          >
-                            <Check size={14} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleExtendSubscription(org)}
-                          >
-                            <Calendar size={14} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUpgrade(org)}
-                          >
-                            <ArrowUp size={14} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedOrganization(org);
-                              loadOrganizationHistory(org.id);
-                              setHistoryModalOpen(true);
-                            }}
-                          >
-                            <History size={14} />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-neutral-600">Premium</p>
+                      <p className="text-2xl font-bold text-[#6A9C89]">
+                        {organizations.filter(o => o.plan === 'premium').length}
+                      </p>
+                    </div>
+                    <ArrowUp className="h-8 w-8 text-[#6A9C89]" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4">
-                <div className="text-sm text-neutral-600">
-                  Page {currentPage} sur {totalPages}
+            {/* Filtres */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Filtres</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+                    <Input
+                      placeholder="Rechercher par nom ou email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filtrer par statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les statuts</SelectItem>
+                      <SelectItem value="active">Actif</SelectItem>
+                      <SelectItem value="suspended">Suspendu</SelectItem>
+                      <SelectItem value="pending">En attente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={planFilter} onValueChange={setPlanFilter}>
+                    <SelectTrigger className="w-full sm:w-48">
+                      <SelectValue placeholder="Filtrer par plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les plans</SelectItem>
+                      <SelectItem value="free">Gratuit</SelectItem>
+                      <SelectItem value="standard">Standard</SelectItem>
+                      <SelectItem value="premium">Premium</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Précédent
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Suivant
-                  </Button>
+              </CardContent>
+            </Card>
+
+            {/* Tableau des organisations */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Organisations</CardTitle>
+                <CardDescription>
+                  {filteredOrganizations.length} organisation(s) trouvée(s)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Organisation</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Plan</TableHead>
+                        <TableHead>Début abonnement</TableHead>
+                        <TableHead>Fin abonnement</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedOrganizations.map((org) => (
+                        <TableRow key={org.id}>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Building2 size={16} className="mr-2 text-[#6A9C89]" />
+                              <span className="font-medium">{org.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{org.email || 'N/A'}</TableCell>
+                          <TableCell>{getStatusBadge(org.status)}</TableCell>
+                          <TableCell>{getPlanBadge(org.plan)}</TableCell>
+                          <TableCell>
+                            {org.subscription_start ? new Date(org.subscription_start).toLocaleDateString('fr-FR') : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {org.subscription_end ? new Date(org.subscription_end).toLocaleDateString('fr-FR') : 'Illimité'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedOrganization(org);
+                                  setEditForm({
+                                    status: org.status,
+                                    plan: org.plan,
+                                    subscription_start: org.subscription_start,
+                                    subscription_end: org.subscription_end || ''
+                                  });
+                                  setEditModalOpen(true);
+                                }}
+                              >
+                                <Edit size={14} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSuspend(org)}
+                              >
+                                <Pause size={14} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleValidatePayment(org)}
+                              >
+                                <Check size={14} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleExtendSubscription(org)}
+                              >
+                                <Calendar size={14} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUpgrade(org)}
+                              >
+                                <ArrowUp size={14} />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedOrganization(org);
+                                  loadOrganizationHistory(org.id);
+                                  setHistoryModalOpen(true);
+                                }}
+                              >
+                                <History size={14} />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="text-sm text-neutral-600">
+                      Page {currentPage} sur {totalPages}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Précédent
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Suivant
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <UserManagementSection />
+          </TabsContent>
+        </Tabs>
 
         {/* Modal de modification */}
         <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
