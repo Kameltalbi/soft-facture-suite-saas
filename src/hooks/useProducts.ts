@@ -79,11 +79,69 @@ export function useProducts() {
     }
   };
 
+  const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at'>>) => {
+    if (!organization?.id) return { error: 'Organization not found' };
+
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .update({
+          ...productData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .eq('organization_id', organization.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Mettre à jour le produit dans la liste existante
+      setProducts(prev => prev.map(product => 
+        product.id === id ? data : product
+      ));
+      
+      return { data, error: null };
+    } catch (err) {
+      console.error('Error updating product:', err);
+      return { 
+        data: null, 
+        error: err instanceof Error ? err.message : 'Erreur lors de la mise à jour du produit' 
+      };
+    }
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (!organization?.id) return { error: 'Organization not found' };
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id)
+        .eq('organization_id', organization.id);
+
+      if (error) throw error;
+      
+      // Supprimer le produit de la liste existante
+      setProducts(prev => prev.filter(product => product.id !== id));
+      
+      return { error: null };
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      return { 
+        error: err instanceof Error ? err.message : 'Erreur lors de la suppression du produit' 
+      };
+    }
+  };
+
   return {
     products,
     loading,
     error,
     fetchProducts,
-    createProduct
+    createProduct,
+    updateProduct,
+    deleteProduct
   };
 }
