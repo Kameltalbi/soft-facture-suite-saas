@@ -142,7 +142,7 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
               <span className="text-green-600 font-medium">✨ Redimensionnement automatique activé</span>
             </div>
             <div className="flex items-center gap-6">
-              <div className="logo-container w-60 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 p-3">
+              <div className="logo-container w-80 h-22 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 p-3">
                 {organization?.logo ? (
                   <img 
                     src={organization.logo} 
@@ -153,7 +153,7 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                   <div className="text-center">
                     <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
                     <span className="text-sm text-gray-500">Zone d'affichage du logo</span>
-                    <div className="text-xs text-gray-400 mt-1">240 x 96 px</div>
+                    <div className="text-xs text-gray-400 mt-1">320 x 88 px</div>
                   </div>
                 )}
               </div>
