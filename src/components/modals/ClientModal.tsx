@@ -26,7 +26,7 @@ export function ClientModal({ open, onClose, client, onSave }: ClientModalProps)
     postal_code: '',
     country: 'France',
     vat_number: '',
-    paymentTerms: 30,
+    payment_terms: 30,
     status: 'active' as 'active' | 'inactive'
   });
 
@@ -42,7 +42,7 @@ export function ClientModal({ open, onClose, client, onSave }: ClientModalProps)
         postal_code: client.postal_code || '',
         country: client.country || 'France',
         vat_number: client.vat_number || '',
-        paymentTerms: client.paymentTerms || 30,
+        payment_terms: client.payment_terms || 30,
         status: client.status || 'active'
       });
     } else {
@@ -56,7 +56,7 @@ export function ClientModal({ open, onClose, client, onSave }: ClientModalProps)
         postal_code: '',
         country: 'France',
         vat_number: '',
-        paymentTerms: 30,
+        payment_terms: 30,
         status: 'active'
       });
     }
@@ -223,8 +223,8 @@ export function ClientModal({ open, onClose, client, onSave }: ClientModalProps)
               <div>
                 <Label htmlFor="paymentTerms">Conditions de paiement</Label>
                 <Select 
-                  value={formData.paymentTerms.toString()} 
-                  onValueChange={(value) => setFormData({...formData, paymentTerms: parseInt(value)})}
+                  value={formData.payment_terms.toString()} 
+                  onValueChange={(value) => setFormData({...formData, payment_terms: parseInt(value)})}
                 >
                   <SelectTrigger>
                     <SelectValue />
