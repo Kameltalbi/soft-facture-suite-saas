@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,13 +22,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+
 interface Invoice {
   id: string;
   number: string;
   date: string;
   client: string;
   amount: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  status: InvoiceStatus;
 }
 
 const statusLabels = {
@@ -123,9 +124,119 @@ export default function Invoices() {
       date: invoice.date,
       client: invoice.clients?.name || '',
       amount: invoice.total_amount,
-      status: invoice.status
+      status: invoice.status as InvoiceStatus
     });
     setShowInvoiceModal(true);
+  };
+
+  const handleSaveInvoice = async (invoiceData: any) => {
+    try {
+      if (!organization?.id) {
+        toast({
+          title: "Erreur",
+          description: "Organisation non trouvée",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Saving invoice:', invoiceData);
+
+      if (editingInvoice) {
+        // Mise à jour d'une facture existante
+        const { error: updateError } = await supabase
+          .from('invoices')
+          .update({
+            invoice_number: invoiceData.number,
+            date: invoiceData.date,
+            due_date: invoiceData.dueDate,
+            client_id: invoiceData.client?.id,
+            subtotal: invoiceData.totals.subtotalHT,
+            tax_amount: invoiceData.totals.totalVAT,
+            total_amount: invoiceData.totals.totalTTC,
+            notes: invoiceData.notes,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingInvoice.id);
+
+        if (updateError) throw updateError;
+
+        // Supprimer les anciens éléments et en créer de nouveaux
+        await supabase.from('invoice_items').delete().eq('invoice_id', editingInvoice.id);
+        
+        if (invoiceData.items && invoiceData.items.length > 0) {
+          const newItems = invoiceData.items.map((item: any) => ({
+            invoice_id: editingInvoice.id,
+            organization_id: organization.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            tax_rate: item.vatRate,
+            total_price: item.total
+          }));
+
+          const { error: itemsError } = await supabase.from('invoice_items').insert(newItems);
+          if (itemsError) throw itemsError;
+        }
+
+        toast({
+          title: "Succès",
+          description: "La facture a été mise à jour avec succès",
+        });
+      } else {
+        // Création d'une nouvelle facture
+        const { data: newInvoice, error: invoiceError } = await supabase
+          .from('invoices')
+          .insert({
+            invoice_number: invoiceData.number,
+            date: invoiceData.date,
+            due_date: invoiceData.dueDate,
+            client_id: invoiceData.client?.id,
+            organization_id: organization.id,
+            status: 'draft',
+            subtotal: invoiceData.totals.subtotalHT,
+            tax_amount: invoiceData.totals.totalVAT,
+            total_amount: invoiceData.totals.totalTTC,
+            notes: invoiceData.notes
+          })
+          .select()
+          .single();
+
+        if (invoiceError) throw invoiceError;
+
+        // Créer les éléments de facture
+        if (invoiceData.items && invoiceData.items.length > 0) {
+          const newItems = invoiceData.items.map((item: any) => ({
+            invoice_id: newInvoice.id,
+            organization_id: organization.id,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            tax_rate: item.vatRate,
+            total_price: item.total
+          }));
+
+          const { error: itemsError } = await supabase.from('invoice_items').insert(newItems);
+          if (itemsError) throw itemsError;
+        }
+
+        toast({
+          title: "Succès",
+          description: "La facture a été créée avec succès",
+        });
+      }
+
+      // Rafraîchir la liste des factures
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      setShowInvoiceModal(false);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la sauvegarde de la facture",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleViewInvoice = (invoice: any) => {
@@ -502,8 +613,8 @@ export default function Invoices() {
                     })}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusLabels[invoice.status]?.variant || 'secondary'}>
-                      {statusLabels[invoice.status]?.label || invoice.status}
+                    <Badge variant={statusLabels[invoice.status as InvoiceStatus]?.variant || 'secondary'}>
+                      {statusLabels[invoice.status as InvoiceStatus]?.label || invoice.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -513,7 +624,7 @@ export default function Invoices() {
                         number: invoice.invoice_number,
                         client: invoice.clients?.name || '',
                         amount: invoice.total_amount,
-                        status: invoice.status,
+                        status: invoice.status as InvoiceStatus,
                         date: invoice.date
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
@@ -545,11 +656,7 @@ export default function Invoices() {
         open={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
         invoice={editingInvoice}
-        onSave={(data) => {
-          console.log('Saving invoice:', data);
-          queryClient.invalidateQueries({ queryKey: ['invoices'] });
-          setShowInvoiceModal(false);
-        }}
+        onSave={handleSaveInvoice}
       />
     </div>
   );
