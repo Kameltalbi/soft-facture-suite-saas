@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
@@ -11,12 +12,13 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    alignItems: 'flex-start',
+    marginBottom: 30,
     paddingBottom: 20,
     borderBottomWidth: 2,
     borderBottomColor: '#3B82F6',
   },
-  logoSection: {
+  leftSection: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     flex: 1,
@@ -30,20 +32,40 @@ const styles = StyleSheet.create({
   companyInfo: {
     flex: 1,
   },
-  documentSection: {
+  companyName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333333',
+  },
+  companyDetails: {
+    fontSize: 10,
+    color: '#666666',
+    lineHeight: 1.4,
+    marginBottom: 2,
+  },
+  rightSection: {
     alignItems: 'flex-end',
   },
   documentTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#3B82F6',
-    textAlign: 'right',
-    marginBottom: 10,
+    marginBottom: 15,
+  },
+  documentInfo: {
+    alignItems: 'flex-end',
   },
   documentNumber: {
-    fontSize: 14,
+    fontSize: 12,
+    color: '#333333',
+    marginBottom: 5,
+    fontWeight: 'bold',
+  },
+  documentDate: {
+    fontSize: 10,
     color: '#666666',
-    textAlign: 'right',
+    marginBottom: 3,
   },
   clientSection: {
     marginBottom: 20,
@@ -173,36 +195,44 @@ export const InvoicePDF = ({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoSection}>
+          <View style={styles.leftSection}>
             {company?.logo && (
               <Image style={styles.logo} src={company.logo} />
             )}
             <View style={styles.companyInfo}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>
+              <Text style={styles.companyName}>
                 {company?.name || 'Soft Facture'}
               </Text>
-              <Text style={{ fontSize: 10, color: '#666666', lineHeight: 1.4 }}>
+              <Text style={styles.companyDetails}>
                 {company?.address || 'Adresse de l\'entreprise'}
               </Text>
-              <Text style={{ fontSize: 10, color: '#666666' }}>
+              <Text style={styles.companyDetails}>
                 {company?.email || 'contact@softfacture.fr'}
               </Text>
-              <Text style={{ fontSize: 10, color: '#666666' }}>
+              <Text style={styles.companyDetails}>
                 {company?.phone || 'Téléphone'}
               </Text>
             </View>
           </View>
-          <View style={styles.documentSection}>
+          
+          <View style={styles.rightSection}>
             <Text style={styles.documentTitle}>FACTURE</Text>
-            <Text style={styles.documentNumber}>N° {invoiceData?.number}</Text>
-            <Text style={styles.documentNumber}>
-              Date: {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
-            </Text>
-            {invoiceData?.dueDate && (
-              <Text style={styles.documentNumber}>
-                Échéance: {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}
+            <View style={styles.documentInfo}>
+              <Text style={styles.documentNumber}>Numéro</Text>
+              <Text style={styles.documentNumber}>{invoiceData?.number}</Text>
+              <Text style={styles.documentDate}>Date</Text>
+              <Text style={styles.documentDate}>
+                {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
               </Text>
-            )}
+              {invoiceData?.dueDate && (
+                <>
+                  <Text style={styles.documentDate}>Échéance</Text>
+                  <Text style={styles.documentDate}>
+                    {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}
+                  </Text>
+                </>
+              )}
+            </View>
           </View>
         </View>
 
