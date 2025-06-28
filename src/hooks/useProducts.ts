@@ -106,12 +106,37 @@ export function useProducts() {
     }
   };
 
+  const deleteProduct = async (productId: string) => {
+    if (!organization?.id) return { error: 'Organization not found' };
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ active: false })
+        .eq('id', productId)
+        .eq('organization_id', organization.id);
+
+      if (error) throw error;
+      
+      // Retirer le produit de la liste existante
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      
+      return { error: null };
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      return { 
+        error: err instanceof Error ? err.message : 'Erreur lors de la suppression du produit' 
+      };
+    }
+  };
+
   return {
     products,
     loading,
     error,
     fetchProducts,
     createProduct,
-    updateProduct
+    updateProduct,
+    deleteProduct
   };
 }
