@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -17,8 +17,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#3B82F6',
   },
+  logoSection: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  logo: {
+    width: 80,
+    height: 60,
+    objectFit: 'contain',
+    marginBottom: 10,
+  },
   companyInfo: {
     flex: 1,
+  },
+  documentSection: {
+    alignItems: 'flex-end',
   },
   documentTitle: {
     fontSize: 24,
@@ -160,26 +173,36 @@ export const InvoicePDF = ({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.companyInfo}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>
-              {company?.name || 'Soft Facture'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#666666', lineHeight: 1.4 }}>
-              {company?.address || 'Adresse de l\'entreprise'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#666666' }}>
-              {company?.email || 'contact@softfacture.fr'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#666666' }}>
-              {company?.phone || 'Téléphone'}
-            </Text>
+          <View style={styles.logoSection}>
+            {company?.logo && (
+              <Image style={styles.logo} src={company.logo} />
+            )}
+            <View style={styles.companyInfo}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>
+                {company?.name || 'Soft Facture'}
+              </Text>
+              <Text style={{ fontSize: 10, color: '#666666', lineHeight: 1.4 }}>
+                {company?.address || 'Adresse de l\'entreprise'}
+              </Text>
+              <Text style={{ fontSize: 10, color: '#666666' }}>
+                {company?.email || 'contact@softfacture.fr'}
+              </Text>
+              <Text style={{ fontSize: 10, color: '#666666' }}>
+                {company?.phone || 'Téléphone'}
+              </Text>
+            </View>
           </View>
-          <View>
+          <View style={styles.documentSection}>
             <Text style={styles.documentTitle}>FACTURE</Text>
             <Text style={styles.documentNumber}>N° {invoiceData?.number}</Text>
             <Text style={styles.documentNumber}>
               Date: {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
             </Text>
+            {invoiceData?.dueDate && (
+              <Text style={styles.documentNumber}>
+                Échéance: {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}
+              </Text>
+            )}
           </View>
         </View>
 
