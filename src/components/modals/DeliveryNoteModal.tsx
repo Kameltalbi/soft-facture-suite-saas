@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -53,30 +52,59 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   ]);
 
   useEffect(() => {
-    if (deliveryNote) {
-      setFormData({
-        delivery_number: deliveryNote.delivery_number || '',
-        client_id: deliveryNote.client_id || '',
-        date: deliveryNote.date || new Date().toISOString().split('T')[0],
-        expected_delivery_date: deliveryNote.expected_delivery_date || '',
-        delivery_address: deliveryNote.delivery_address || '',
-        notes: deliveryNote.notes || ''
-      });
-      
-      if (deliveryNote.delivery_note_items && deliveryNote.delivery_note_items.length > 0) {
-        const convertedItems = deliveryNote.delivery_note_items.map((item: any, index: number) => ({
-          id: item.id || `${index + 1}`,
-          product_id: item.product_id || '',
-          description: item.description || '',
-          quantity: Number(item.quantity) || 1,
-          unit_price: 0, // Les bons de livraison peuvent ne pas avoir de prix
+    if (open) {
+      if (deliveryNote) {
+        setFormData({
+          delivery_number: deliveryNote.delivery_number || '',
+          client_id: deliveryNote.client_id || '',
+          date: deliveryNote.date || new Date().toISOString().split('T')[0],
+          expected_delivery_date: deliveryNote.expected_delivery_date || '',
+          delivery_address: deliveryNote.delivery_address || '',
+          notes: deliveryNote.notes || ''
+        });
+        
+        if (deliveryNote.delivery_note_items && deliveryNote.delivery_note_items.length > 0) {
+          const convertedItems = deliveryNote.delivery_note_items.map((item: any, index: number) => ({
+            id: item.id || `${index + 1}`,
+            product_id: item.product_id || '',
+            description: item.description || '',
+            quantity: Number(item.quantity) || 1,
+            unit_price: 0, // Les bons de livraison peuvent ne pas avoir de prix
+            tax_rate: 20,
+            total: 0
+          }));
+          setItems(convertedItems);
+        } else {
+          setItems([{
+            id: '1',
+            description: '',
+            quantity: 1,
+            unit_price: 0,
+            tax_rate: 20,
+            total: 0
+          }]);
+        }
+      } else {
+        // Reset form for new delivery note
+        setFormData({
+          delivery_number: '',
+          client_id: '',
+          date: new Date().toISOString().split('T')[0],
+          expected_delivery_date: '',
+          delivery_address: '',
+          notes: ''
+        });
+        setItems([{
+          id: '1',
+          description: '',
+          quantity: 1,
+          unit_price: 0,
           tax_rate: 20,
           total: 0
-        }));
-        setItems(convertedItems);
+        }]);
       }
     }
-  }, [deliveryNote]);
+  }, [open, deliveryNote]);
 
   const addItem = () => {
     const newItem: DeliveryNoteItem = {
@@ -245,7 +273,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {items.map((item, index) => (
+              {items.map((item) => (
                 <div key={item.id} className="grid grid-cols-12 gap-2 items-end border-b pb-4">
                   <div className="col-span-4">
                     <Label>Produit</Label>
@@ -257,7 +285,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                         <SelectValue placeholder="Sélectionner un produit" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Produit personnalisé</SelectItem>
+                        <SelectItem value="custom">Produit personnalisé</SelectItem>
                         {!productsLoading && products.map((product) => (
                           <SelectItem key={product.id} value={product.id}>
                             {product.name}
