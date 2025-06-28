@@ -19,6 +19,15 @@ import Avoirs from '@/pages/Avoirs';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import BonsCommandePage from '@/pages/BonsCommandePage';
 import OrganisationsAdminPage from '@/pages/OrganisationsAdminPage';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import InvoiceReportPage from '@/pages/reports/InvoiceReportPage';
+import ProductRevenueReportPage from '@/pages/reports/ProductRevenueReportPage';
+import MonthlyRevenueReportPage from '@/pages/reports/MonthlyRevenueReportPage';
+import YearComparisonReportPage from '@/pages/reports/YearComparisonReportPage';
+import ProductRankingReportPage from '@/pages/reports/ProductRankingReportPage';
+import ClientRevenueReportPage from '@/pages/reports/ClientRevenueReportPage';
+import VatReportPage from '@/pages/reports/VatReportPage';
+import StockMovementsReportPage from '@/pages/reports/StockMovementsReportPage';
 
 export const DashboardSelector = () => {
   const { profile } = useAuth();
@@ -55,7 +64,19 @@ export const DashboardSelector = () => {
       case 'credits':
         return <Avoirs />;
       case 'reports':
-        return <Reports />;
+        return (
+          <Routes>
+            <Route path="/" element={<Reports />} />
+            <Route path="/invoices" element={<InvoiceReportPage />} />
+            <Route path="/product-revenue" element={<ProductRevenueReportPage />} />
+            <Route path="/monthly-revenue" element={<MonthlyRevenueReportPage />} />
+            <Route path="/year-comparison" element={<YearComparisonReportPage />} />
+            <Route path="/product-ranking" element={<ProductRankingReportPage />} />
+            <Route path="/client-revenue" element={<ClientRevenueReportPage />} />
+            <Route path="/vat-report" element={<VatReportPage />} />
+            <Route path="/stock-movements" element={<StockMovementsReportPage />} />
+          </Routes>
+        );
       case 'settings':
         return <Settings />;
       default:
