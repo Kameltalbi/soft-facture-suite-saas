@@ -21,13 +21,32 @@ import BonsCommandePage from '@/pages/BonsCommandePage';
 import OrganisationsAdminPage from '@/pages/OrganisationsAdminPage';
 
 export const DashboardSelector = () => {
-  const { profile } = useAuth();
+  const { profile, user, loading } = useAuth();
   const [activeModule, setActiveModule] = useState('dashboard');
+
+  // Logs de débogage
+  console.log('DashboardSelector - Debug Info:');
+  console.log('- Loading:', loading);
+  console.log('- User:', user);
+  console.log('- Profile:', profile);
+  console.log('- Profile role:', profile?.role);
+
+  // Si on est encore en train de charger, afficher un loader
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A9C89]"></div>
+      </div>
+    );
+  }
 
   // Si l'utilisateur est superadmin, afficher la page de gestion des organisations
   if (profile?.role === 'superadmin') {
+    console.log('Affichage de la page OrganisationsAdminPage pour superadmin');
     return <OrganisationsAdminPage />;
   }
+
+  console.log('Affichage du dashboard normal pour utilisateur standard');
 
   // Pour les utilisateurs normaux, afficher le dashboard complet avec sidebar
   const renderModule = () => {
