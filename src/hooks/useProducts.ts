@@ -8,12 +8,12 @@ interface Product {
   name: string;
   description: string | null;
   price: number;
+  sku: string | null;
+  category: string | null;
   unit: string | null;
   stock_quantity: number | null;
-  category: string | null;
-  sku: string | null;
-  active: boolean | null;
   track_stock: boolean | null;
+  active: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,64 +79,11 @@ export function useProducts() {
     }
   };
 
-  const updateProduct = async (productId: string, productData: Partial<Product>) => {
-    if (!organization?.id) return { error: 'Organization not found' };
-
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .update(productData)
-        .eq('id', productId)
-        .eq('organization_id', organization.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      // Mettre à jour le produit dans la liste existante
-      setProducts(prev => prev.map(p => p.id === productId ? data : p));
-      
-      return { data, error: null };
-    } catch (err) {
-      console.error('Error updating product:', err);
-      return { 
-        data: null, 
-        error: err instanceof Error ? err.message : 'Erreur lors de la mise à jour du produit' 
-      };
-    }
-  };
-
-  const deleteProduct = async (productId: string) => {
-    if (!organization?.id) return { error: 'Organization not found' };
-
-    try {
-      const { error } = await supabase
-        .from('products')
-        .update({ active: false })
-        .eq('id', productId)
-        .eq('organization_id', organization.id);
-
-      if (error) throw error;
-      
-      // Retirer le produit de la liste existante
-      setProducts(prev => prev.filter(p => p.id !== productId));
-      
-      return { error: null };
-    } catch (err) {
-      console.error('Error deleting product:', err);
-      return { 
-        error: err instanceof Error ? err.message : 'Erreur lors de la suppression du produit' 
-      };
-    }
-  };
-
   return {
     products,
     loading,
     error,
     fetchProducts,
-    createProduct,
-    updateProduct,
-    deleteProduct
+    createProduct
   };
 }

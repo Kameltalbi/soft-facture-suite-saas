@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -217,7 +218,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   {clientsLoading && <p className="text-sm text-gray-500 mt-2">Chargement des clients...</p>}
                 </div>
                 
-                {clientSearch && !selectedClient && (
+                {clientSearch && !selectedClient && filteredClients.length > 0 && (
                   <div className="border rounded-lg max-h-48 overflow-y-auto">
                     {filteredClients.map((client) => (
                       <div
@@ -233,6 +234,12 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <div className="text-sm text-gray-500">{client.address}, {client.city}</div>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {clientSearch && !selectedClient && filteredClients.length === 0 && !clientsLoading && (
+                  <div className="text-sm text-gray-500 p-2">
+                    Aucun client trouvé. Vous pouvez créer un nouveau client dans la section Clients.
                   </div>
                 )}
                 

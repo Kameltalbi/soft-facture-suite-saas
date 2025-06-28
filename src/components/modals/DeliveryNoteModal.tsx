@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Trash2, Package, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
+import { useProducts } from '@/hooks/useProducts';
 
 interface DeliveryItem {
   id: string;
@@ -29,6 +29,7 @@ interface DeliveryNoteModalProps {
 export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: DeliveryNoteModalProps) {
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
+  const { products, loading: productsLoading } = useProducts();
   
   // Form state
   const [deliveryNumber, setDeliveryNumber] = useState(deliveryNote?.number || 'BL-2025-001');
@@ -60,8 +61,9 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
   
-  const filteredProducts = mockProducts.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
   );
 
   const formatAddress = (client: any) => {
@@ -370,7 +372,10 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                         setProductSearch('');
                       }}
                     >
-                      <span>{product.name}</span>
+                      <div>
+                        <span className="font-medium">{product.name}</span>
+                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
+                      </div>
                       <span className="text-sm text-gray-500">{product.unit}</span>
                     </div>
                   ))}
