@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,24 +28,68 @@ interface CategoryModalProps {
   onSave: (category: Omit<Category, 'id' | 'organization_id' | 'created_at' | 'updated_at'>) => void;
 }
 
-const predefinedColors = [
-  '#3B82F6', // Blue
-  '#EF4444', // Red
-  '#10B981', // Green
-  '#F59E0B', // Yellow
-  '#8B5CF6', // Purple
-  '#F97316', // Orange
-  '#06B6D4', // Cyan
-  '#84CC16', // Lime
-  '#EC4899', // Pink
-  '#6B7280', // Gray
-  '#DC2626', // Red-600
-  '#059669', // Green-600
-  '#7C3AED', // Violet-600
-  '#DB2777', // Pink-600
-  '#0891B2', // Cyan-600
-  '#65A30D'  // Lime-600
-];
+// Fonction pour convertir HSL en HEX
+const hslToHex = (h: number, s: number, l: number) => {
+  const hDecimal = h / 360;
+  const sDecimal = s / 100;
+  const lDecimal = l / 100;
+
+  const c = (1 - Math.abs(2 * lDecimal - 1)) * sDecimal;
+  const x = c * (1 - Math.abs((hDecimal * 6) % 2 - 1));
+  const m = lDecimal - c / 2;
+
+  let r, g, b;
+
+  if (hDecimal >= 0 && hDecimal < 1/6) {
+    r = c; g = x; b = 0;
+  } else if (hDecimal >= 1/6 && hDecimal < 2/6) {
+    r = x; g = c; b = 0;
+  } else if (hDecimal >= 2/6 && hDecimal < 3/6) {
+    r = 0; g = c; b = x;
+  } else if (hDecimal >= 3/6 && hDecimal < 4/6) {
+    r = 0; g = x; b = c;
+  } else if (hDecimal >= 4/6 && hDecimal < 5/6) {
+    r = x; g = 0; b = c;
+  } else {
+    r = c; g = 0; b = x;
+  }
+
+  r = Math.round((r + m) * 255);
+  g = Math.round((g + m) * 255);
+  b = Math.round((b + m) * 255);
+
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+};
+
+// Fonction pour convertir HEX en HSL
+const hexToHsl = (hex: string) => {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h, s, l;
+
+  l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0;
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+      default: h = 0;
+    }
+    h /= 6;
+  }
+
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+};
 
 export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryModalProps) {
   const { toast } = useToast();
@@ -55,7 +100,9 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
     active: true
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const [hue, setHue] = useState([220]); // Valeur initiale pour le bleu
+  const [saturation, setSaturation] = useState([80]);
+  const [lightness, setLightness] = useState([50]);
 
   // Validation en temps réel
   const isFormValid = formData.name.trim().length > 0;
@@ -68,9 +115,12 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
         color: category.color || '#3B82F6',
         active: category.active ?? true
       });
-      // Trouver l'index de la couleur sélectionnée
-      const colorIndex = predefinedColors.findIndex(color => color === category.color);
-      setSelectedColorIndex(colorIndex !== -1 ? colorIndex : 0);
+      
+      // Convertir la couleur hex en HSL pour les sliders
+      const [h, s, l] = hexToHsl(category.color || '#3B82F6');
+      setHue([h]);
+      setSaturation([s]);
+      setLightness([l]);
     } else {
       setFormData({
         name: '',
@@ -78,13 +128,26 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
         color: '#3B82F6',
         active: true
       });
-      setSelectedColorIndex(0);
+      setHue([220]);
+      setSaturation([80]);
+      setLightness([50]);
     }
   }, [category, isOpen]);
 
-  const handleColorSelect = (color: string, index: number) => {
-    setFormData({...formData, color});
-    setSelectedColorIndex(index);
+  // Mettre à jour la couleur quand les sliders changent
+  useEffect(() => {
+    const newColor = hslToHex(hue[0], saturation[0], lightness[0]);
+    setFormData(prev => ({ ...prev, color: newColor }));
+  }, [hue, saturation, lightness]);
+
+  const handleColorInputChange = (value: string) => {
+    if (value.match(/^#[0-9A-F]{6}$/i)) {
+      const [h, s, l] = hexToHsl(value);
+      setHue([h]);
+      setSaturation([s]);
+      setLightness([l]);
+    }
+    setFormData(prev => ({ ...prev, color: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,58 +222,93 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
             />
           </div>
 
-          {/* Sélecteur de couleur amélioré */}
+          {/* Sélecteur de couleur avec curseurs */}
           <div>
             <Label htmlFor="color">Couleur de la catégorie</Label>
             <div className="space-y-4">
               {/* Couleur actuelle avec preview */}
               <div className="flex items-center space-x-3 p-3 border rounded-lg bg-neutral-50">
                 <div 
-                  className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-sm"
+                  className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-sm transition-colors duration-200"
                   style={{ backgroundColor: formData.color }}
                 />
                 <div className="flex-1">
                   <Input
                     type="text"
                     value={formData.color}
-                    onChange={(e) => {
-                      setFormData({...formData, color: e.target.value});
-                      // Reset selected index si couleur personnalisée
-                      const colorIndex = predefinedColors.findIndex(color => color === e.target.value);
-                      setSelectedColorIndex(colorIndex !== -1 ? colorIndex : -1);
-                    }}
+                    onChange={(e) => handleColorInputChange(e.target.value)}
                     placeholder="#3B82F6"
                     className="font-mono text-sm"
                   />
                 </div>
               </div>
               
-              {/* Palette de couleurs avec indicateur */}
-              <div className="space-y-2">
-                <p className="text-sm text-neutral-600">Couleurs suggérées :</p>
-                <div className="grid grid-cols-8 gap-2 p-3 border rounded-lg bg-white">
-                  {predefinedColors.map((color, index) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`
-                        relative w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-md
-                        ${selectedColorIndex === index 
-                          ? 'border-gray-800 ring-2 ring-gray-400 ring-offset-1 scale-110' 
-                          : 'border-gray-300 hover:border-gray-500'
-                        }
-                      `}
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleColorSelect(color, index)}
-                      title={color}
-                    >
-                      {selectedColorIndex === index && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full shadow-sm"></div>
-                        </div>
-                      )}
-                    </button>
-                  ))}
+              {/* Curseurs HSL */}
+              <div className="space-y-4 p-4 border rounded-lg bg-white">
+                <div>
+                  <Label className="text-sm text-neutral-600 mb-2 block">
+                    Teinte ({hue[0]}°)
+                  </Label>
+                  <div className="relative">
+                    <div 
+                      className="h-6 w-full rounded-md mb-2"
+                      style={{
+                        background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)'
+                      }}
+                    />
+                    <Slider
+                      value={hue}
+                      onValueChange={setHue}
+                      max={360}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-neutral-600 mb-2 block">
+                    Saturation ({saturation[0]}%)
+                  </Label>
+                  <div className="relative">
+                    <div 
+                      className="h-6 w-full rounded-md mb-2"
+                      style={{
+                        background: `linear-gradient(to right, hsl(${hue[0]}, 0%, ${lightness[0]}%), hsl(${hue[0]}, 100%, ${lightness[0]}%))`
+                      }}
+                    />
+                    <Slider
+                      value={saturation}
+                      onValueChange={setSaturation}
+                      max={100}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm text-neutral-600 mb-2 block">
+                    Luminosité ({lightness[0]}%)
+                  </Label>
+                  <div className="relative">
+                    <div 
+                      className="h-6 w-full rounded-md mb-2"
+                      style={{
+                        background: `linear-gradient(to right, hsl(${hue[0]}, ${saturation[0]}%, 0%), hsl(${hue[0]}, ${saturation[0]}%, 50%), hsl(${hue[0]}, ${saturation[0]}%, 100%))`
+                      }}
+                    />
+                    <Slider
+                      value={lightness}
+                      onValueChange={setLightness}
+                      max={100}
+                      min={0}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
