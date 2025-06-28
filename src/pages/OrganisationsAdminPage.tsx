@@ -29,6 +29,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { UserManagementSection } from '@/components/admin/UserManagementSection';
 import { NewOrganizationForm } from '@/components/admin/NewOrganizationForm';
 import { OrganizationUsersList } from '@/components/admin/OrganizationUsersList';
+import { OrganizationActionsMenu } from '@/components/admin/OrganizationActionsMenu';
 
 interface Organization {
   id: string;
@@ -146,22 +147,6 @@ const OrganisationsAdminPage = () => {
     }
   };
 
-  // Log action to history
-  const logAction = async (orgId: string, action: string, details: any = {}) => {
-    try {
-      await supabase
-        .from('organization_history')
-        .insert({
-          organization_id: orgId,
-          action,
-          details,
-          performed_by: user?.id
-        });
-    } catch (error) {
-      console.error('Error logging action:', error);
-    }
-  };
-
   // Update organization
   const updateOrganization = async (orgId: string, updates: Partial<Organization>) => {
     try {
@@ -172,7 +157,6 @@ const OrganisationsAdminPage = () => {
 
       if (error) throw error;
       
-      await logAction(orgId, 'organization_updated', updates);
       await loadOrganizations();
       
       toast({
@@ -207,43 +191,29 @@ const OrganisationsAdminPage = () => {
     setEditModalOpen(false);
   };
 
-  // Handle suspend organization
-  const handleSuspend = async (org: Organization) => {
-    const newStatus = org.status === 'suspended' ? 'active' : 'suspended';
-    await updateOrganization(org.id, { status: newStatus });
-  };
-
-  // Handle validate payment
-  const handleValidatePayment = async (org: Organization) => {
-    await updateOrganization(org.id, { status: 'active' });
-    await logAction(org.id, 'payment_validated');
-  };
-
-  // Handle extend subscription
-  const handleExtendSubscription = async (org: Organization) => {
-    const currentEnd = org.subscription_end ? new Date(org.subscription_end) : new Date();
-    const newEnd = new Date(currentEnd);
-    newEnd.setMonth(newEnd.getMonth() + 1);
-    
-    await updateOrganization(org.id, { 
-      subscription_end: newEnd.toISOString().split('T')[0] 
+  // Handle edit organization
+  const handleEditOrganization = (org: Organization) => {
+    setSelectedOrganization(org);
+    setEditForm({
+      status: org.status,
+      plan: org.plan,
+      subscription_start: org.subscription_start,
+      subscription_end: org.subscription_end || ''
     });
-    await logAction(org.id, 'subscription_extended');
+    setEditModalOpen(true);
   };
 
-  // Handle upgrade plan
-  const handleUpgrade = async (org: Organization) => {
-    const planHierarchy: Record<string, 'free' | 'standard' | 'premium'> = { 
-      free: 'standard', 
-      standard: 'premium', 
-      premium: 'premium' 
-    };
-    const newPlan = planHierarchy[org.plan];
-    
-    if (newPlan !== org.plan) {
-      await updateOrganization(org.id, { plan: newPlan });
-      await logAction(org.id, 'plan_upgraded', { from: org.plan, to: newPlan });
-    }
+  // Handle view users
+  const handleViewUsers = (org: Organization) => {
+    setSelectedOrganization(org);
+    setUsersModalOpen(true);
+  };
+
+  // Handle view history
+  const handleViewHistory = (org: Organization) => {
+    setSelectedOrganization(org);
+    loadOrganizationHistory(org.id);
+    setHistoryModalOpen(true);
   };
 
   // Filter organizations
@@ -501,73 +471,13 @@ const OrganisationsAdminPage = () => {
                             {org.subscription_end ? new Date(org.subscription_end).toLocaleDateString('fr-FR') : 'Illimité'}
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedOrganization(org);
-                                  setUsersModalOpen(true);
-                                }}
-                              >
-                                <Users size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedOrganization(org);
-                                  setEditForm({
-                                    status: org.status,
-                                    plan: org.plan,
-                                    subscription_start: org.subscription_start,
-                                    subscription_end: org.subscription_end || ''
-                                  });
-                                  setEditModalOpen(true);
-                                }}
-                              >
-                                <Edit size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleSuspend(org)}
-                              >
-                                <Pause size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleValidatePayment(org)}
-                              >
-                                <Check size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleExtendSubscription(org)}
-                              >
-                                <Calendar size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUpgrade(org)}
-                              >
-                                <ArrowUp size={14} />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedOrganization(org);
-                                  loadOrganizationHistory(org.id);
-                                  setHistoryModalOpen(true);
-                                }}
-                              >
-                                <History size={14} />
-                              </Button>
-                            </div>
+                            <OrganizationActionsMenu
+                              organization={org}
+                              onEdit={handleEditOrganization}
+                              onViewUsers={handleViewUsers}
+                              onViewHistory={handleViewHistory}
+                              onRefresh={loadOrganizations}
+                            />
                           </TableCell>
                         </TableRow>
                       ))}
