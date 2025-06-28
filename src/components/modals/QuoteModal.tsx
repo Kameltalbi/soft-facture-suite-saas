@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useClients } from '@/hooks/useClients';
-import { useProducts } from '@/hooks/useProducts';
+import { supabase } from '@/integrations/supabase/client';
 
 interface QuoteItem {
   id: string;
@@ -20,6 +20,26 @@ interface QuoteItem {
   total: number;
 }
 
+interface Client {
+  id: string;
+  name: string;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  postal_code: string | null;
+  country: string | null;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  unit: string | null;
+}
+
 interface QuoteModalProps {
   open: boolean;
   onClose: () => void;
@@ -29,15 +49,19 @@ interface QuoteModalProps {
 
 export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { organization, user } = useAuth();
-  const { clients, loading: clientsLoading } = useClients();
-  const { products, loading: productsLoading } = useProducts();
+  
+  // State for clients and products
+  const [clients, setClients] = useState<Client[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(false);
   
   // Form state
   const [quoteNumber, setQuoteNumber] = useState(quote?.number || 'DEV-2025-001');
   const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
   const [clientSearch, setClientSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState(quote?.client || null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(quote?.client || null);
   const [subject, setSubject] = useState(quote?.subject || '');
   const [notes, setNotes] = useState(quote?.notes || '');
   const [conditions, setConditions] = useState(quote?.conditions || '');
@@ -49,6 +73,57 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   
   // Product search
   const [productSearch, setProductSearch] = useState('');
+
+  // Fetch clients from Supabase
+  const fetchClients = async () => {
+    if (!organization?.id) return;
+
+    try {
+      setClientsLoading(true);
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .order('name');
+
+      if (error) throw error;
+      setClients(data || []);
+    } catch (err) {
+      console.error('Error fetching clients:', err);
+    } finally {
+      setClientsLoading(false);
+    }
+  };
+
+  // Fetch products from Supabase
+  const fetchProducts = async () => {
+    if (!organization?.id) return;
+
+    try {
+      setProductsLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  // Load data when modal opens
+  useEffect(() => {
+    if (open && organization?.id) {
+      fetchClients();
+      fetchProducts();
+    }
+  }, [open, organization?.id]);
   
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
@@ -59,7 +134,6 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
     (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
   );
-  
   
   const addQuoteItem = () => {
     const newItem: QuoteItem = {
@@ -411,8 +485,6 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             </CardContent>
           </Card>
 
-          
-          
           {/* Section Totaux */}
           <div className="flex justify-end">
             <Card className="w-80">
