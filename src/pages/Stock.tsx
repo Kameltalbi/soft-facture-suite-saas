@@ -30,7 +30,10 @@ const Stock = () => {
   const { products, loading: productsLoading } = useProducts();
   const { movements, loading: movementsLoading } = useStockMovements();
 
-  const filteredProducts = products.filter(product =>
+  // Filtrer pour ne garder que les produits avec suivi de stock
+  const stockTrackedProducts = products.filter(product => product.track_stock === true);
+
+  const filteredProducts = stockTrackedProducts.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -70,17 +73,18 @@ const Stock = () => {
     return { status: 'En stock', variant: 'default' as const, color: 'text-success' };
   };
 
+  // Recalculer les stats avec seulement les produits suivis
   const stats = {
-    totalProducts: products.length,
-    lowStock: products.filter(p => (p.stock_quantity || 0) > 0 && (p.stock_quantity || 0) < 10).length,
-    outOfStock: products.filter(p => (p.stock_quantity || 0) === 0).length,
-    totalValue: products.reduce((sum, p) => sum + (p.price * (p.stock_quantity || 0)), 0)
+    totalProducts: stockTrackedProducts.length,
+    lowStock: stockTrackedProducts.filter(p => (p.stock_quantity || 0) > 0 && (p.stock_quantity || 0) < 10).length,
+    outOfStock: stockTrackedProducts.filter(p => (p.stock_quantity || 0) === 0).length,
+    totalValue: stockTrackedProducts.reduce((sum, p) => sum + (p.price * (p.stock_quantity || 0)), 0)
   };
 
   const recentMovements = movements.slice(0, 10);
 
-  // Convert products to the format expected by the modals
-  const productsForModals = products.map(product => ({
+  // Convert products to the format expected by the modals - only stock tracked products
+  const productsForModals = stockTrackedProducts.map(product => ({
     id: product.id,
     nom: product.name,
     unite: product.unit || 'pièces',
@@ -124,7 +128,7 @@ const Stock = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600">Total produits</p>
+                  <p className="text-sm text-neutral-600">Produits suivis</p>
                   <p className="text-2xl font-bold text-neutral-900">{stats.totalProducts}</p>
                 </div>
                 <Package className="h-8 w-8 text-[#6A9C89]" />
@@ -200,7 +204,7 @@ const Stock = () => {
               <CardHeader>
                 <CardTitle>Stock des produits</CardTitle>
                 <CardDescription>
-                  {filteredProducts.length} produit(s) trouvé(s)
+                  {filteredProducts.length} produit(s) avec suivi de stock trouvé(s)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -287,7 +291,7 @@ const Stock = () => {
                     {filteredProducts.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
-                          {products.length === 0 ? 'Aucun produit trouvé. Ajoutez des produits d\'abord !' : 'Aucun produit ne correspond à votre recherche'}
+                          {stockTrackedProducts.length === 0 ? 'Aucun produit avec suivi de stock trouvé. Activez le suivi de stock sur vos produits !' : 'Aucun produit ne correspond à votre recherche'}
                         </TableCell>
                       </TableRow>
                     )}
