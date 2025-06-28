@@ -1280,6 +1280,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      extend_subscription: {
+        Args: { org_id: string; months: number }
+        Returns: undefined
+      }
+      get_subscription_status: {
+        Args: { start_date: string; end_date: string }
+        Returns: string
+      }
       get_user_emails: {
         Args: { user_ids: string[] }
         Returns: {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Search, Building2, Calendar, CreditCard, ArrowUp, History, Edit, Pause, Check, Plus, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,8 @@ import { UserManagementSection } from '@/components/admin/UserManagementSection'
 import { NewOrganizationForm } from '@/components/admin/NewOrganizationForm';
 import { OrganizationUsersList } from '@/components/admin/OrganizationUsersList';
 import { OrganizationActionsMenu } from '@/components/admin/OrganizationActionsMenu';
+import { SubscriptionEditModal } from '@/components/admin/SubscriptionEditModal';
+import { SubscriptionStatusBadge } from '@/components/admin/SubscriptionStatusBadge';
 
 interface Organization {
   id: string;
@@ -87,6 +88,7 @@ const OrganisationsAdminPage = () => {
 
   const { toast } = useToast();
   const { user } = useAuth();
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
   // Load organizations
   const loadOrganizations = async () => {
@@ -214,6 +216,12 @@ const OrganisationsAdminPage = () => {
     setSelectedOrganization(org);
     loadOrganizationHistory(org.id);
     setHistoryModalOpen(true);
+  };
+
+  // Handle edit subscription dates
+  const handleEditSubscription = (org: Organization) => {
+    setSelectedOrganization(org);
+    setSubscriptionModalOpen(true);
   };
 
   // Filter organizations
@@ -449,6 +457,7 @@ const OrganisationsAdminPage = () => {
                         <TableHead>Plan</TableHead>
                         <TableHead>Début abonnement</TableHead>
                         <TableHead>Fin abonnement</TableHead>
+                        <TableHead>Statut abonnement</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -470,10 +479,17 @@ const OrganisationsAdminPage = () => {
                           <TableCell>
                             {org.subscription_end ? new Date(org.subscription_end).toLocaleDateString('fr-FR') : 'Illimité'}
                           </TableCell>
+                          <TableCell>
+                            <SubscriptionStatusBadge 
+                              subscriptionStart={org.subscription_start}
+                              subscriptionEnd={org.subscription_end}
+                            />
+                          </TableCell>
                           <TableCell className="text-right">
                             <OrganizationActionsMenu
                               organization={org}
                               onEdit={handleEditOrganization}
+                              onEditSubscription={handleEditSubscription}
                               onViewUsers={handleViewUsers}
                               onViewHistory={handleViewHistory}
                               onRefresh={loadOrganizations}
@@ -629,6 +645,14 @@ const OrganisationsAdminPage = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Modal de modification des dates d'abonnement */}
+        <SubscriptionEditModal
+          organization={selectedOrganization}
+          isOpen={subscriptionModalOpen}
+          onClose={() => setSubscriptionModalOpen(false)}
+          onRefresh={loadOrganizations}
+        />
       </div>
     </div>
   );

@@ -27,7 +27,9 @@ export function NewOrganizationForm({ onCreated }: NewOrganizationFormProps) {
     name: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    subscription_start: new Date().toISOString().split('T')[0], // Today by default
+    subscription_end: ''
   });
 
   const { toast } = useToast();
@@ -45,6 +47,8 @@ export function NewOrganizationForm({ onCreated }: NewOrganizationFormProps) {
           email: formData.email || null,
           phone: formData.phone || null,
           address: formData.address || null,
+          subscription_start: formData.subscription_start,
+          subscription_end: formData.subscription_end || null,
           status: 'active',
           plan: 'free'
         });
@@ -56,7 +60,14 @@ export function NewOrganizationForm({ onCreated }: NewOrganizationFormProps) {
         description: "Organisation créée avec succès"
       });
 
-      setFormData({ name: '', email: '', phone: '', address: '' });
+      setFormData({ 
+        name: '', 
+        email: '', 
+        phone: '', 
+        address: '', 
+        subscription_start: new Date().toISOString().split('T')[0],
+        subscription_end: ''
+      });
       setIsOpen(false);
       onCreated();
     } catch (error) {
@@ -79,11 +90,11 @@ export function NewOrganizationForm({ onCreated }: NewOrganizationFormProps) {
           Nouvelle Organisation
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Créer une nouvelle organisation</DialogTitle>
           <DialogDescription>
-            Ajoutez une nouvelle organisation au système
+            Ajoutez une nouvelle organisation avec ses dates d'abonnement
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -125,6 +136,34 @@ export function NewOrganizationForm({ onCreated }: NewOrganizationFormProps) {
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="123 Rue de la Paix, Paris"
               />
+            </div>
+            
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Dates d'abonnement</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="subscription_start">Début *</Label>
+                  <Input
+                    id="subscription_start"
+                    type="date"
+                    value={formData.subscription_start}
+                    onChange={(e) => setFormData({ ...formData, subscription_start: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="subscription_end">Fin</Label>
+                  <Input
+                    id="subscription_end"
+                    type="date"
+                    value={formData.subscription_end}
+                    onChange={(e) => setFormData({ ...formData, subscription_end: e.target.value })}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-neutral-500 mt-2">
+                Laissez la date de fin vide pour un abonnement illimité
+              </p>
             </div>
           </div>
           <DialogFooter className="mt-6">

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MoreHorizontal, Edit, Pause, Play, Check, Calendar, ArrowUp, History, Users, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Pause, Play, Check, Calendar, CalendarDays, ArrowUp, History, Users, Trash2, CalendarX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,6 +28,7 @@ interface Organization {
 interface OrganizationActionsMenuProps {
   organization: Organization;
   onEdit: (org: Organization) => void;
+  onEditSubscription: (org: Organization) => void;
   onViewUsers: (org: Organization) => void;
   onViewHistory: (org: Organization) => void;
   onRefresh: () => void;
@@ -36,6 +37,7 @@ interface OrganizationActionsMenuProps {
 export function OrganizationActionsMenu({ 
   organization, 
   onEdit, 
+  onEditSubscription,
   onViewUsers, 
   onViewHistory, 
   onRefresh 
@@ -100,14 +102,45 @@ export function OrganizationActionsMenu({
   };
 
   const handleExtendSubscription = async () => {
-    const currentEnd = organization.subscription_end ? new Date(organization.subscription_end) : new Date();
-    const newEnd = new Date(currentEnd);
-    newEnd.setMonth(newEnd.getMonth() + 1);
-    
-    await updateOrganization(organization.id, { 
-      subscription_end: newEnd.toISOString().split('T')[0] 
-    });
-    await logAction(organization.id, 'subscription_extended');
+    try {
+      const { error } = await supabase.rpc('extend_subscription', {
+        org_id: organization.id,
+        months: 3
+      });
+
+      if (error) throw error;
+
+      await logAction(organization.id, 'subscription_extended', { months: 3 });
+      onRefresh();
+      
+      toast({
+        title: "Succès",
+        description: "Abonnement prolongé de 3 mois"
+      });
+    } catch (error) {
+      console.error('Error extending subscription:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de prolonger l'abonnement",
+        variant: "destructive"
+      });
+    }
+    setIsOpen(false);
+  };
+
+  const handleAbrogateSubscription = async () => {
+    if (confirm(`Êtes-vous sûr de vouloir abroger l'abonnement de "${organization.name}" ? L'abonnement sera terminé aujourd'hui.`)) {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        await updateOrganization(organization.id, { 
+          subscription_end: today,
+          status: 'suspended'
+        });
+        await logAction(organization.id, 'subscription_abrogated');
+      } catch (error) {
+        console.error('Error abrogating subscription:', error);
+      }
+    }
     setIsOpen(false);
   };
 
@@ -178,7 +211,12 @@ export function OrganizationActionsMenu({
         {/* Actions de modification */}
         <DropdownMenuItem onClick={() => onEdit(organization)} className="cursor-pointer">
           <Edit className="h-4 w-4 mr-2" />
-          Modifier
+          Modifier l'organisation
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => onEditSubscription(organization)} className="cursor-pointer">
+          <CalendarDays className="h-4 w-4 mr-2" />
+          Modifier les dates
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleSuspend} className="cursor-pointer">
@@ -197,7 +235,7 @@ export function OrganizationActionsMenu({
 
         <DropdownMenuSeparator />
 
-        {/* Actions de gestion */}
+        {/* Actions de gestion d'abonnement */}
         <DropdownMenuItem onClick={handleValidatePayment} className="cursor-pointer">
           <Check className="h-4 w-4 mr-2" />
           Valider le paiement
@@ -205,7 +243,12 @@ export function OrganizationActionsMenu({
 
         <DropdownMenuItem onClick={handleExtendSubscription} className="cursor-pointer">
           <Calendar className="h-4 w-4 mr-2" />
-          Prolonger abonnement
+          Prolonger (3 mois)
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleAbrogateSubscription} className="cursor-pointer text-orange-600">
+          <CalendarX className="h-4 w-4 mr-2" />
+          Abroger l'abonnement
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer" disabled={organization.plan === 'premium'}>
