@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon, Eye, Save, Printer, Download, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -380,11 +381,11 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                   </div>
                   {selectedFournisseur && (
                     <div className="text-sm text-gray-600 space-y-1">
-                      {selectedFournisseur.email && (
-                        <div>{selectedFournisseur.email}</div>
+                      {selectedFournisseur.contactPrincipal.email && (
+                        <div>{selectedFournisseur.contactPrincipal.email}</div>
                       )}
-                      {selectedFournisseur.telephone && (
-                        <div>{selectedFournisseur.telephone}</div>
+                      {selectedFournisseur.contactPrincipal.telephone && (
+                        <div>{selectedFournisseur.contactPrincipal.telephone}</div>
                       )}
                       {selectedFournisseur.adresse && (
                         <div>{selectedFournisseur.adresse.rue}, {selectedFournisseur.adresse.ville} {selectedFournisseur.adresse.codePostal}</div>
