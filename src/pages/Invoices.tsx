@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -421,7 +422,7 @@ export default function Invoices() {
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
-      logo: organization?.logo_url || organization?.logo // Utiliser logo_url depuis l'organisation
+      logo: organization?.logo_url || null // Utiliser logo_url au lieu de logo
     };
 
     const client = {
@@ -623,8 +624,7 @@ export default function Invoices() {
                         number: invoice.invoice_number,
                         client: invoice.clients?.name || '',
                         amount: invoice.total_amount,
-                        status: invoice.status as InvoiceStatus,
-                        date: invoice.date
+                        status: invoice.status as InvoiceStatus
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
                       onView={() => handleViewInvoice(invoice)}
