@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Trash2, Package, User } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { Plus, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
-import { useProducts } from '@/hooks/useProducts';
+import { useProductsForModals } from '@/hooks/useProductsForModals';
 
-interface DeliveryItem {
+interface DeliveryNoteItem {
   id: string;
+  product_id?: string;
   description: string;
   quantity: number;
-  deliveredQuantity?: number;
-  status: 'pending' | 'delivered' | 'partial';
+  unit_price: number;
+  tax_rate: number;
+  total: number;
 }
 
 interface DeliveryNoteModalProps {
@@ -27,474 +29,304 @@ interface DeliveryNoteModalProps {
 }
 
 export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: DeliveryNoteModalProps) {
-  const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
-  const { products, loading: productsLoading } = useProducts();
+  const { products, loading: productsLoading } = useProductsForModals();
   
-  // Form state
-  const [deliveryNumber, setDeliveryNumber] = useState(deliveryNote?.number || 'BL-2025-001');
-  const [deliveryDate, setDeliveryDate] = useState(deliveryNote?.date || new Date().toISOString().split('T')[0]);
-  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState(deliveryNote?.expectedDeliveryDate || '');
-  const [clientSearch, setClientSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState(deliveryNote?.client || null);
-  const [notes, setNotes] = useState(deliveryNote?.notes || '');
-  const [deliveryAddress, setDeliveryAddress] = useState(deliveryNote?.deliveryAddress || '');
-  
-  // Delivery items
-  const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>(deliveryNote?.items || [
-    { id: '1', description: '', quantity: 1, deliveredQuantity: 0, status: 'pending' }
-  ]);
-  
-  // Product search
-  const [productSearch, setProductSearch] = useState('');
-  
-  // Mock products for search (we'll replace this later with real products)
-  const mockProducts = [
-    { id: '1', name: 'Ordinateur portable', unit: 'pièce' },
-    { id: '2', name: 'Écran 24 pouces', unit: 'pièce' },
-    { id: '3', name: 'Clavier sans fil', unit: 'pièce' },
-    { id: '4', name: 'Souris optique', unit: 'pièce' }
-  ];
-  
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
-  );
-  
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+  const [formData, setFormData] = useState({
+    delivery_number: '',
+    client_id: '',
+    date: new Date().toISOString().split('T')[0],
+    expected_delivery_date: '',
+    delivery_address: '',
+    notes: ''
+  });
 
-  const formatAddress = (client: any) => {
-    const parts = [];
-    if (client.address) parts.push(client.address);
-    if (client.postal_code && client.city) {
-      parts.push(`${client.postal_code} ${client.city}`);
-    } else if (client.city) {
-      parts.push(client.city);
+  const [items, setItems] = useState<DeliveryNoteItem[]>([
+    {
+      id: '1',
+      description: '',
+      quantity: 1,
+      unit_price: 0,
+      tax_rate: 20,
+      total: 0
     }
-    if (client.country && client.country !== 'France') parts.push(client.country);
-    return parts.join('\n');
-  };
-  
-  const addDeliveryItem = () => {
-    const newItem: DeliveryItem = {
+  ]);
+
+  useEffect(() => {
+    if (deliveryNote) {
+      setFormData({
+        delivery_number: deliveryNote.delivery_number || '',
+        client_id: deliveryNote.client_id || '',
+        date: deliveryNote.date || new Date().toISOString().split('T')[0],
+        expected_delivery_date: deliveryNote.expected_delivery_date || '',
+        delivery_address: deliveryNote.delivery_address || '',
+        notes: deliveryNote.notes || ''
+      });
+      
+      if (deliveryNote.delivery_note_items && deliveryNote.delivery_note_items.length > 0) {
+        const convertedItems = deliveryNote.delivery_note_items.map((item: any, index: number) => ({
+          id: item.id || `${index + 1}`,
+          product_id: item.product_id || '',
+          description: item.description || '',
+          quantity: Number(item.quantity) || 1,
+          unit_price: 0, // Les bons de livraison peuvent ne pas avoir de prix
+          tax_rate: 20,
+          total: 0
+        }));
+        setItems(convertedItems);
+      }
+    }
+  }, [deliveryNote]);
+
+  const addItem = () => {
+    const newItem: DeliveryNoteItem = {
       id: Date.now().toString(),
       description: '',
       quantity: 1,
-      deliveredQuantity: 0,
-      status: 'pending'
+      unit_price: 0,
+      tax_rate: 20,
+      total: 0
     };
-    setDeliveryItems([...deliveryItems, newItem]);
+    setItems([...items, newItem]);
   };
-  
-  const updateDeliveryItem = (id: string, field: keyof DeliveryItem, value: any) => {
-    setDeliveryItems(deliveryItems.map(item => {
+
+  const removeItem = (id: string) => {
+    if (items.length > 1) {
+      setItems(items.filter(item => item.id !== id));
+    }
+  };
+
+  const updateItem = (id: string, field: keyof DeliveryNoteItem, value: any) => {
+    setItems(items.map(item => {
       if (item.id === id) {
-        const updated = { ...item, [field]: value };
-        // Update status based on delivered quantity
-        if (field === 'deliveredQuantity' || field === 'quantity') {
-          const delivered = field === 'deliveredQuantity' ? value : item.deliveredQuantity || 0;
-          const total = field === 'quantity' ? value : item.quantity;
-          if (delivered === 0) {
-            updated.status = 'pending';
-          } else if (delivered >= total) {
-            updated.status = 'delivered';
-          } else {
-            updated.status = 'partial';
-          }
+        const updatedItem = { ...item, [field]: value };
+        
+        // Recalculer le total
+        if (field === 'quantity' || field === 'unit_price') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unit_price;
         }
-        return updated;
+        
+        return updatedItem;
       }
       return item;
     }));
   };
-  
-  const removeDeliveryItem = (id: string) => {
-    setDeliveryItems(deliveryItems.filter(item => item.id !== id));
+
+  const handleProductSelect = (itemId: string, productId: string) => {
+    const selectedProduct = products.find(p => p.id === productId);
+    if (selectedProduct) {
+      updateItem(itemId, 'product_id', productId);
+      updateItem(itemId, 'description', selectedProduct.name);
+      updateItem(itemId, 'unit_price', selectedProduct.unit_price);
+      updateItem(itemId, 'tax_rate', selectedProduct.tax_rate);
+      
+      // Recalculer le total avec la nouvelle quantité
+      const currentItem = items.find(item => item.id === itemId);
+      if (currentItem) {
+        updateItem(itemId, 'total', currentItem.quantity * selectedProduct.unit_price);
+      }
+    }
   };
-  
-  const handleClientSelect = (client: any) => {
-    setSelectedClient(client);
-    setClientSearch('');
-    // Automatically populate delivery address with client's formatted address
-    const formattedAddress = formatAddress(client);
-    setDeliveryAddress(formattedAddress);
+
+  const calculateSubtotal = () => {
+    return items.reduce((sum, item) => sum + item.total, 0);
   };
-  
-  const getStatusBadge = (status: DeliveryItem['status']) => {
-    const variants = {
-      pending: { label: 'En attente', variant: 'secondary' as const },
-      delivered: { label: 'Livré', variant: 'default' as const },
-      partial: { label: 'Partiel', variant: 'outline' as const }
-    };
-    return (
-      <Badge variant={variants[status].variant}>
-        {variants[status].label}
-      </Badge>
-    );
+
+  const calculateTotalTax = () => {
+    return items.reduce((sum, item) => sum + (item.total * item.tax_rate / 100), 0);
   };
-  
-  const handleSave = () => {
+
+  const calculateTotalTTC = () => {
+    return calculateSubtotal() + calculateTotalTax();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
     const deliveryData = {
-      number: deliveryNumber,
-      date: deliveryDate,
-      expectedDeliveryDate,
-      client: selectedClient,
-      deliveryAddress,
-      items: deliveryItems,
-      notes
+      ...formData,
+      items: items.map(item => ({
+        ...item,
+        total_price: item.total
+      })),
+      subtotal: calculateSubtotal(),
+      tax_amount: calculateTotalTax(),
+      total_amount: calculateTotalTTC()
     };
+    
     onSave(deliveryData);
-    onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-green-600">
-            {deliveryNote ? 'Modifier le bon de livraison' : 'Nouveau bon de livraison'}
+          <DialogTitle>
+            {deliveryNote ? 'Modifier le bon de livraison' : 'Créer un nouveau bon de livraison'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Header avec logo et infos organisation */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-4">
-                  {organization?.logo_url ? (
-                    <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
-                  ) : (
-                    <div className="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <Package className="h-8 w-8 text-gray-400" />
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
-                    <p className="text-sm text-gray-600">{organization?.address || user?.user_metadata?.company_address}</p>
-                    <p className="text-sm text-gray-600">{organization?.email || user?.email}</p>
-                    <p className="text-sm text-gray-600">{organization?.phone || user?.user_metadata?.company_phone}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-2xl font-bold text-green-600">BON DE LIVRAISON</h2>
-                  <div className="space-y-2 mt-2">
-                    <div>
-                      <Label htmlFor="deliveryNumber">Numéro</Label>
-                      <Input
-                        id="deliveryNumber"
-                        value={deliveryNumber}
-                        onChange={(e) => setDeliveryNumber(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="deliveryDate">Date</Label>
-                      <Input
-                        id="deliveryDate"
-                        type="date"
-                        value={deliveryDate}
-                        onChange={(e) => setDeliveryDate(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="expectedDeliveryDate">Livraison prévue</Label>
-                      <Input
-                        id="expectedDeliveryDate"
-                        type="date"
-                        value={expectedDeliveryDate}
-                        onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Informations générales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="delivery_number">Numéro de bon de livraison</Label>
+              <Input
+                id="delivery_number"
+                value={formData.delivery_number}
+                onChange={(e) => setFormData({ ...formData, delivery_number: e.target.value })}
+                placeholder="BL-2024-001"
+                required
+              />
+            </div>
 
-          {/* Section Client */}
+            <div>
+              <Label htmlFor="client_id">Client</Label>
+              <Select
+                value={formData.client_id}
+                onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {!clientsLoading && clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name} {client.company && `(${client.company})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="expected_delivery_date">Date de livraison prévue</Label>
+              <Input
+                id="expected_delivery_date"
+                type="date"
+                value={formData.expected_delivery_date}
+                onChange={(e) => setFormData({ ...formData, expected_delivery_date: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="delivery_address">Adresse de livraison</Label>
+            <Textarea
+              id="delivery_address"
+              value={formData.delivery_address}
+              onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
+              placeholder="Adresse de livraison..."
+              rows={2}
+            />
+          </div>
+
+          {/* Articles */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="mr-2 h-5 w-5" />
-                Livrer à
+              <CardTitle className="flex items-center justify-between">
+                Articles
+                <Button type="button" onClick={addItem} size="sm" variant="outline">
+                  <Plus size={16} className="mr-2" />
+                  Ajouter un article
+                </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Rechercher un client..."
-                    value={clientSearch}
-                    onChange={(e) => setClientSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                  {clientsLoading && (
-                    <div className="absolute right-3 top-3 text-sm text-gray-400">
-                      Chargement...
-                    </div>
-                  )}
-                </div>
-                
-                {clientSearch && !selectedClient && filteredClients.length > 0 && (
-                  <div className="border rounded-lg max-h-48 overflow-y-auto bg-white z-10">
-                    {filteredClients.map((client) => (
-                      <div
-                        key={client.id}
-                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                        onClick={() => handleClientSelect(client)}
-                      >
-                        <div className="font-medium">{client.company || client.name}</div>
-                        {client.company && client.name !== client.company && (
-                          <div className="text-sm text-gray-600">{client.name}</div>
-                        )}
-                        {client.email && (
-                          <div className="text-sm text-gray-500">{client.email}</div>
-                        )}
-                        {formatAddress(client) && (
-                          <div className="text-xs text-gray-400 mt-1 whitespace-pre-line">
-                            {formatAddress(client)}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+            <CardContent className="space-y-4">
+              {items.map((item, index) => (
+                <div key={item.id} className="grid grid-cols-12 gap-2 items-end border-b pb-4">
+                  <div className="col-span-4">
+                    <Label>Produit</Label>
+                    <Select
+                      value={item.product_id || ''}
+                      onValueChange={(value) => handleProductSelect(item.id, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un produit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Produit personnalisé</SelectItem>
+                        {!productsLoading && products.map((product) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
 
-                {clientSearch && !selectedClient && filteredClients.length === 0 && !clientsLoading && (
-                  <div className="text-sm text-gray-500 p-2">
-                    Aucun client trouvé. Vous pouvez créer un nouveau client dans la section Clients.
-                  </div>
-                )}
-                
-                {selectedClient && (
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-green-800">
-                          {selectedClient.company || selectedClient.name}
-                        </h4>
-                        {selectedClient.company && selectedClient.name !== selectedClient.company && (
-                          <p className="text-sm text-green-700">{selectedClient.name}</p>
-                        )}
-                        {selectedClient.email && (
-                          <p className="text-sm text-green-600">{selectedClient.email}</p>
-                        )}
-                        {selectedClient.phone && (
-                          <p className="text-sm text-green-600">{selectedClient.phone}</p>
-                        )}
-                        {formatAddress(selectedClient) && (
-                          <div className="text-sm text-green-600 mt-2 whitespace-pre-line">
-                            <strong>Adresse :</strong><br />
-                            {formatAddress(selectedClient)}
-                          </div>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedClient(null);
-                          setDeliveryAddress('');
-                        }}
-                        className="text-green-700 hover:text-green-800"
-                      >
-                        Changer
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                <div>
-                  <Label htmlFor="deliveryAddress">Adresse de livraison</Label>
-                  <textarea
-                    id="deliveryAddress"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Adresse de livraison (sera remplie automatiquement lors de la sélection du client)..."
-                    className="w-full h-20 p-3 border rounded-md resize-none mt-1"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    L'adresse sera automatiquement remplie avec l'adresse du client sélectionné
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Table des articles */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center">
-                  <Package className="mr-2 h-5 w-5" />
-                  Articles à livrer
-                </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <div className="col-span-4">
+                    <Label>Description</Label>
                     <Input
-                      placeholder="Rechercher un produit..."
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10 w-64"
+                      value={item.description}
+                      onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                      placeholder="Description de l'article"
+                      required
                     />
                   </div>
-                  <Button onClick={addDeliveryItem} size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto bg-white">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
-                      onClick={() => {
-                        const newItem: DeliveryItem = {
-                          id: Date.now().toString(),
-                          description: product.name,
-                          quantity: 1,
-                          deliveredQuantity: 0,
-                          status: 'pending'
-                        };
-                        setDeliveryItems([...deliveryItems, newItem]);
-                        setProductSearch('');
-                      }}
-                    >
-                      <div>
-                        <span className="font-medium">{product.name}</span>
-                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
-                      </div>
-                      <span className="text-sm text-gray-500">{product.unit}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40%]">Description</TableHead>
-                    <TableHead className="w-[15%] text-center">Qté commandée</TableHead>
-                    <TableHead className="w-[15%] text-center">Qté livrée</TableHead>
-                    <TableHead className="w-[15%] text-center">Statut</TableHead>
-                    <TableHead className="w-[10%] text-center">État</TableHead>
-                    <TableHead className="w-[5%]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {deliveryItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateDeliveryItem(item.id, 'description', e.target.value)}
-                          placeholder="Description de l'article"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateDeliveryItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.deliveredQuantity || 0}
-                          onChange={(e) => updateDeliveryItem(item.id, 'deliveredQuantity', parseInt(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          max={item.quantity}
-                        />
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="text-sm">
-                          {item.deliveredQuantity || 0}/{item.quantity}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {getStatusBadge(item.status)}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeDeliveryItem(item.id)}
-                          disabled={deliveryItems.length === 1}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
 
-          {/* Section signatures (pour impression) */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Signatures</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <Label className="font-medium">Signature du livreur :</Label>
-                  <div className="h-20 border-2 border-dashed border-gray-300 rounded-lg mt-2 flex items-center justify-center text-gray-500">
-                    Zone de signature
+                  <div className="col-span-2">
+                    <Label>Quantité</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div className="col-span-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeItem(item.id)}
+                      disabled={items.length === 1}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
                   </div>
                 </div>
-                <div>
-                  <Label className="font-medium">Signature du client :</Label>
-                  <div className="h-20 border-2 border-dashed border-gray-300 rounded-lg mt-2 flex items-center justify-center text-gray-500">
-                    Zone de signature
-                  </div>
-                </div>
-              </div>
+              ))}
             </CardContent>
           </Card>
 
           {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes de livraison..."
-                className="w-full h-24 p-3 border rounded-md resize-none"
-              />
-            </CardContent>
-          </Card>
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Notes additionnelles..."
+              rows={3}
+            />
+          </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
-              {deliveryNote ? 'Mettre à jour' : 'Créer le bon de livraison'}
+            <Button type="submit" className="bg-success hover:bg-success/90">
+              {deliveryNote ? 'Modifier' : 'Créer'} le bon de livraison
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

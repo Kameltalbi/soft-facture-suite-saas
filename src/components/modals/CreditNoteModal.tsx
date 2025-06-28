@@ -1,23 +1,23 @@
 
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Trash2, FileText, User } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { Plus, Trash2 } from 'lucide-react';
 import { useClients } from '@/hooks/useClients';
-import { useProducts } from '@/hooks/useProducts';
+import { useProductsForModals } from '@/hooks/useProductsForModals';
 
 interface CreditNoteItem {
   id: string;
+  product_id?: string;
   description: string;
   quantity: number;
-  unitPrice: number;
-  vatRate: number;
-  discount: number;
+  unit_price: number;
+  tax_rate: number;
   total: number;
 }
 
@@ -29,441 +29,359 @@ interface CreditNoteModalProps {
 }
 
 export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNoteModalProps) {
-  const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
-  const { products, loading: productsLoading } = useProducts();
+  const { products, loading: productsLoading } = useProductsForModals();
   
-  // Form state
-  const [creditNoteNumber, setCreditNoteNumber] = useState(creditNote?.number || 'AV-2025-001');
-  const [creditNoteDate, setCreditNoteDate] = useState(creditNote?.date || new Date().toISOString().split('T')[0]);
-  const [clientSearch, setClientSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState(creditNote?.client || null);
-  const [reason, setReason] = useState(creditNote?.reason || '');
-  const [originalInvoiceNumber, setOriginalInvoiceNumber] = useState(creditNote?.originalInvoiceNumber || '');
-  const [notes, setNotes] = useState(creditNote?.notes || '');
-  
-  // Credit note items
-  const [creditNoteItems, setCreditNoteItems] = useState<CreditNoteItem[]>(creditNote?.items || [
-    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
+  const [formData, setFormData] = useState({
+    credit_note_number: '',
+    client_id: '',
+    date: new Date().toISOString().split('T')[0],
+    reason: '',
+    original_invoice_id: '',
+    notes: ''
+  });
+
+  const [items, setItems] = useState<CreditNoteItem[]>([
+    {
+      id: '1',
+      description: '',
+      quantity: 1,
+      unit_price: 0,
+      tax_rate: 20,
+      total: 0
+    }
   ]);
-  
-  // Product search
-  const [productSearch, setProductSearch] = useState('');
-  
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
-  );
-  
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
-  
-  const addCreditNoteItem = () => {
+
+  useEffect(() => {
+    if (creditNote) {
+      setFormData({
+        credit_note_number: creditNote.credit_note_number || '',
+        client_id: creditNote.client_id || '',
+        date: creditNote.date || new Date().toISOString().split('T')[0],
+        reason: creditNote.reason || '',
+        original_invoice_id: creditNote.original_invoice_id || '',
+        notes: creditNote.notes || ''
+      });
+      
+      if (creditNote.credit_note_items && creditNote.credit_note_items.length > 0) {
+        const convertedItems = creditNote.credit_note_items.map((item: any, index: number) => ({
+          id: item.id || `${index + 1}`,
+          product_id: item.product_id || '',
+          description: item.description || '',
+          quantity: Number(item.quantity) || 1,
+          unit_price: Number(item.unit_price) || 0,
+          tax_rate: Number(item.tax_rate) || 20,
+          total: Number(item.total_price) || 0
+        }));
+        setItems(convertedItems);
+      }
+    }
+  }, [creditNote]);
+
+  const addItem = () => {
     const newItem: CreditNoteItem = {
       id: Date.now().toString(),
       description: '',
       quantity: 1,
-      unitPrice: 0,
-      vatRate: 20,
-      discount: 0,
+      unit_price: 0,
+      tax_rate: 20,
       total: 0
     };
-    setCreditNoteItems([...creditNoteItems, newItem]);
+    setItems([...items, newItem]);
   };
-  
-  const updateCreditNoteItem = (id: string, field: keyof CreditNoteItem, value: any) => {
-    setCreditNoteItems(creditNoteItems.map(item => {
+
+  const removeItem = (id: string) => {
+    if (items.length > 1) {
+      setItems(items.filter(item => item.id !== id));
+    }
+  };
+
+  const updateItem = (id: string, field: keyof CreditNoteItem, value: any) => {
+    setItems(items.map(item => {
       if (item.id === id) {
-        const updated = { ...item, [field]: value };
-        if (field === 'quantity' || field === 'unitPrice' || field === 'discount') {
-          const subtotal = updated.quantity * updated.unitPrice;
-          const discountAmount = subtotal * (updated.discount / 100);
-          updated.total = subtotal - discountAmount;
+        const updatedItem = { ...item, [field]: value };
+        
+        // Recalculer le total
+        if (field === 'quantity' || field === 'unit_price') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unit_price;
         }
-        return updated;
+        
+        return updatedItem;
       }
       return item;
     }));
   };
-  
-  const removeCreditNoteItem = (id: string) => {
-    setCreditNoteItems(creditNoteItems.filter(item => item.id !== id));
+
+  const handleProductSelect = (itemId: string, productId: string) => {
+    const selectedProduct = products.find(p => p.id === productId);
+    if (selectedProduct) {
+      updateItem(itemId, 'product_id', productId);
+      updateItem(itemId, 'description', selectedProduct.name);
+      updateItem(itemId, 'unit_price', selectedProduct.unit_price);
+      updateItem(itemId, 'tax_rate', selectedProduct.tax_rate);
+      
+      // Recalculer le total avec la nouvelle quantité
+      const currentItem = items.find(item => item.id === itemId);
+      if (currentItem) {
+        updateItem(itemId, 'total', currentItem.quantity * selectedProduct.unit_price);
+      }
+    }
   };
-  
-  const calculateTotals = () => {
-    const subtotalHT = creditNoteItems.reduce((sum, item) => sum + item.total, 0);
-    const totalDiscount = creditNoteItems.reduce((sum, item) => {
-      const subtotal = item.quantity * item.unitPrice;
-      return sum + (subtotal * item.discount / 100);
-    }, 0);
-    const totalVAT = creditNoteItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
-    const totalTTC = subtotalHT + totalVAT;
+
+  const calculateSubtotal = () => {
+    return items.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const calculateTotalTax = () => {
+    return items.reduce((sum, item) => sum + (item.total * item.tax_rate / 100), 0);
+  };
+
+  const calculateTotalTTC = () => {
+    return calculateSubtotal() + calculateTotalTax();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     
-    return { subtotalHT, totalDiscount, totalVAT, totalTTC };
-  };
-  
-  const { subtotalHT, totalDiscount, totalVAT, totalTTC } = calculateTotals();
-  
-  const handleSave = () => {
     const creditNoteData = {
-      number: creditNoteNumber,
-      date: creditNoteDate,
-      client: selectedClient,
-      reason,
-      originalInvoiceNumber,
-      items: creditNoteItems,
-      notes,
-      totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
+      ...formData,
+      items: items.map(item => ({
+        ...item,
+        total_price: item.total
+      })),
+      subtotal: calculateSubtotal(),
+      tax_amount: calculateTotalTax(),
+      total_amount: calculateTotalTTC()
     };
+    
     onSave(creditNoteData);
-    onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-red-600">
-            {creditNote ? 'Modifier l\'avoir' : 'Nouvel avoir'}
+          <DialogTitle>
+            {creditNote ? 'Modifier l\'avoir' : 'Créer un nouvel avoir'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Header avec logo et infos organisation */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div className="flex items-center space-x-4">
-                  {organization?.logo_url && (
-                    <img src={organization.logo_url} alt="Logo" className="h-16 w-16 object-contain" />
-                  )}
-                  <div>
-                    <h3 className="text-lg font-semibold">{organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise'}</h3>
-                    <p className="text-sm text-gray-600">{organization?.address || user?.user_metadata?.company_address}</p>
-                    <p className="text-sm text-gray-600">{organization?.email || user?.email}</p>
-                    <p className="text-sm text-gray-600">{organization?.phone || user?.user_metadata?.company_phone}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-2xl font-bold text-red-600">AVOIR</h2>
-                  <div className="space-y-2 mt-2">
-                    <div>
-                      <Label htmlFor="creditNoteNumber">Numéro</Label>
-                      <Input
-                        id="creditNoteNumber"
-                        value={creditNoteNumber}
-                        onChange={(e) => setCreditNoteNumber(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="creditNoteDate">Date</Label>
-                      <Input
-                        id="creditNoteDate"
-                        type="date"
-                        value={creditNoteDate}
-                        onChange={(e) => setCreditNoteDate(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Informations générales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="credit_note_number">Numéro d'avoir</Label>
+              <Input
+                id="credit_note_number"
+                value={formData.credit_note_number}
+                onChange={(e) => setFormData({ ...formData, credit_note_number: e.target.value })}
+                placeholder="AV-2024-001"
+                required
+              />
+            </div>
 
-          {/* Section Client */}
+            <div>
+              <Label htmlFor="client_id">Client</Label>
+              <Select
+                value={formData.client_id}
+                onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {!clientsLoading && clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.name} {client.company && `(${client.company})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="original_invoice_id">Facture d'origine (optionnel)</Label>
+              <Input
+                id="original_invoice_id"
+                value={formData.original_invoice_id}
+                onChange={(e) => setFormData({ ...formData, original_invoice_id: e.target.value })}
+                placeholder="Numéro de facture d'origine"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="reason">Motif de l'avoir</Label>
+            <Textarea
+              id="reason"
+              value={formData.reason}
+              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              placeholder="Motif de l'avoir (retour, annulation, erreur, etc.)"
+              rows={2}
+              required
+            />
+          </div>
+
+          {/* Articles */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="mr-2 h-5 w-5" />
-                Avoir pour
+              <CardTitle className="flex items-center justify-between">
+                Articles
+                <Button type="button" onClick={addItem} size="sm" variant="outline">
+                  <Plus size={16} className="mr-2" />
+                  Ajouter un article
+                </Button>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Rechercher un client..."
-                    value={clientSearch}
-                    onChange={(e) => setClientSearch(e.target.value)}
-                    className="pl-10"
-                    disabled={clientsLoading}
-                  />
-                  {clientsLoading && <p className="text-sm text-gray-500 mt-2">Chargement des clients...</p>}
-                </div>
-                
-                {clientSearch && !selectedClient && (
-                  <div className="border rounded-lg max-h-48 overflow-y-auto">
-                    {filteredClients.map((client) => (
-                      <div
-                        key={client.id}
-                        className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                        onClick={() => {
-                          setSelectedClient(client);
-                          setClientSearch('');
-                        }}
-                      >
-                        <div className="font-medium">{client.company || client.name}</div>
-                        <div className="text-sm text-gray-600">{client.name}</div>
-                        <div className="text-sm text-gray-500">{client.address}, {client.city}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                
-                {selectedClient && (
-                  <div className="bg-red-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold">{selectedClient.company || selectedClient.name}</h4>
-                        <p className="text-sm text-gray-600">{selectedClient.name}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.address}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.city} {selectedClient.postal_code}</p>
-                        <p className="text-sm text-gray-600">{selectedClient.email}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedClient(null)}
-                      >
-                        Changer
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="originalInvoiceNumber">Facture d'origine</Label>
-                    <Input
-                      id="originalInvoiceNumber"
-                      value={originalInvoiceNumber}
-                      onChange={(e) => setOriginalInvoiceNumber(e.target.value)}
-                      placeholder="Numéro de facture..."
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="reason">Motif de l'avoir</Label>
-                    <Input
-                      id="reason"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      placeholder="Motif de l'avoir..."
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Table des produits/services */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center">
-                  <FileText className="mr-2 h-5 w-5" />
-                  Éléments à créditer
-                </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Rechercher un produit..."
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10 w-64"
-                      disabled={productsLoading}
-                    />
-                    {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
-                  </div>
-                  <Button onClick={addCreditNoteItem} size="sm" className="bg-red-600 hover:bg-red-700">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
-                      onClick={() => {
-                        const newItem: CreditNoteItem = {
-                          id: Date.now().toString(),
-                          description: product.name,
-                          quantity: 1,
-                          unitPrice: product.price,
-                          vatRate: 20,
-                          discount: 0,
-                          total: product.price
-                        };
-                        setCreditNoteItems([...creditNoteItems, newItem]);
-                        setProductSearch('');
-                      }}
+            <CardContent className="space-y-4">
+              {items.map((item, index) => (
+                <div key={item.id} className="grid grid-cols-12 gap-2 items-end border-b pb-4">
+                  <div className="col-span-3">
+                    <Label>Produit</Label>
+                    <Select
+                      value={item.product_id || ''}
+                      onValueChange={(value) => handleProductSelect(item.id, value)}
                     >
-                      <div>
-                        <span className="font-medium">{product.name}</span>
-                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
-                      </div>
-                      <span className="text-sm text-gray-500">{product.price}€</span>
-                    </div>
-                  ))}
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un produit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Produit personnalisé</SelectItem>
+                        {!productsLoading && products.map((product) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name} - {product.unit_price.toFixed(2)}€
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="col-span-3">
+                    <Label>Description</Label>
+                    <Input
+                      value={item.description}
+                      onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                      placeholder="Description de l'article"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-span-1">
+                    <Label>Quantité</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label>Prix unitaire HT</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.unit_price}
+                      onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div className="col-span-1">
+                    <Label>TVA (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.tax_rate}
+                      onChange={(e) => updateItem(item.id, 'tax_rate', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+
+                  <div className="col-span-1">
+                    <Label>Total HT</Label>
+                    <Input
+                      type="number"
+                      value={item.total.toFixed(2)}
+                      readOnly
+                      className="bg-gray-50"
+                    />
+                  </div>
+
+                  <div className="col-span-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeItem(item.id)}
+                      disabled={items.length === 1}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
                 </div>
-              )}
-              
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[35%]">Description</TableHead>
-                    <TableHead className="w-[12%] text-center">Quantité</TableHead>
-                    <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
-                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
-                    <TableHead className="w-[10%] text-center">TVA</TableHead>
-                    <TableHead className="w-[12%] text-right">Total HT</TableHead>
-                    <TableHead className="w-[5%]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {creditNoteItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateCreditNoteItem(item.id, 'description', e.target.value)}
-                          placeholder="Description de l'élément à créditer"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateCreditNoteItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          step="0.5"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.unitPrice}
-                          onChange={(e) => updateCreditNoteItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          className="text-right"
-                          min="0"
-                          step="0.01"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.discount}
-                          onChange={(e) => updateCreditNoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          max="100"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.vatRate}
-                          onChange={(e) => updateCreditNoteItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          max="100"
-                        />
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {item.total.toFixed(2)} €
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeCreditNoteItem(item.id)}
-                          disabled={creditNoteItems.length === 1}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              ))}
             </CardContent>
           </Card>
 
-          {/* Section Totaux */}
-          <div className="flex justify-end">
-            <Card className="w-80">
-              <CardHeader>
-                <CardTitle>Totaux à créditer</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+          {/* Totaux */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-end">
+                <div className="w-64 space-y-2">
                   <div className="flex justify-between">
-                    <span>Sous-total HT:</span>
-                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
-                  </div>
-                  {totalDiscount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Remise totale:</span>
-                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>Net HT:</span>
-                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
+                    <span>Sous-total HT :</span>
+                    <span>{calculateSubtotal().toFixed(2)} €</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>TVA:</span>
-                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
+                    <span>TVA :</span>
+                    <span>{calculateTotalTax().toFixed(2)} €</span>
                   </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total TTC:</span>
-                      <span className="text-red-600">{totalTTC.toFixed(2)} €</span>
-                    </div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                    <span>Total TTC :</span>
+                    <span>{calculateTotalTTC().toFixed(2)} €</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Notes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes additionnelles sur l'avoir..."
-                className="w-full h-32 p-3 border rounded-md resize-none"
-              />
-            </CardContent>
-          </Card>
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Notes additionnelles..."
+              rows={3}
+            />
+          </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-red-600 hover:bg-red-700">
-              {creditNote ? 'Mettre à jour' : 'Créer l\'avoir'}
+            <Button type="submit" className="bg-destructive hover:bg-destructive/90">
+              {creditNote ? 'Modifier' : 'Créer'} l'avoir
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
