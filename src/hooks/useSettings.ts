@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -200,6 +199,68 @@ export function useSettings() {
     }
   };
 
+  // Update currency
+  const updateCurrency = async (currencyId: string, data: Partial<Currency>) => {
+    if (!organization?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('currencies')
+        .update({
+          code: data.code,
+          symbol: data.symbol,
+          name: data.name,
+        })
+        .eq('id', currencyId)
+        .eq('organization_id', organization.id);
+
+      if (error) throw error;
+      
+      await fetchCurrencies();
+      
+      toast({
+        title: 'Succès',
+        description: 'Devise mise à jour avec succès.',
+      });
+    } catch (error) {
+      console.error('Error updating currency:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la mise à jour de la devise.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Delete currency
+  const deleteCurrency = async (currencyId: string) => {
+    if (!organization?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('currencies')
+        .delete()
+        .eq('id', currencyId)
+        .eq('organization_id', organization.id);
+
+      if (error) throw error;
+      
+      await fetchCurrencies();
+      
+      toast({
+        title: 'Succès',
+        description: 'Devise supprimée avec succès.',
+      });
+    } catch (error) {
+      console.error('Error deleting currency:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la suppression de la devise.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Save global settings
   const saveGlobalSettings = async (settings: Partial<GlobalSettings>) => {
     if (!organization?.id) return;
@@ -355,6 +416,8 @@ export function useSettings() {
     loading,
     addCurrency,
     setPrimaryCurrency,
+    updateCurrency,
+    deleteCurrency,
     saveGlobalSettings,
     updateNumbering,
     createRole,

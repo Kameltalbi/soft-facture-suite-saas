@@ -7,18 +7,20 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Coins, Plus, Star } from 'lucide-react';
 import { Currency } from '@/types/settings';
+import { CurrencyActionsMenu } from './CurrencyActionsMenu';
 
 interface CurrencySettingsProps {
   currencies: Currency[];
   onAddCurrency: (currency: Omit<Currency, 'id' | 'tenant_id'>) => void;
   onSetPrimary: (currencyId: string) => void;
+  onUpdateCurrency: (currencyId: string, currency: Partial<Currency>) => void;
+  onDeleteCurrency: (currencyId: string) => void;
 }
 
 const COMMON_CURRENCIES = [
-  { code: 'TND', symbol: 'د.ت', name: 'Dinar Tunisien' },
+  { code: 'TND', symbol: 'DT', name: 'Dinar Tunisien' },
   { code: 'EUR', symbol: '€', name: 'Euro' },
   { code: 'USD', symbol: '$', name: 'Dollar US' },
   { code: 'GBP', symbol: '£', name: 'Livre Sterling' },
@@ -26,8 +28,16 @@ const COMMON_CURRENCIES = [
   { code: 'DZD', symbol: 'د.ج', name: 'Dinar Algérien' },
 ];
 
-export function CurrencySettings({ currencies, onAddCurrency, onSetPrimary }: CurrencySettingsProps) {
+export function CurrencySettings({ 
+  currencies, 
+  onAddCurrency, 
+  onSetPrimary, 
+  onUpdateCurrency, 
+  onDeleteCurrency 
+}: CurrencySettingsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCurrency, setEditingCurrency] = useState<Currency | null>(null);
   const [newCurrency, setNewCurrency] = useState({
     code: '',
     symbol: '',
@@ -40,6 +50,24 @@ export function CurrencySettings({ currencies, onAddCurrency, onSetPrimary }: Cu
     onAddCurrency(newCurrency);
     setNewCurrency({ code: '', symbol: '', name: '', is_primary: false });
     setIsDialogOpen(false);
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingCurrency) {
+      onUpdateCurrency(editingCurrency.id, {
+        code: editingCurrency.code,
+        symbol: editingCurrency.symbol,
+        name: editingCurrency.name,
+      });
+      setEditingCurrency(null);
+      setIsEditDialogOpen(false);
+    }
+  };
+
+  const handleEdit = (currency: Currency) => {
+    setEditingCurrency(currency);
+    setIsEditDialogOpen(true);
   };
 
   const handleQuickAdd = (currency: typeof COMMON_CURRENCIES[0]) => {
@@ -148,6 +176,7 @@ export function CurrencySettings({ currencies, onAddCurrency, onSetPrimary }: Cu
                 <TableHead>Nom</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Actions</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -177,11 +206,64 @@ export function CurrencySettings({ currencies, onAddCurrency, onSetPrimary }: Cu
                       </Button>
                     )}
                   </TableCell>
+                  <TableCell>
+                    <CurrencyActionsMenu
+                      currency={currency}
+                      onEdit={handleEdit}
+                      onDelete={onDeleteCurrency}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+
+        {/* Edit Currency Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Modifier la devise</DialogTitle>
+            </DialogHeader>
+            {editingCurrency && (
+              <form onSubmit={handleEditSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-code">Code ISO</Label>
+                  <Input
+                    id="edit-code"
+                    value={editingCurrency.code}
+                    onChange={(e) => setEditingCurrency(prev => prev ? { ...prev, code: e.target.value.toUpperCase() } : null)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-symbol">Symbole</Label>
+                  <Input
+                    id="edit-symbol"
+                    value={editingCurrency.symbol}
+                    onChange={(e) => setEditingCurrency(prev => prev ? { ...prev, symbol: e.target.value } : null)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Nom complet</Label>
+                  <Input
+                    id="edit-name"
+                    value={editingCurrency.name}
+                    onChange={(e) => setEditingCurrency(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    required
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button type="submit">Modifier</Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

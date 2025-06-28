@@ -31,6 +31,8 @@ export default function Settings() {
     loading: settingsLoading,
     addCurrency,
     setPrimaryCurrency,
+    updateCurrency,
+    deleteCurrency,
     saveGlobalSettings,
     updateNumbering,
     createRole,
@@ -347,6 +349,8 @@ export default function Settings() {
             currencies={currencies}
             onAddCurrency={addCurrency}
             onSetPrimary={setPrimaryCurrency}
+            onUpdateCurrency={updateCurrency}
+            onDeleteCurrency={deleteCurrency}
           />
         </TabsContent>
 
