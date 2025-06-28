@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ interface ProductModalProps {
 
 export function ProductModal({ open, onClose, product }: ProductModalProps) {
   const { categories, loading: categoriesLoading } = useCategories();
-  const { createProduct } = useProducts();
+  const { createProduct, updateProduct } = useProducts();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -69,8 +68,14 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
 
     try {
       if (product) {
-        // Mode édition - à implémenter plus tard
-        console.log('Update product:', formData);
+        // Mode édition
+        const result = await updateProduct(product.id, formData);
+        if (result.error) {
+          console.error('Error updating product:', result.error);
+        } else {
+          console.log('Product updated successfully');
+          onClose();
+        }
       } else {
         // Mode création
         const result = await createProduct(formData);
@@ -109,6 +114,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Basic Information */}
             <div className="space-y-4">
