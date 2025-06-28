@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText, Calendar, Users, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,15 +15,18 @@ import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
 import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
 import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 const Quotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const { organization } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch quotes from Supabase
   const { data: quotes = [], isLoading } = useQuery({
@@ -59,7 +61,9 @@ const Quotes = () => {
   };
 
   const handleViewQuote = (quote) => {
-    console.log('Viewing quote:', quote.quote_number);
+    // Ouvrir le modal en mode lecture seule
+    setSelectedQuote({ ...quote, readOnly: true });
+    setIsModalOpen(true);
   };
 
   const handleEditQuote = (quote) => {
@@ -67,24 +71,137 @@ const Quotes = () => {
     setIsModalOpen(true);
   };
 
-  const handleDuplicateQuote = (quote) => {
-    console.log('Duplicating quote:', quote.quote_number);
+  const handleDuplicateQuote = async (quote) => {
+    try {
+      // Générer un nouveau numéro de devis
+      const newQuoteNumber = `DEV-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+      
+      // Créer le nouveau devis
+      const { data: newQuote, error: quoteError } = await supabase
+        .from('quotes')
+        .insert({
+          quote_number: newQuoteNumber,
+          client_id: quote.client_id,
+          organization_id: organization.id,
+          date: new Date().toISOString().split('T')[0],
+          valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'draft',
+          subtotal: quote.subtotal,
+          tax_amount: quote.tax_amount,
+          total_amount: quote.total_amount,
+          notes: quote.notes
+        })
+        .select()
+        .single();
+
+      if (quoteError) throw quoteError;
+
+      // Dupliquer les éléments du devis
+      if (quote.quote_items && quote.quote_items.length > 0) {
+        const newItems = quote.quote_items.map(item => ({
+          quote_id: newQuote.id,
+          organization_id: organization.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate,
+          total_price: item.total_price,
+          product_id: item.product_id
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('quote_items')
+          .insert(newItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+      toast({
+        title: "Succès",
+        description: `Le devis ${quote.quote_number} a été dupliqué en ${newQuoteNumber}`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la duplication:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la duplication du devis",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleConvertToInvoice = (quote) => {
-    console.log('Converting quote to invoice:', quote.quote_number);
+  const handleConvertToInvoice = () => {
+    // Cette fonction est déjà implémentée dans QuoteActionsMenu
+    queryClient.invalidateQueries({ queryKey: ['quotes'] });
+    queryClient.invalidateQueries({ queryKey: ['invoices'] });
   };
 
-  const handleDeleteQuote = (quote) => {
-    console.log('Deleting quote:', quote.quote_number);
+  const handleDeleteQuote = async (quote) => {
+    try {
+      // Supprimer d'abord les éléments du devis
+      const { error: itemsError } = await supabase
+        .from('quote_items')
+        .delete()
+        .eq('quote_id', quote.id);
+
+      if (itemsError) throw itemsError;
+
+      // Supprimer le devis
+      const { error: quoteError } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', quote.id);
+
+      if (quoteError) throw quoteError;
+
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+      toast({
+        title: "Succès",
+        description: `Le devis ${quote.quote_number} a été supprimé`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression du devis",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEmailSent = (emailData) => {
-    console.log('Sending email:', emailData);
+    toast({
+      title: "Email envoyé",
+      description: `Le devis a été envoyé à ${emailData.to}`,
+    });
   };
 
-  const handleStatusChange = (quote, newStatus) => {
-    console.log('Changing status for quote:', quote.quote_number, 'to:', newStatus);
+  const handleStatusChange = async (quote, newStatus) => {
+    try {
+      const { error } = await supabase
+        .from('quotes')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', quote.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+      toast({
+        title: "Succès",
+        description: `Le statut du devis ${quote.quote_number} a été modifié`,
+      });
+    } catch (error) {
+      console.error('Erreur lors du changement de statut:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du changement de statut",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatutBadge = (statut) => {
@@ -289,7 +406,13 @@ const Quotes = () => {
                       validUntil: quote.valid_until,
                       notes: quote.notes
                     },
-                    lineItems: quote.quote_items || [],
+                    lineItems: quote.quote_items?.map(item => ({
+                      description: item.description,
+                      quantity: item.quantity,
+                      unitPrice: item.unit_price,
+                      vatRate: item.tax_rate,
+                      total: item.total_price
+                    })) || [],
                     client: {
                       name: quote.clients?.name || '',
                       company: quote.clients?.company || '',
@@ -300,7 +423,8 @@ const Quotes = () => {
                       name: organization?.name || 'Soft Facture',
                       address: organization?.address || '',
                       email: organization?.email || '',
-                      phone: organization?.phone || ''
+                      phone: organization?.phone || '',
+                      logo_url: organization?.logo_url || ''
                     },
                     settings: {
                       showVat: true,
@@ -346,7 +470,7 @@ const Quotes = () => {
                           onView={() => handleViewQuote(quote)}
                           onEdit={() => handleEditQuote(quote)}
                           onDuplicate={() => handleDuplicateQuote(quote)}
-                          onConvertToInvoice={() => handleConvertToInvoice(quote)}
+                          onConvertToInvoice={handleConvertToInvoice}
                           onStatusChange={(status) => handleStatusChange(quote, status)}
                           onDelete={() => handleDeleteQuote(quote)}
                           onEmailSent={handleEmailSent}
@@ -373,7 +497,7 @@ const Quotes = () => {
           onClose={() => setIsModalOpen(false)}
           quote={selectedQuote}
           onSave={(data) => {
-            console.log('Sauvegarde du devis:', data);
+            queryClient.invalidateQueries({ queryKey: ['quotes'] });
             setIsModalOpen(false);
           }}
         />
