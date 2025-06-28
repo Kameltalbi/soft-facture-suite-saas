@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,7 +44,8 @@ export function Header() {
             </Button>
           ) : (
             <Button 
-              className="bg-[#D96C4F] hover:bg-[#C25A43] text-white"
+              variant="ghost" 
+              className="text-[#6A9C89] hover:text-[#5A8A75]"
               onClick={() => navigate('/auth')}
             >
               Connexion
