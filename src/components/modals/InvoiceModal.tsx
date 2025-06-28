@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -52,29 +51,57 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   ]);
 
   useEffect(() => {
-    if (invoice) {
-      setFormData({
-        invoice_number: invoice.invoice_number || '',
-        client_id: invoice.client_id || '',
-        date: invoice.date || new Date().toISOString().split('T')[0],
-        due_date: invoice.due_date || '',
-        notes: invoice.notes || ''
-      });
-      
-      if (invoice.invoice_items && invoice.invoice_items.length > 0) {
-        const convertedItems = invoice.invoice_items.map((item: any, index: number) => ({
-          id: item.id || `${index + 1}`,
-          product_id: item.product_id || '',
-          description: item.description || '',
-          quantity: Number(item.quantity) || 1,
-          unit_price: Number(item.unit_price) || 0,
-          tax_rate: Number(item.tax_rate) || 20,
-          total: Number(item.total_price) || 0
-        }));
-        setItems(convertedItems);
+    if (open) {
+      if (invoice) {
+        setFormData({
+          invoice_number: invoice.invoice_number || '',
+          client_id: invoice.client_id || '',
+          date: invoice.date || new Date().toISOString().split('T')[0],
+          due_date: invoice.due_date || '',
+          notes: invoice.notes || ''
+        });
+        
+        if (invoice.invoice_items && invoice.invoice_items.length > 0) {
+          const convertedItems = invoice.invoice_items.map((item: any, index: number) => ({
+            id: item.id || `${index + 1}`,
+            product_id: item.product_id || '',
+            description: item.description || '',
+            quantity: Number(item.quantity) || 1,
+            unit_price: Number(item.unit_price) || 0,
+            tax_rate: Number(item.tax_rate) || 20,
+            total: Number(item.total_price) || 0
+          }));
+          setItems(convertedItems);
+        } else {
+          setItems([{
+            id: '1',
+            description: '',
+            quantity: 1,
+            unit_price: 0,
+            tax_rate: 20,
+            total: 0
+          }]);
+        }
+      } else {
+        // Reset form for new invoice
+        setFormData({
+          invoice_number: '',
+          client_id: '',
+          date: new Date().toISOString().split('T')[0],
+          due_date: '',
+          notes: ''
+        });
+        setItems([{
+          id: '1',
+          description: '',
+          quantity: 1,
+          unit_price: 0,
+          tax_rate: 20,
+          total: 0
+        }]);
       }
     }
-  }, [invoice]);
+  }, [open, invoice]);
 
   const addItem = () => {
     const newItem: InvoiceItem = {
@@ -232,7 +259,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {items.map((item, index) => (
+              {items.map((item) => (
                 <div key={item.id} className="grid grid-cols-12 gap-2 items-end border-b pb-4">
                   <div className="col-span-3">
                     <Label>Produit</Label>
@@ -244,7 +271,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         <SelectValue placeholder="Sélectionner un produit" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Produit personnalisé</SelectItem>
+                        <SelectItem value="custom">Produit personnalisé</SelectItem>
                         {!productsLoading && products.map((product) => (
                           <SelectItem key={product.id} value={product.id}>
                             {product.name} - {product.unit_price.toFixed(2)}€
