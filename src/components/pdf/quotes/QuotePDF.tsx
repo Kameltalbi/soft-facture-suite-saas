@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -18,6 +18,20 @@ const styles = StyleSheet.create({
     borderBottomColor: '#8B5CF6',
   },
   companyInfo: {
+    flex: 1,
+  },
+  companyLogoSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 15,
+  },
+  companyLogo: {
+    width: 80,
+    height: 40,
+    marginRight: 15,
+    objectFit: 'contain',
+  },
+  companyDetails: {
     flex: 1,
   },
   documentTitle: {
@@ -152,9 +166,9 @@ export const QuotePDF = ({
   const currencySymbol = currency?.symbol || '€';
   
   const calculateTotals = () => {
-    const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
+    const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
     const totalVAT = lineItems.reduce((sum, item) => {
-      return sum + (item.total * item.vatRate / 100);
+      return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0);
     const totalTTC = subtotalHT + totalVAT;
 
@@ -169,22 +183,32 @@ export const QuotePDF = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.companyInfo}>
-            <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>
-              {company?.name || 'Soft Facture'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#666666', lineHeight: 1.4 }}>
-              {company?.address || 'Adresse de l\'entreprise'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#666666' }}>
-              {company?.email || 'contact@softfacture.fr'}
-            </Text>
-            <Text style={{ fontSize: 10, color: '#666666' }}>
-              {company?.phone || 'Téléphone'}
-            </Text>
+            <View style={styles.companyLogoSection}>
+              {company?.logo_url && (
+                <Image
+                  style={styles.companyLogo}
+                  src={company.logo_url}
+                />
+              )}
+              <View style={styles.companyDetails}>
+                <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>
+                  {company?.name || 'Soft Facture'}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#666666', lineHeight: 1.4 }}>
+                  {company?.address || 'Adresse de l\'entreprise'}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#666666' }}>
+                  {company?.email || 'contact@softfacture.fr'}
+                </Text>
+                <Text style={{ fontSize: 10, color: '#666666' }}>
+                  {company?.phone || 'Téléphone'}
+                </Text>
+              </View>
+            </View>
           </View>
           <View>
             <Text style={styles.documentTitle}>DEVIS</Text>
-            <Text style={styles.documentNumber}>N° {quoteData?.number}</Text>
+            <Text style={styles.documentNumber}>N° {quoteData?.number || 'N/A'}</Text>
             <Text style={styles.documentNumber}>
               Date: {new Date(quoteData?.date || Date.now()).toLocaleDateString('fr-FR')}
             </Text>
@@ -217,20 +241,20 @@ export const QuotePDF = ({
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>TOTAL HT</Text>
           </View>
 
-          {lineItems?.map((item, index) => (
+          {lineItems?.filter(item => item.description && item.description.trim()).map((item, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={[styles.tableCell, { flex: 3 }]}>{item.description}</Text>
-              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity}</Text>
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity || 0}</Text>
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
-                {item.unitPrice?.toFixed(2)} {currencySymbol}
+                {(item.unitPrice || 0).toFixed(2)} {currencySymbol}
               </Text>
               {settings?.showVat && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
-                  {item.vatRate}%
+                  {item.vatRate || 0}%
                 </Text>
               )}
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
-                {item.total?.toFixed(2)} {currencySymbol}
+                {(item.total || 0).toFixed(2)} {currencySymbol}
               </Text>
             </View>
           ))}
@@ -263,7 +287,7 @@ export const QuotePDF = ({
         </View>
 
         {/* Notes */}
-        {quoteData?.notes && (
+        {quoteData?.notes && quoteData.notes.trim() && (
           <View style={styles.notes}>
             <Text style={styles.sectionTitle}>NOTES :</Text>
             <Text>{quoteData.notes}</Text>

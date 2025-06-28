@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 interface QuoteItem {
   id: string;
@@ -291,6 +292,25 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       setSaving(false);
     }
   };
+
+  // Prepare PDF data
+  const pdfData = {
+    number: quoteNumber,
+    date: quoteDate,
+    validUntil,
+    notes,
+    conditions
+  };
+
+  const companyData = {
+    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
+    address: organization?.address || user?.user_metadata?.company_address,
+    email: organization?.email || user?.email,
+    phone: organization?.phone || user?.user_metadata?.company_phone,
+    logo_url: organization?.logo_url
+  };
+
+  const filteredItems = quoteItems.filter(item => item.description.trim());
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -664,6 +684,24 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Annuler
             </Button>
+            {selectedClient && filteredItems.length > 0 && (
+              <PDFDownloadLink
+                document={
+                  <QuotePDF
+                    quoteData={pdfData}
+                    lineItems={filteredItems}
+                    client={selectedClient}
+                    company={companyData}
+                    settings={{ showVat: true }}
+                    currency={{ code: 'EUR', symbol: '€', name: 'Euro' }}
+                  />
+                }
+                fileName={`${quoteNumber}.pdf`}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2"
+              >
+                {({ loading }) => (loading ? 'Génération...' : 'Télécharger PDF')}
+              </PDFDownloadLink>
+            )}
             <Button 
               onClick={handleSave} 
               className="bg-purple-600 hover:bg-purple-700"
