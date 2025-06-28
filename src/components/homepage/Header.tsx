@@ -36,22 +36,13 @@ export function Header() {
         
         <div className="flex items-center space-x-4">
           {user ? (
-            <>
-              <Button 
-                variant="ghost" 
-                className="text-[#6A9C89] hover:text-[#5A8A75]"
-                onClick={() => navigate('/dashboard')}
-              >
-                Dashboard
-              </Button>
-              <Button 
-                variant="outline"
-                className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
-                onClick={handleSignOut}
-              >
-                Déconnexion
-              </Button>
-            </>
+            <Button 
+              variant="outline"
+              className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
+              onClick={handleSignOut}
+            >
+              Déconnexion
+            </Button>
           ) : (
             <>
               <Button 
