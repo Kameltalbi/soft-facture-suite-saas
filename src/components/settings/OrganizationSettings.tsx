@@ -9,6 +9,7 @@ import { Upload, Building } from 'lucide-react';
 import { Organization } from '@/types/settings';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { resizeImage, validateImageFile } from '@/utils/imageUtils';
 
 interface OrganizationSettingsProps {
   organization?: Organization;
@@ -51,16 +52,35 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
     const file = event.target.files?.[0];
     if (!file || !organization?.id) return;
 
+    // Validation du fichier
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: 'Erreur',
+        description: validation.error,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setUploading(true);
     try {
+      // Redimensionner l'image automatiquement
+      const resizedFile = await resizeImage(file, 600, 200, 0.8);
+      
+      toast({
+        title: 'Image optimisée',
+        description: 'Votre logo a été automatiquement redimensionné pour de meilleures performances.',
+      });
+
       // Generate a unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = resizedFile.name.split('.').pop();
       const fileName = `${organization.id}-${Date.now()}.${fileExt}`;
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('organization-logos')
-        .upload(fileName, file);
+        .upload(fileName, resizedFile);
 
       if (uploadError) {
         throw uploadError;
@@ -113,11 +133,13 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Logo Upload - Taille améliorée */}
+          {/* Logo Upload */}
           <div className="space-y-2">
             <Label>Logo de l'organisation</Label>
             <div className="text-sm text-gray-600 mb-4">
               Format conseillé : horizontal, minimum 600 x 200 px, PNG ou SVG transparent
+              <br />
+              <span className="text-green-600 font-medium">✨ Redimensionnement automatique activé</span>
             </div>
             <div className="flex items-center gap-6">
               <div className="logo-container w-60 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 p-3">
@@ -143,11 +165,12 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                   disabled={uploading}
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  {uploading ? 'Téléchargement...' : 'Changer le logo'}
+                  {uploading ? 'Optimisation...' : 'Changer le logo'}
                 </Button>
                 <div className="text-xs text-gray-500 max-w-48">
                   Formats acceptés : PNG, JPG, SVG<br/>
-                  Taille recommandée : 600 x 200 px minimum
+                  Taille max : 5MB<br/>
+                  <span className="text-green-600">Redimensionnement auto</span>
                 </div>
               </div>
               <input

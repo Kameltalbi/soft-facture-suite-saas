@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Upload, Eye, EyeOff } from 'lucide-react';
+import { resizeImage, validateImageFile } from '@/utils/imageUtils';
 
 interface RegisterFormData {
   firstName: string;
@@ -28,6 +29,8 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [processingLogo, setProcessingLogo] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<RegisterFormData>({
@@ -58,14 +61,49 @@ const RegisterPage = () => {
     'Autre'
   ];
 
-  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    // Validation du fichier
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: 'Erreur',
+        description: validation.error,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setProcessingLogo(true);
+    
+    try {
+      // Redimensionner l'image automatiquement
+      const resizedFile = await resizeImage(file, 600, 200, 0.8);
+      
+      // Créer l'aperçu
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoPreview(e.target?.result as string);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(resizedFile);
+      
+      setLogoFile(resizedFile);
+      
+      toast({
+        title: 'Image optimisée',
+        description: 'Votre logo a été automatiquement redimensionné pour de meilleures performances.',
+      });
+    } catch (error) {
+      console.error('Error processing logo:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de traiter l\'image.',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingLogo(false);
     }
   };
 
@@ -88,8 +126,8 @@ const RegisterPage = () => {
       return;
     }
 
-    // Simuler l'inscription
-    console.log('Données d\'inscription:', data);
+    // Simuler l'inscription avec le logo optimisé
+    console.log('Données d\'inscription:', { ...data, optimizedLogo: logoFile });
     toast({
       title: "Compte créé avec succès !",
       description: "Bienvenue dans Soft Facture",
@@ -274,10 +312,17 @@ const RegisterPage = () => {
                   <Label>Logo (facultatif)</Label>
                   <div className="text-sm text-gray-600 mb-3">
                     Format conseillé : horizontal, minimum 600 x 200 px, PNG ou SVG
+                    <br />
+                    <span className="text-green-600 font-medium">✨ Redimensionnement automatique</span>
                   </div>
                   <div className="flex items-center space-x-4">
                     <label className="logo-container flex items-center justify-center w-48 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors bg-gray-50 p-2">
-                      {logoPreview ? (
+                      {processingLogo ? (
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6A9C89] mx-auto mb-2"></div>
+                          <span className="text-xs text-gray-500">Optimisation...</span>
+                        </div>
+                      ) : logoPreview ? (
                         <img 
                           src={logoPreview} 
                           alt="Logo preview" 
@@ -295,12 +340,13 @@ const RegisterPage = () => {
                         accept="image/*"
                         className="hidden"
                         onChange={handleLogoChange}
+                        disabled={processingLogo}
                       />
                     </label>
                     <div className="text-xs text-gray-500">
                       <div>• PNG, JPG, SVG acceptés</div>
-                      <div>• Taille min : 600 x 200 px</div>
-                      <div>• Fond transparent recommandé</div>
+                      <div>• Taille max : 5MB</div>
+                      <div className="text-green-600">• Redimensionnement auto</div>
                     </div>
                   </div>
                 </div>
