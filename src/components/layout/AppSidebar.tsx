@@ -14,6 +14,7 @@ import {
   Building2,
   CreditCard
 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import {
   Sidebar,
@@ -38,87 +39,98 @@ const menuItems = [
   { 
     id: 'dashboard', 
     label: 'Dashboard', 
-    icon: LayoutDashboard 
+    icon: LayoutDashboard,
+    path: '/'
   },
   { 
     id: 'quotes', 
     label: 'Devis', 
-    icon: ClipboardList 
+    icon: ClipboardList,
+    path: '/quotes'
   },
   { 
     id: 'invoices', 
     label: 'Factures', 
-    icon: FileText 
+    icon: FileText,
+    path: '/invoices'
   },
   { 
     id: 'delivery-notes', 
     label: 'Bons de livraison', 
-    icon: Truck 
+    icon: Truck,
+    path: '/delivery-notes'
   },
   { 
     id: 'credits', 
     label: 'Avoirs', 
-    icon: Receipt 
+    icon: Receipt,
+    path: '/credits'
   },
   { 
     id: 'recouvrement', 
     label: 'Recouvrement', 
-    icon: CreditCard 
+    icon: CreditCard,
+    path: '/recouvrement'
   },
   { 
     id: 'clients', 
     label: 'Clients', 
-    icon: UsersRound 
+    icon: UsersRound,
+    path: '/clients'
   },
   { 
     id: 'products', 
     label: 'Produits & Services', 
-    icon: Package 
+    icon: Package,
+    path: '/products'
   },
   { 
     id: 'categories', 
     label: 'Catégories', 
-    icon: Folders 
+    icon: Folders,
+    path: '/categories'
   },
   { 
     id: 'stock', 
     label: 'Gestion des stocks', 
-    icon: Warehouse 
+    icon: Warehouse,
+    path: '/stock'
   },
   { 
     id: 'fournisseurs', 
     label: 'Fournisseurs', 
-    icon: Building2 
+    icon: Building2,
+    path: '/fournisseurs'
   },
   { 
     id: 'bons-commande', 
     label: 'Bons de commande', 
-    icon: Receipt 
+    icon: Receipt,
+    path: '/bons-commande'
   },
   { 
     id: 'reports', 
     label: 'Rapports', 
-    icon: BarChart3 
+    icon: BarChart3,
+    path: '/reports'
   },
   { 
     id: 'settings', 
     label: 'Paramètres', 
-    icon: Settings2 
+    icon: Settings2,
+    path: '/settings'
   },
 ];
 
 export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
-  const handleModuleChange = (moduleId: string) => {
+  const handleModuleChange = (moduleId: string, path: string) => {
     onModuleChange(moduleId);
-    
-    // Navigation vers les pages correspondantes
-    if (moduleId === 'recouvrement') {
-      window.location.href = '/recouvrement';
-    }
-    // Ajouter d'autres navigations au besoin
+    navigate(path);
   };
 
   return (
@@ -148,12 +160,12 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
             <SidebarMenu className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeModule === item.id;
+                const isActive = location.pathname === item.path || activeModule === item.id;
                 
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
-                      onClick={() => handleModuleChange(item.id)}
+                      onClick={() => handleModuleChange(item.id, item.path)}
                       isActive={isActive}
                       tooltip={isCollapsed ? item.label : undefined}
                       className="h-10 px-3 font-medium transition-all duration-200 hover:bg-accent hover:text-accent-foreground data-[active=true]:bg-[#6A9C89] data-[active=true]:text-white data-[active=true]:shadow-sm"
