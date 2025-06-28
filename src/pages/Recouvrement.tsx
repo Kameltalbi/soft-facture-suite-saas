@@ -66,7 +66,12 @@ const Recouvrement = () => {
       if (error) {
         console.error('Error fetching recouvrement data:', error);
       } else {
-        setData(invoices || []);
+        // Type assertion to ensure status matches our interface
+        const typedInvoices: RecouvrementData[] = (invoices || []).map(inv => ({
+          ...inv,
+          status: inv.status as 'payée' | 'partiellement payée' | 'non payée'
+        }));
+        setData(typedInvoices);
       }
     } catch (error) {
       console.error('Error fetching recouvrement data:', error);

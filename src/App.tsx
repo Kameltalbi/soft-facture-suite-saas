@@ -3,8 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/hooks/useAuth';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import { Toaster } from '@/components/ui/sonner';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import PrivateRouteSuperadmin from '@/components/auth/PrivateRouteSuperadmin';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { PrivateRouteSuperadmin } from '@/components/auth/PrivateRouteSuperadmin';
 import AuthPage from '@/pages/AuthPage';
 import HomePage from '@/pages/HomePage';
 import Index from '@/pages/Index';
@@ -120,6 +120,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              
               <Route
                 path="/reports/client-revenue"
                 element={
