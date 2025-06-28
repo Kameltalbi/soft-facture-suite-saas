@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    price: 0,
+    price: '',
     unit: 'unité',
     category: '',
     stock_quantity: 0,
@@ -39,7 +40,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
       setFormData({
         name: product.name || '',
         description: product.description || '',
-        price: product.price || 0,
+        price: product.price?.toString() || '',
         unit: product.unit || 'unité',
         category: product.category || '',
         stock_quantity: product.stock_quantity || 0,
@@ -51,7 +52,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
       setFormData({
         name: '',
         description: '',
-        price: 0,
+        price: '',
         unit: 'unité',
         category: '',
         stock_quantity: 0,
@@ -66,10 +67,16 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Préparer les données avec le prix converti en nombre
+    const submitData = {
+      ...formData,
+      price: parseFloat(formData.price) || 0
+    };
+
     try {
       if (product) {
         // Mode édition
-        const result = await updateProduct(product.id, formData);
+        const result = await updateProduct(product.id, submitData);
         if (result.error) {
           console.error('Error updating product:', result.error);
         } else {
@@ -78,7 +85,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         }
       } else {
         // Mode création
-        const result = await createProduct(formData);
+        const result = await createProduct(submitData);
         if (result.error) {
           console.error('Error creating product:', result.error);
         } else {
@@ -169,14 +176,15 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
             {/* Pricing and Units */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="price">Prix unitaire *</Label>
+                <Label htmlFor="price">Prix unitaire (€) *</Label>
                 <Input
                   id="price"
                   type="number"
                   min="0"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  placeholder="0.00"
                   required
                 />
               </div>
