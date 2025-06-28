@@ -12,9 +12,10 @@ interface ClientModalProps {
   open: boolean;
   onClose: () => void;
   client?: any;
+  onSave?: (data: any) => Promise<void>;
 }
 
-export function ClientModal({ open, onClose, client }: ClientModalProps) {
+export function ClientModal({ open, onClose, client, onSave }: ClientModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -22,9 +23,9 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
     phone: '',
     address: '',
     city: '',
-    postalCode: '',
+    postal_code: '',
     country: 'France',
-    vatNumber: '',
+    vat_number: '',
     paymentTerms: 30,
     status: 'active' as 'active' | 'inactive'
   });
@@ -38,9 +39,9 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         phone: client.phone || '',
         address: client.address || '',
         city: client.city || '',
-        postalCode: client.postalCode || '',
+        postal_code: client.postal_code || '',
         country: client.country || 'France',
-        vatNumber: client.vatNumber || '',
+        vat_number: client.vat_number || '',
         paymentTerms: client.paymentTerms || 30,
         status: client.status || 'active'
       });
@@ -52,19 +53,23 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         phone: '',
         address: '',
         city: '',
-        postalCode: '',
+        postal_code: '',
         country: 'France',
-        vatNumber: '',
+        vat_number: '',
         paymentTerms: 30,
         status: 'active'
       });
     }
   }, [client, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Client data:', formData);
-    onClose();
+    if (onSave) {
+      await onSave(formData);
+    } else {
+      console.log('Client data:', formData);
+      onClose();
+    }
   };
 
   const countries = [
@@ -165,8 +170,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                 <Label htmlFor="postalCode">Code postal</Label>
                 <Input
                   id="postalCode"
-                  value={formData.postalCode}
-                  onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                  value={formData.postal_code}
+                  onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
                   placeholder="75001"
                 />
               </div>
@@ -206,8 +211,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                 <Label htmlFor="vatNumber">Numéro de TVA intracommunautaire</Label>
                 <Input
                   id="vatNumber"
-                  value={formData.vatNumber}
-                  onChange={(e) => setFormData({...formData, vatNumber: e.target.value})}
+                  value={formData.vat_number}
+                  onChange={(e) => setFormData({...formData, vat_number: e.target.value})}
                   placeholder="FR12345678901"
                 />
                 <p className="text-xs text-neutral-500 mt-1">

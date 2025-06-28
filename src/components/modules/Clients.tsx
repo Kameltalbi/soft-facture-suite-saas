@@ -261,6 +261,7 @@ const Clients = () => {
         open={showModal}
         onClose={() => setShowModal(false)}
         client={editingClient}
+        onSave={handleSaveClient}
       />
     </div>
   );
