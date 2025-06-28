@@ -56,49 +56,60 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     }
   ]);
 
+  // Reset form when modal opens/closes or quote changes
   useEffect(() => {
-    if (quote) {
-      setFormData({
-        quote_number: quote.quote_number || '',
-        client_id: quote.client_id || '',
-        date: quote.date || new Date().toISOString().split('T')[0],
-        valid_until: quote.valid_until || '',
-        notes: quote.notes || ''
-      });
-      
-      if (quote.quote_items && quote.quote_items.length > 0) {
-        const convertedItems = quote.quote_items.map((item: any, index: number) => ({
-          id: item.id || `${index + 1}`,
-          product_id: item.product_id || '',
-          description: item.description || '',
-          quantity: Number(item.quantity) || 1,
-          unit_price: Number(item.unit_price) || 0,
-          tax_rate: Number(item.tax_rate) || 20,
-          total: Number(item.total_price) || 0
-        }));
-        setItems(convertedItems);
-      }
-    } else {
-      // Reset form for new quote
-      setFormData({
-        quote_number: '',
-        client_id: '',
-        date: new Date().toISOString().split('T')[0],
-        valid_until: '',
-        notes: ''
-      });
-      setItems([
-        {
+    if (open) {
+      if (quote) {
+        setFormData({
+          quote_number: quote.quote_number || '',
+          client_id: quote.client_id || '',
+          date: quote.date || new Date().toISOString().split('T')[0],
+          valid_until: quote.valid_until || '',
+          notes: quote.notes || ''
+        });
+        
+        if (quote.quote_items && quote.quote_items.length > 0) {
+          const convertedItems = quote.quote_items.map((item: any, index: number) => ({
+            id: item.id || `${index + 1}`,
+            product_id: item.product_id || '',
+            description: item.description || '',
+            quantity: Number(item.quantity) || 1,
+            unit_price: Number(item.unit_price) || 0,
+            tax_rate: Number(item.tax_rate) || 20,
+            total: Number(item.total_price) || 0
+          }));
+          setItems(convertedItems);
+        } else {
+          setItems([{
+            id: '1',
+            description: '',
+            quantity: 1,
+            unit_price: 0,
+            tax_rate: 20,
+            total: 0
+          }]);
+        }
+      } else {
+        // Reset form for new quote
+        setFormData({
+          quote_number: '',
+          client_id: '',
+          date: new Date().toISOString().split('T')[0],
+          valid_until: '',
+          notes: ''
+        });
+        setItems([{
           id: '1',
           description: '',
           quantity: 1,
           unit_price: 0,
           tax_rate: 20,
           total: 0
-        }
-      ]);
+        }]);
+      }
+      setIsSubmitting(false);
     }
-  }, [quote, open]);
+  }, [open, quote]);
 
   const addItem = () => {
     const newItem: QuoteItem = {
@@ -236,7 +247,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
         .filter(item => item.description.trim())
         .map(item => ({
           quote_id: result.id,
-          organization_id: organization.id, // Added missing organization_id
+          organization_id: organization.id,
           product_id: item.product_id || null,
           description: item.description,
           quantity: item.quantity,
@@ -271,7 +282,11 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      if (!newOpen && !isSubmitting) {
+        onClose();
+      }
+    }}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -370,7 +385,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <SelectValue placeholder="Sélectionner un produit" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Produit personnalisé</SelectItem>
+                        <SelectItem value="custom">Produit personnalisé</SelectItem>
                         {!productsLoading && products.map((product) => (
                           <SelectItem key={product.id} value={product.id}>
                             {product.name} - {product.unit_price.toFixed(2)}€
