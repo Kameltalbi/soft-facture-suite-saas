@@ -1,18 +1,23 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  activeModule?: string;
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+export function ProtectedRoute({ children, activeModule }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A9C89]"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-600">Chargement...</p>
+        </div>
       </div>
     );
   }
@@ -21,5 +26,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  return <>{children}</>;
-};
+  return (
+    <AppLayout activeModule={activeModule}>
+      {children}
+    </AppLayout>
+  );
+}

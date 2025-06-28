@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,7 +33,6 @@ const Recouvrement = () => {
   const [data, setData] = useState<RecouvrementData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Generate available years (5 years back to 2 years forward)
   const currentDate = new Date();
   const availableYears = Array.from({ length: 8 }, (_, i) => currentDate.getFullYear() - 5 + i);
   
@@ -66,7 +64,6 @@ const Recouvrement = () => {
       if (error) {
         console.error('Error fetching recouvrement data:', error);
       } else {
-        // Type assertion to ensure status matches our interface
         const typedInvoices: RecouvrementData[] = (invoices || []).map(inv => ({
           ...inv,
           status: inv.status as 'payée' | 'partiellement payée' | 'non payée'
@@ -145,7 +142,7 @@ const Recouvrement = () => {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
+      <div className="p-6 space-y-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-neutral-600">Chargement des données de recouvrement...</div>
         </div>
@@ -154,7 +151,7 @@ const Recouvrement = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -163,7 +160,6 @@ const Recouvrement = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -209,7 +205,6 @@ const Recouvrement = () => {
         </CardContent>
       </Card>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -257,7 +252,6 @@ const Recouvrement = () => {
         </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -305,7 +299,6 @@ const Recouvrement = () => {
         </Card>
       </div>
 
-      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>Détail des factures</CardTitle>
