@@ -6,31 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCard, Save } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface PaymentModalProps {
   open: boolean;
   onClose: () => void;
   invoice: {
     id: string;
-    invoice_number?: string;
-    number?: string;
-    amount_total?: number;
-    amount?: number;
-    amount_paid?: number;
+    number: string;
+    amount: number;
     paidAmount?: number;
-  } | null;
-  onPaymentRecorded?: () => void;
-  onSave?: (paymentData: any) => void;
+  };
+  onSave: (paymentData: any) => void;
 }
 
-export function PaymentModal({ open, onClose, invoice, onPaymentRecorded, onSave }: PaymentModalProps) {
-  if (!invoice) return null;
-  
-  // Handle both invoice formats (from RecouvrementPage and InvoiceActionsMenu)
-  const invoiceNumber = invoice.invoice_number || invoice.number || '';
-  const totalAmount = invoice.amount_total || invoice.amount || 0;
-  const paidAmount = invoice.amount_paid || invoice.paidAmount || 0;
-  const remainingAmount = totalAmount - paidAmount;
+export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalProps) {
+  const { currency } = useCurrency();
+  const remainingAmount = invoice.amount - (invoice.paidAmount || 0);
 
   const [paymentData, setPaymentData] = useState({
     amount: remainingAmount,
@@ -41,17 +33,10 @@ export function PaymentModal({ open, onClose, invoice, onPaymentRecorded, onSave
   });
 
   const handleSave = () => {
-    // Simulate saving payment
-    console.log('Saving payment:', { ...paymentData, invoiceId: invoice.id });
-    
-    if (onPaymentRecorded) {
-      onPaymentRecorded();
-    }
-    
-    if (onSave) {
-      onSave(paymentData);
-    }
-    
+    onSave({
+      ...paymentData,
+      invoiceId: invoice.id
+    });
     onClose();
   };
 
@@ -67,12 +52,12 @@ export function PaymentModal({ open, onClose, invoice, onPaymentRecorded, onSave
 
         <div className="space-y-4">
           <div className="bg-neutral-50 p-3 rounded-lg">
-            <p className="text-sm text-neutral-600">Facture: {invoiceNumber}</p>
+            <p className="text-sm text-neutral-600">Facture: {invoice.number}</p>
             <p className="text-sm">
-              Montant total: <span className="font-semibold">{totalAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
+              Montant total: <span className="font-semibold">{invoice.amount.toFixed(2)} {currency.symbol}</span>
             </p>
             <p className="text-sm">
-              Montant restant: <span className="font-semibold text-primary">{remainingAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
+              Montant restant: <span className="font-semibold text-primary">{remainingAmount.toFixed(2)} {currency.symbol}</span>
             </p>
           </div>
 

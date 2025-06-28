@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
-import RecouvrementPage from "./pages/RecouvrementPage";
 
 const queryClient = new QueryClient();
 
@@ -24,11 +23,6 @@ const App = () => (
           <Routes>
             <Route path="/home" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/recouvrement" element={
-              <ProtectedRoute>
-                <RecouvrementPage />
-              </ProtectedRoute>
-            } />
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
