@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,10 @@ import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { InvoicePDF } from '@/components/pdf/invoices/InvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface Invoice {
   id: string;
@@ -27,129 +32,6 @@ interface Invoice {
   status: 'draft' | 'sent' | 'paid' | 'overdue';
 }
 
-const mockInvoices: Invoice[] = [
-  {
-    id: '1',
-    number: 'FAC-2024-001',
-    date: '2024-01-15',
-    client: 'Entreprise ABC',
-    amount: 1250.00,
-    status: 'paid'
-  },
-  {
-    id: '2',
-    number: 'FAC-2024-002',
-    date: '2024-01-20',
-    client: 'Société XYZ',
-    amount: 850.00,
-    status: 'sent'
-  },
-  {
-    id: '3',
-    number: 'FAC-2024-003',
-    date: '2024-01-25',
-    client: 'Client Premium',
-    amount: 2100.00,
-    status: 'overdue'
-  },
-  {
-    id: '4',
-    number: 'FAC-2024-004',
-    date: '2024-01-28',
-    client: 'Tech Solutions SARL',
-    amount: 3200.50,
-    status: 'paid'
-  },
-  {
-    id: '5',
-    number: 'FAC-2024-005',
-    date: '2024-01-30',
-    client: 'Startup Innovation',
-    amount: 750.00,
-    status: 'draft'
-  },
-  {
-    id: '6',
-    number: 'FAC-2024-006',
-    date: '2024-02-02',
-    client: 'Groupe Industriel SA',
-    amount: 4500.00,
-    status: 'sent'
-  },
-  {
-    id: '7',
-    number: 'FAC-2024-007',
-    date: '2024-02-05',
-    client: 'Commerce Digital',
-    amount: 1800.75,
-    status: 'paid'
-  },
-  {
-    id: '8',
-    number: 'FAC-2024-008',
-    date: '2024-02-08',
-    client: 'Consulting Pro',
-    amount: 2250.00,
-    status: 'overdue'
-  },
-  {
-    id: '9',
-    number: 'FAC-2024-009',
-    date: '2024-02-12',
-    client: 'Restaurant Le Gourmet',
-    amount: 980.00,
-    status: 'sent'
-  },
-  {
-    id: '10',
-    number: 'FAC-2024-010',
-    date: '2024-02-15',
-    client: 'Agence Marketing Plus',
-    amount: 3750.00,
-    status: 'paid'
-  },
-  {
-    id: '11',
-    number: 'FAC-2024-011',
-    date: '2024-02-18',
-    client: 'Boutique Mode Chic',
-    amount: 1200.00,
-    status: 'draft'
-  },
-  {
-    id: '12',
-    number: 'FAC-2024-012',
-    date: '2024-02-22',
-    client: 'Cabinet Avocat & Associés',
-    amount: 5200.00,
-    status: 'sent'
-  },
-  {
-    id: '13',
-    number: 'FAC-2024-013',
-    date: '2024-02-25',
-    client: 'Clinique Dentaire Sourire',
-    amount: 2800.00,
-    status: 'paid'
-  },
-  {
-    id: '14',
-    number: 'FAC-2024-014',
-    date: '2024-02-28',
-    client: 'Garage Auto Expert',
-    amount: 1650.50,
-    status: 'overdue'
-  },
-  {
-    id: '15',
-    number: 'FAC-2024-015',
-    date: '2024-03-01',
-    client: 'Hôtel Beau Séjour',
-    amount: 4200.00,
-    status: 'sent'
-  }
-];
-
 const statusLabels = {
   draft: { label: 'Brouillon', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
@@ -159,6 +41,9 @@ const statusLabels = {
 
 export default function Invoices() {
   const { generateInvoicePDF } = usePDFGeneration();
+  const { organization } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
@@ -186,10 +71,40 @@ export default function Invoices() {
     { value: 12, label: 'Décembre' },
   ];
 
-  const filteredInvoices = mockInvoices.filter(invoice => {
+  // Fetch invoices from Supabase
+  const { data: invoices = [], isLoading } = useQuery({
+    queryKey: ['invoices', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('invoices')
+        .select(`
+          *,
+          clients (
+            name,
+            company,
+            address,
+            email
+          ),
+          invoice_items (*)
+        `)
+        .eq('organization_id', organization.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching invoices:', error);
+        throw error;
+      }
+      return data || [];
+    },
+    enabled: !!organization?.id
+  });
+
+  const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
-    const matchesSearch = invoice.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.number.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (invoice.clients?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesYear = invoiceDate.getFullYear() === selectedYear;
     const matchesMonth = invoiceDate.getMonth() + 1 === selectedMonth;
     
@@ -201,60 +116,187 @@ export default function Invoices() {
     setShowInvoiceModal(true);
   };
 
-  const handleEditInvoice = (invoice: Invoice) => {
-    setEditingInvoice(invoice);
+  const handleEditInvoice = (invoice: any) => {
+    setEditingInvoice({
+      id: invoice.id,
+      number: invoice.invoice_number,
+      date: invoice.date,
+      client: invoice.clients?.name || '',
+      amount: invoice.total_amount,
+      status: invoice.status
+    });
     setShowInvoiceModal(true);
   };
 
-  const handleViewInvoice = (invoice: Invoice) => {
-    // Open invoice in view mode - could open modal in read-only mode
-    console.log('Viewing invoice:', invoice.number);
+  const handleViewInvoice = (invoice: any) => {
+    console.log('Viewing invoice:', invoice.invoice_number);
   };
 
-  const handleDuplicateInvoice = (invoice: Invoice) => {
-    const duplicatedInvoice = {
-      ...invoice,
-      id: Date.now().toString(),
-      number: `FAC-2024-${String(mockInvoices.length + 1).padStart(3, '0')}`,
-      date: new Date().toISOString().split('T')[0],
-      status: 'draft' as const
-    };
-    console.log('Duplicating invoice:', duplicatedInvoice);
-    // Add logic to create the duplicated invoice
+  const handleDuplicateInvoice = async (invoice: any) => {
+    try {
+      // Générer un nouveau numéro de facture
+      const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`;
+      
+      // Créer la nouvelle facture
+      const { data: newInvoice, error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+          invoice_number: invoiceNumber,
+          client_id: invoice.client_id,
+          organization_id: organization.id,
+          date: new Date().toISOString().split('T')[0],
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'draft',
+          subtotal: invoice.subtotal,
+          tax_amount: invoice.tax_amount,
+          total_amount: invoice.total_amount,
+          notes: invoice.notes
+        })
+        .select()
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
+      // Dupliquer les éléments de facture
+      if (invoice.invoice_items && invoice.invoice_items.length > 0) {
+        const newItems = invoice.invoice_items.map(item => ({
+          invoice_id: newInvoice.id,
+          organization_id: organization.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate,
+          total_price: item.total_price,
+          product_id: item.product_id
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('invoice_items')
+          .insert(newItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast({
+        title: "Succès",
+        description: `La facture ${invoice.invoice_number} a été dupliquée en ${invoiceNumber}`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la duplication:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la duplication de la facture",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleMarkAsSent = (invoice: Invoice) => {
-    console.log('Marking as sent:', invoice.number);
-    // Add logic to update invoice status
+  const handleMarkAsSent = async (invoice: any) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          status: 'sent',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', invoice.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast({
+        title: "Succès",
+        description: `La facture ${invoice.invoice_number} a été marquée comme envoyée`,
+      });
+    } catch (error) {
+      console.error('Erreur lors du changement de statut:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du changement de statut",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDeleteInvoice = (invoice: Invoice) => {
-    console.log('Deleting invoice:', invoice.number);
-    // Add logic to delete invoice
+  const handleDeleteInvoice = async (invoice: any) => {
+    try {
+      // Supprimer d'abord les éléments de facture
+      const { error: itemsError } = await supabase
+        .from('invoice_items')
+        .delete()
+        .eq('invoice_id', invoice.id);
+
+      if (itemsError) throw itemsError;
+
+      // Supprimer la facture
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('id', invoice.id);
+
+      if (invoiceError) throw invoiceError;
+
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast({
+        title: "Succès",
+        description: `La facture ${invoice.invoice_number} a été supprimée`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression de la facture",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handlePaymentRecorded = (paymentData: any) => {
-    console.log('Recording payment:', paymentData);
-    // Add logic to record payment
+  const handlePaymentRecorded = async (paymentData: any) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          amount_paid: paymentData.amount,
+          status: paymentData.amount >= paymentData.total ? 'paid' : 'sent',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', paymentData.invoiceId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast({
+        title: "Succès",
+        description: "Le paiement a été enregistré",
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'enregistrement du paiement:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'enregistrement du paiement",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEmailSent = (emailData: any) => {
-    console.log('Sending email:', emailData);
-    // Add logic to send email
+    toast({
+      title: "Email envoyé",
+      description: `La facture a été envoyée à ${emailData.to}`,
+    });
   };
 
-  const getPDFData = (invoice: Invoice) => {
-    const mockLineItems = [
-      {
-        id: '1',
-        description: 'Service de consultation',
-        quantity: 1,
-        unitPrice: invoice.amount,
-        vatRate: 20,
-        discount: 0,
-        total: invoice.amount
-      }
-    ];
+  const getPDFData = (invoice: any) => {
+    const mockLineItems = invoice.invoice_items?.map(item => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      vatRate: item.tax_rate,
+      discount: 0,
+      total: item.total_price
+    })) || [];
 
     const mockSettings = {
       showVat: true,
@@ -266,25 +308,25 @@ export default function Invoices() {
     };
 
     const company = {
-      name: 'Mon Entreprise',
-      address: 'Adresse de l\'entreprise',
-      email: 'contact@monentreprise.fr',
-      phone: 'Téléphone'
+      name: organization?.name || 'Mon Entreprise',
+      address: organization?.address || 'Adresse de l\'entreprise',
+      email: organization?.email || 'contact@monentreprise.fr',
+      phone: organization?.phone || 'Téléphone'
     };
 
     const client = {
-      name: invoice.client,
-      company: invoice.client,
-      address: 'Adresse du client',
-      email: 'client@email.com'
+      name: invoice.clients?.name || '',
+      company: invoice.clients?.company || '',
+      address: invoice.clients?.address || '',
+      email: invoice.clients?.email || ''
     };
 
     return {
       invoiceData: {
-        number: invoice.number,
+        number: invoice.invoice_number,
         date: invoice.date,
-        subject: `Facture pour ${invoice.client}`,
-        notes: 'Merci pour votre confiance.'
+        subject: `Facture pour ${invoice.clients?.name || ''}`,
+        notes: invoice.notes || 'Merci pour votre confiance.'
       },
       lineItems: mockLineItems,
       client,
@@ -292,6 +334,16 @@ export default function Invoices() {
       settings: mockSettings
     };
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F9FA] p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Chargement des factures...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
@@ -433,23 +485,37 @@ export default function Invoices() {
             <TableBody>
               {filteredInvoices.map((invoice) => (
                 <TableRow key={invoice.id} className="hover:bg-neutral-50">
-                  <TableCell className="font-mono">{invoice.number}</TableCell>
+                  <TableCell className="font-mono">{invoice.invoice_number}</TableCell>
                   <TableCell>{new Date(invoice.date).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>{invoice.client}</TableCell>
                   <TableCell>
-                    {invoice.amount.toLocaleString('fr-FR', {
+                    <div>
+                      <span className="font-medium">{invoice.clients?.name}</span>
+                      {invoice.clients?.company && (
+                        <div className="text-sm text-neutral-500">{invoice.clients.company}</div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {invoice.total_amount.toLocaleString('fr-FR', {
                       style: 'currency',
                       currency: 'EUR'
                     })}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusLabels[invoice.status].variant}>
-                      {statusLabels[invoice.status].label}
+                    <Badge variant={statusLabels[invoice.status]?.variant || 'secondary'}>
+                      {statusLabels[invoice.status]?.label || invoice.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <InvoiceActionsMenu
-                      invoice={invoice}
+                      invoice={{
+                        id: invoice.id,
+                        number: invoice.invoice_number,
+                        client: invoice.clients?.name || '',
+                        amount: invoice.total_amount,
+                        status: invoice.status,
+                        date: invoice.date
+                      }}
                       pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
                       onView={() => handleViewInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
@@ -462,6 +528,13 @@ export default function Invoices() {
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredInvoices.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
+                    {invoices.length === 0 ? 'Aucune facture trouvée. Créez votre première facture !' : 'Aucune facture ne correspond à votre recherche'}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -474,6 +547,7 @@ export default function Invoices() {
         invoice={editingInvoice}
         onSave={(data) => {
           console.log('Saving invoice:', data);
+          queryClient.invalidateQueries({ queryKey: ['invoices'] });
           setShowInvoiceModal(false);
         }}
       />
