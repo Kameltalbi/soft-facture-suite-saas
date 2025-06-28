@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +47,15 @@ export default function OrganisationsAdminPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrganizations(data || []);
+      
+      // Cast the data to match our Organization type
+      const typedData = (data || []).map(org => ({
+        ...org,
+        status: org.status as 'active' | 'suspended' | 'pending',
+        plan: org.plan as 'free' | 'standard' | 'premium'
+      }));
+      
+      setOrganizations(typedData);
     } catch (error) {
       console.error('Error fetching organizations:', error);
       toast({
