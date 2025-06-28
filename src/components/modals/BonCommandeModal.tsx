@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -150,7 +149,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
     
     const bonCommandeData = {
       ...formData,
-      fournisseurNom: fournisseurSelectionne?.name || '',
+      fournisseurNom: fournisseurSelectionne?.nom || '',
       dateCommande: selectedDate?.toISOString().split('T')[0] || '',
       montantHT: totaux.totalHTApresRemise,
       montantTTC: totaux.totalTTC,
@@ -171,7 +170,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
         id: 'temp',
         numero: formData.numero,
         fournisseurId: formData.fournisseurId,
-        fournisseurNom: fournisseurs.find(f => f.id === formData.fournisseurId)?.name || '',
+        fournisseurNom: fournisseurs.find(f => f.id === formData.fournisseurId)?.nom || '',
         dateCommande: selectedDate?.toISOString().split('T')[0] || '',
         statut: formData.statut,
         montantHT: totaux.totalHTApresRemise,
@@ -225,13 +224,14 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                 <SelectContent>
                   {!fournisseursLoading && fournisseurs.map((fournisseur) => (
                     <SelectItem key={fournisseur.id} value={fournisseur.id}>
-                      {fournisseur.name}
+                      {fournisseur.nom}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
+            
             <div>
               <Label>Date de commande</Label>
               <Popover>
@@ -275,7 +275,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
             </div>
           </div>
 
-          {/* Tableau des lignes */}
+          
           <div>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Articles à commander</h3>
