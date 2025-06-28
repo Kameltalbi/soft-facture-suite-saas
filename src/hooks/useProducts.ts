@@ -13,6 +13,9 @@ interface Product {
   category: string | null;
   sku: string | null;
   active: boolean | null;
+  track_stock: boolean | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export function useProducts() {
@@ -48,7 +51,7 @@ export function useProducts() {
     fetchProducts();
   }, [organization?.id]);
 
-  const createProduct = async (productData: Omit<Product, 'id'>) => {
+  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
     if (!organization?.id) return { error: 'Organization not found' };
 
     try {

@@ -29,7 +29,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     category: '',
     stock_quantity: 0,
     sku: '',
-    active: true
+    active: true,
+    track_stock: true
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +45,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         category: product.category || '',
         stock_quantity: product.stock_quantity || 0,
         sku: product.sku || '',
-        active: product.active ?? true
+        active: product.active ?? true,
+        track_stock: product.track_stock ?? true
       });
     } else {
       setFormData({
@@ -55,7 +57,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         category: '',
         stock_quantity: 0,
         sku: '',
-        active: true
+        active: true,
+        track_stock: true
       });
     }
   }, [product, open]);
@@ -186,16 +189,18 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="stock">Stock initial</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  value={formData.stock_quantity}
-                  onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
-                />
-              </div>
+              {formData.track_stock && (
+                <div>
+                  <Label htmlFor="stock">Stock initial</Label>
+                  <Input
+                    id="stock"
+                    type="number"
+                    min="0"
+                    value={formData.stock_quantity}
+                    onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -208,6 +213,23 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               placeholder="Description détaillée du produit ou service"
               rows={3}
+            />
+          </div>
+
+          {/* Stock Tracking Option */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-neutral-50">
+            <div>
+              <Label htmlFor="track_stock" className="text-sm font-medium">
+                Suivi de stock
+              </Label>
+              <p className="text-xs text-neutral-500">
+                Activez si vous souhaitez suivre les quantités en stock pour ce produit
+              </p>
+            </div>
+            <Switch
+              id="track_stock"
+              checked={formData.track_stock}
+              onCheckedChange={(checked) => setFormData({...formData, track_stock: checked, stock_quantity: checked ? formData.stock_quantity : 0})}
             />
           </div>
 
