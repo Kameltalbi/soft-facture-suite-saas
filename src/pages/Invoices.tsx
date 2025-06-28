@@ -422,7 +422,7 @@ export default function Invoices() {
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
-      logo: organization?.logo_url || null // Utiliser logo_url au lieu de logo
+      logo: organization?.logo_url // Correction: utiliser logo_url au lieu de logo
     };
 
     const client = {
@@ -436,6 +436,7 @@ export default function Invoices() {
       invoiceData: {
         number: invoice.invoice_number,
         date: invoice.date,
+        dueDate: invoice.due_date,
         subject: `Facture pour ${invoice.clients?.name || ''}`,
         notes: invoice.notes || 'Merci pour votre confiance.'
       },
