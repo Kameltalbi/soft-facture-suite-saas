@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -213,21 +214,23 @@ export default function OrganisationsAdminPage() {
     // TODO: Implement view history functionality
   };
 
+  // Log render phases
+  console.log('🎨 Rendu du header');
+  console.log('🎨 Rendu du contenu principal');
+  console.log('🎨 Rendu des onglets');
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {console.log('🎨 Rendu du header')}
       <div className="border-b bg-white px-6 py-4">
         <Header activeModule="admin" />
       </div>
       
-      {console.log('🎨 Rendu du contenu principal')}
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Administration Superadmin</h1>
           <p className="text-gray-600 mt-2">Gestion globale des organisations et utilisateurs</p>
         </div>
 
-        {console.log('🎨 Rendu des onglets')}
         <Tabs defaultValue="organizations" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="organizations" className="flex items-center gap-2">
