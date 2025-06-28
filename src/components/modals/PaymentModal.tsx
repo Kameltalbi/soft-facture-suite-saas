@@ -6,23 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CreditCard, Save } from 'lucide-react';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface PaymentModalProps {
   open: boolean;
   onClose: () => void;
   invoice: {
     id: string;
-    number: string;
-    amount: number;
-    paidAmount?: number;
-  };
-  onSave: (paymentData: any) => void;
+    invoice_number: string;
+    amount_total: number;
+    amount_paid?: number;
+  } | null;
+  onPaymentRecorded: () => void;
 }
 
-export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalProps) {
-  const { currency } = useCurrency();
-  const remainingAmount = invoice.amount - (invoice.paidAmount || 0);
+export function PaymentModal({ open, onClose, invoice, onPaymentRecorded }: PaymentModalProps) {
+  if (!invoice) return null;
+  
+  const remainingAmount = invoice.amount_total - (invoice.amount_paid || 0);
 
   const [paymentData, setPaymentData] = useState({
     amount: remainingAmount,
@@ -33,10 +33,9 @@ export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalPro
   });
 
   const handleSave = () => {
-    onSave({
-      ...paymentData,
-      invoiceId: invoice.id
-    });
+    // Simulate saving payment
+    console.log('Saving payment:', { ...paymentData, invoiceId: invoice.id });
+    onPaymentRecorded();
     onClose();
   };
 
@@ -52,12 +51,12 @@ export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalPro
 
         <div className="space-y-4">
           <div className="bg-neutral-50 p-3 rounded-lg">
-            <p className="text-sm text-neutral-600">Facture: {invoice.number}</p>
+            <p className="text-sm text-neutral-600">Facture: {invoice.invoice_number}</p>
             <p className="text-sm">
-              Montant total: <span className="font-semibold">{invoice.amount.toFixed(2)} {currency.symbol}</span>
+              Montant total: <span className="font-semibold">{invoice.amount_total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
             </p>
             <p className="text-sm">
-              Montant restant: <span className="font-semibold text-primary">{remainingAmount.toFixed(2)} {currency.symbol}</span>
+              Montant restant: <span className="font-semibold text-primary">{remainingAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
             </p>
           </div>
 
