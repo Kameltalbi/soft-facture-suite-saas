@@ -19,7 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/Header';
 import { AppSidebar } from '@/components/layout/AppSidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { RelanceModal } from '@/components/modals/RelanceModal';
 import { PaymentModal } from '@/components/modals/PaymentModal';
 
@@ -145,16 +145,16 @@ const RecouvrementPage = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex min-h-screen w-full bg-gray-50">
         <AppSidebar activeModule={activeModule} onModuleChange={setActiveModule} />
         
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <SidebarInset className="flex flex-col">
           <div className="border-b border-gray-200 bg-white px-6">
             <Header activeModule={activeModule} />
           </div>
           
           <main className="flex-1 overflow-auto p-6">
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-full">
               {/* En-tête avec total des impayés */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -253,99 +253,101 @@ const RecouvrementPage = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                   ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Facture</TableHead>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Montant total</TableHead>
-                          <TableHead>Montant payé</TableHead>
-                          <TableHead>Solde restant</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredData.map((invoice) => (
-                          <TableRow key={invoice.id}>
-                            <TableCell className="font-mono text-sm">
-                              {invoice.invoice_number}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {invoice.client_name}
-                            </TableCell>
-                            <TableCell>
-                              {invoice.amount_total.toLocaleString('fr-FR', {
-                                style: 'currency',
-                                currency: 'EUR'
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              {invoice.amount_paid.toLocaleString('fr-FR', {
-                                style: 'currency',
-                                currency: 'EUR'
-                              })}
-                            </TableCell>
-                            <TableCell className="font-semibold">
-                              {(invoice.amount_total - invoice.amount_paid).toLocaleString('fr-FR', {
-                                style: 'currency',
-                                currency: 'EUR'
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              {new Date(invoice.date).toLocaleDateString('fr-FR')}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={getStatusColor(invoice.status, invoice.days_late || 0)}>
-                                {getStatusLabel(invoice.status, invoice.days_late || 0)}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {invoice.status !== 'payée' && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleRelance(invoice)}
-                                      className="gap-1"
-                                    >
-                                      <Mail className="h-3 w-3" />
-                                      Relancer
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleAddPayment(invoice)}
-                                      className="gap-1"
-                                    >
-                                      <CreditCard className="h-3 w-3" />
-                                      Paiement
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleMarkAsPaid(invoice)}
-                                      className="gap-1"
-                                    >
-                                      <CheckCircle className="h-3 w-3" />
-                                      Marquer payé
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Facture</TableHead>
+                            <TableHead>Client</TableHead>
+                            <TableHead>Montant total</TableHead>
+                            <TableHead>Montant payé</TableHead>
+                            <TableHead>Solde restant</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Statut</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredData.map((invoice) => (
+                            <TableRow key={invoice.id}>
+                              <TableCell className="font-mono text-sm">
+                                {invoice.invoice_number}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {invoice.client_name}
+                              </TableCell>
+                              <TableCell>
+                                {invoice.amount_total.toLocaleString('fr-FR', {
+                                  style: 'currency',
+                                  currency: 'EUR'
+                                })}
+                              </TableCell>
+                              <TableCell>
+                                {invoice.amount_paid.toLocaleString('fr-FR', {
+                                  style: 'currency',
+                                  currency: 'EUR'
+                                })}
+                              </TableCell>
+                              <TableCell className="font-semibold">
+                                {(invoice.amount_total - invoice.amount_paid).toLocaleString('fr-FR', {
+                                  style: 'currency',
+                                  currency: 'EUR'
+                                })}
+                              </TableCell>
+                              <TableCell>
+                                {new Date(invoice.date).toLocaleDateString('fr-FR')}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={getStatusColor(invoice.status, invoice.days_late || 0)}>
+                                  {getStatusLabel(invoice.status, invoice.days_late || 0)}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  {invoice.status !== 'payée' && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleRelance(invoice)}
+                                        className="gap-1"
+                                      >
+                                        <Mail className="h-3 w-3" />
+                                        Relancer
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleAddPayment(invoice)}
+                                        className="gap-1"
+                                      >
+                                        <CreditCard className="h-3 w-3" />
+                                        Paiement
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleMarkAsPaid(invoice)}
+                                        className="gap-1"
+                                      >
+                                        <CheckCircle className="h-3 w-3" />
+                                        Marquer payé
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   )}
                 </CardContent>
               </Card>
             </div>
           </main>
-        </div>
+        </SidebarInset>
       </div>
 
       {/* Modals */}
