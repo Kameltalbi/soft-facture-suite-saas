@@ -165,13 +165,13 @@ export function QuoteActionsMenu({
         if (itemsError) throw itemsError;
       }
 
-      // Marquer le devis comme converti (optionnel: vous pouvez ajouter un statut "converted")
-      const { error: updateError } = await supabase
+      // Supprimer le devis converti (au lieu de le marquer comme accepté)
+      const { error: deleteError } = await supabase
         .from('quotes')
-        .update({ status: 'accepted' })
+        .delete()
         .eq('id', quote.id);
 
-      if (updateError) throw updateError;
+      if (deleteError) throw deleteError;
 
       // Rafraîchir les listes
       queryClient.invalidateQueries({ queryKey: ['quotes'] });
@@ -179,7 +179,7 @@ export function QuoteActionsMenu({
 
       toast({
         title: "Succès",
-        description: `Le devis ${quote.number} a été converti en facture ${invoiceNumber}`,
+        description: `Le devis ${quote.number} a été converti en facture ${invoiceNumber} et retiré de la liste des devis`,
       });
 
       setShowConvertDialog(false);
@@ -314,7 +314,7 @@ export function QuoteActionsMenu({
             <AlertDialogTitle>Convertir en facture</AlertDialogTitle>
             <AlertDialogDescription>
               Êtes-vous sûr de vouloir convertir le devis {quote.number} en facture ?
-              Une nouvelle facture sera créée avec les mêmes informations.
+              Une nouvelle facture sera créée et le devis sera retiré de cette liste.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
