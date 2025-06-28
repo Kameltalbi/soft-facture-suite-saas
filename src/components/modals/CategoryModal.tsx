@@ -55,6 +55,7 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
     active: true
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
 
   // Validation en temps réel
   const isFormValid = formData.name.trim().length > 0;
@@ -67,6 +68,9 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
         color: category.color || '#3B82F6',
         active: category.active ?? true
       });
+      // Trouver l'index de la couleur sélectionnée
+      const colorIndex = predefinedColors.findIndex(color => color === category.color);
+      setSelectedColorIndex(colorIndex !== -1 ? colorIndex : 0);
     } else {
       setFormData({
         name: '',
@@ -74,8 +78,14 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
         color: '#3B82F6',
         active: true
       });
+      setSelectedColorIndex(0);
     }
   }, [category, isOpen]);
+
+  const handleColorSelect = (color: string, index: number) => {
+    setFormData({...formData, color});
+    setSelectedColorIndex(index);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,39 +159,59 @@ export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryMod
             />
           </div>
 
-          {/* Sélecteur de couleur */}
+          {/* Sélecteur de couleur amélioré */}
           <div>
             <Label htmlFor="color">Couleur de la catégorie</Label>
-            <div className="space-y-3">
-              {/* Couleur actuelle */}
-              <div className="flex items-center space-x-3">
+            <div className="space-y-4">
+              {/* Couleur actuelle avec preview */}
+              <div className="flex items-center space-x-3 p-3 border rounded-lg bg-neutral-50">
                 <div 
-                  className="w-8 h-8 rounded-full border-2 border-gray-300"
+                  className="w-12 h-12 rounded-full border-2 border-gray-300 shadow-sm"
                   style={{ backgroundColor: formData.color }}
                 />
-                <Input
-                  type="text"
-                  value={formData.color}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
-                  placeholder="#3B82F6"
-                  className="font-mono text-sm"
-                />
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    value={formData.color}
+                    onChange={(e) => {
+                      setFormData({...formData, color: e.target.value});
+                      // Reset selected index si couleur personnalisée
+                      const colorIndex = predefinedColors.findIndex(color => color === e.target.value);
+                      setSelectedColorIndex(colorIndex !== -1 ? colorIndex : -1);
+                    }}
+                    placeholder="#3B82F6"
+                    className="font-mono text-sm"
+                  />
+                </div>
               </div>
               
-              {/* Palette de couleurs prédéfinies */}
-              <div className="grid grid-cols-8 gap-2">
-                {predefinedColors.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full border-2 hover:scale-110 transition-transform ${
-                      formData.color === color ? 'border-gray-800' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setFormData({...formData, color})}
-                    title={color}
-                  />
-                ))}
+              {/* Palette de couleurs avec indicateur */}
+              <div className="space-y-2">
+                <p className="text-sm text-neutral-600">Couleurs suggérées :</p>
+                <div className="grid grid-cols-8 gap-2 p-3 border rounded-lg bg-white">
+                  {predefinedColors.map((color, index) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`
+                        relative w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-md
+                        ${selectedColorIndex === index 
+                          ? 'border-gray-800 ring-2 ring-gray-400 ring-offset-1 scale-110' 
+                          : 'border-gray-300 hover:border-gray-500'
+                        }
+                      `}
+                      style={{ backgroundColor: color }}
+                      onClick={() => handleColorSelect(color, index)}
+                      title={color}
+                    >
+                      {selectedColorIndex === index && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full shadow-sm"></div>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
