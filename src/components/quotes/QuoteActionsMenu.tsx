@@ -25,6 +25,10 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, ArrowRight, Trash, FileText, CheckCircle } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { EmailModal } from '@/components/modals/EmailModal';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Quote {
   id: string;
@@ -66,8 +70,13 @@ export function QuoteActionsMenu({
   onDelete,
   onEmailSent
 }: QuoteActionsMenuProps) {
+  const { organization } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showConvertDialog, setShowConvertDialog] = useState(false);
+  const [converting, setConverting] = useState(false);
 
   const canEdit = quote.status === 'draft' || quote.status === 'sent';
   const canConvertToInvoice = quote.status === 'accepted';
@@ -85,6 +94,107 @@ export function QuoteActionsMenu({
   const handleEmailSent = (emailData: any) => {
     onEmailSent(emailData);
     setShowEmailModal(false);
+  };
+
+  const handleConvertToInvoice = async () => {
+    if (!organization?.id) {
+      toast({
+        title: "Erreur",
+        description: "Organisation non trouvée",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setConverting(true);
+
+      // Récupérer les données complètes du devis
+      const { data: quoteData, error: quoteError } = await supabase
+        .from('quotes')
+        .select(`
+          *,
+          clients(*),
+          quote_items(*)
+        `)
+        .eq('id', quote.id)
+        .single();
+
+      if (quoteError) throw quoteError;
+
+      // Générer le numéro de facture
+      const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`;
+
+      // Créer la facture
+      const { data: invoiceData, error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+          invoice_number: invoiceNumber,
+          date: new Date().toISOString().split('T')[0],
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 jours
+          client_id: quoteData.client_id,
+          organization_id: organization.id,
+          status: 'draft',
+          subtotal: quoteData.subtotal,
+          tax_amount: quoteData.tax_amount,
+          total_amount: quoteData.total_amount,
+          notes: `Facture créée à partir du devis ${quoteData.quote_number}`
+        })
+        .select()
+        .single();
+
+      if (invoiceError) throw invoiceError;
+
+      // Créer les éléments de facture à partir des éléments du devis
+      if (quoteData.quote_items && quoteData.quote_items.length > 0) {
+        const invoiceItems = quoteData.quote_items.map(item => ({
+          invoice_id: invoiceData.id,
+          organization_id: organization.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          tax_rate: item.tax_rate,
+          total_price: item.total_price,
+          product_id: item.product_id
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('invoice_items')
+          .insert(invoiceItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      // Marquer le devis comme converti (optionnel: vous pouvez ajouter un statut "converted")
+      const { error: updateError } = await supabase
+        .from('quotes')
+        .update({ status: 'accepted' })
+        .eq('id', quote.id);
+
+      if (updateError) throw updateError;
+
+      // Rafraîchir les listes
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+
+      toast({
+        title: "Succès",
+        description: `Le devis ${quote.number} a été converti en facture ${invoiceNumber}`,
+      });
+
+      setShowConvertDialog(false);
+      onConvertToInvoice();
+
+    } catch (error) {
+      console.error('Erreur lors de la conversion:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la conversion du devis en facture",
+        variant: "destructive"
+      });
+    } finally {
+      setConverting(false);
+    }
   };
 
   return (
@@ -131,7 +241,10 @@ export function QuoteActionsMenu({
           </DropdownMenuItem>
 
           {canConvertToInvoice && (
-            <DropdownMenuItem onClick={onConvertToInvoice} className="text-primary">
+            <DropdownMenuItem 
+              onClick={() => setShowConvertDialog(true)} 
+              className="text-primary"
+            >
               <ArrowRight size={16} className="mr-2" />
               Convertir en facture
             </DropdownMenuItem>
@@ -189,6 +302,29 @@ export function QuoteActionsMenu({
               className="bg-destructive hover:bg-destructive/90"
             >
               Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Convert to Invoice Confirmation Dialog */}
+      <AlertDialog open={showConvertDialog} onOpenChange={setShowConvertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convertir en facture</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir convertir le devis {quote.number} en facture ?
+              Une nouvelle facture sera créée avec les mêmes informations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={converting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConvertToInvoice}
+              disabled={converting}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {converting ? 'Conversion...' : 'Convertir'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
