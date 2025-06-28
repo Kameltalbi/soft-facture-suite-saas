@@ -13,7 +13,7 @@ const Reports = () => {
       description: 'Liste détaillée des factures avec statuts et montants pour la période sélectionnée',
       icon: FileText,
       color: 'bg-blue-500',
-      route: '/reports/invoices'
+      route: '/dashboard/reports/invoices'
     },
     {
       id: 'product-revenue',
@@ -21,7 +21,7 @@ const Reports = () => {
       description: 'Chiffre d\'affaires généré par chaque produit et service sur la période',
       icon: Package,
       color: 'bg-green-500',
-      route: '/reports/product-revenue'
+      route: '/dashboard/reports/product-revenue'
     },
     {
       id: 'monthly-revenue',
@@ -29,7 +29,7 @@ const Reports = () => {
       description: 'Évolution du chiffre d\'affaires mois par mois avec graphique de tendance',
       icon: TrendingUp,
       color: 'bg-purple-500',
-      route: '/reports/monthly-revenue'
+      route: '/dashboard/reports/monthly-revenue'
     },
     {
       id: 'year-comparison',
@@ -37,7 +37,7 @@ const Reports = () => {
       description: 'CA vs année précédente avec analyse des écarts et tendances',
       icon: Calendar,
       color: 'bg-orange-500',
-      route: '/reports/year-comparison'
+      route: '/dashboard/reports/year-comparison'
     },
     {
       id: 'product-ranking',
@@ -45,7 +45,7 @@ const Reports = () => {
       description: 'Top des produits classés par chiffre d\'affaires décroissant avec performance',
       icon: Trophy,
       color: 'bg-yellow-500',
-      route: '/reports/product-ranking'
+      route: '/dashboard/reports/product-ranking'
     },
     {
       id: 'client-revenue',
@@ -53,7 +53,7 @@ const Reports = () => {
       description: 'Revenus générés par chaque client avec analyse du portefeuille',
       icon: Users,
       color: 'bg-red-500',
-      route: '/reports/client-revenue'
+      route: '/dashboard/reports/client-revenue'
     },
     {
       id: 'vat-report',
@@ -61,7 +61,7 @@ const Reports = () => {
       description: 'Rapport TVA collectée par mois avec cumul annuel et détail des taux',
       icon: Receipt,
       color: 'bg-indigo-500',
-      route: '/reports/vat-report'
+      route: '/dashboard/reports/vat-report'
     },
     {
       id: 'stock-movements',
@@ -69,7 +69,7 @@ const Reports = () => {
       description: 'Suivi des mouvements de stock par produit et par mois avec analyse des tendances',
       icon: Archive,
       color: 'bg-teal-500',
-      route: '/reports/stock-movements'
+      route: '/dashboard/reports/stock-movements'
     }
   ];
 
