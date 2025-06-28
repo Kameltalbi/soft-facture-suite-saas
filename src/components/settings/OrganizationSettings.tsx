@@ -113,26 +113,43 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Logo Upload */}
+          {/* Logo Upload - Taille améliorée */}
           <div className="space-y-2">
             <Label>Logo de l'organisation</Label>
-            <div className="flex items-center gap-4">
-              <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+            <div className="text-sm text-gray-600 mb-4">
+              Format conseillé : horizontal, minimum 600 x 200 px, PNG ou SVG transparent
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="logo-container w-60 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 p-3">
                 {organization?.logo ? (
-                  <img src={organization.logo} alt="Logo" className="w-full h-full object-contain rounded-lg" />
+                  <img 
+                    src={organization.logo} 
+                    alt="Logo" 
+                    className="max-w-full max-h-full object-contain" 
+                  />
                 ) : (
-                  <Upload className="h-8 w-8 text-gray-400" />
+                  <div className="text-center">
+                    <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-500">Zone d'affichage du logo</span>
+                    <div className="text-xs text-gray-400 mt-1">240 x 96 px</div>
+                  </div>
                 )}
               </div>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleLogoClick}
-                disabled={uploading}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {uploading ? 'Téléchargement...' : 'Changer le logo'}
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleLogoClick}
+                  disabled={uploading}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploading ? 'Téléchargement...' : 'Changer le logo'}
+                </Button>
+                <div className="text-xs text-gray-500 max-w-48">
+                  Formats acceptés : PNG, JPG, SVG<br/>
+                  Taille recommandée : 600 x 200 px minimum
+                </div>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"

@@ -272,14 +272,22 @@ const RegisterPage = () => {
 
                 <div className="space-y-2">
                   <Label>Logo (facultatif)</Label>
+                  <div className="text-sm text-gray-600 mb-3">
+                    Format conseillé : horizontal, minimum 600 x 200 px, PNG ou SVG
+                  </div>
                   <div className="flex items-center space-x-4">
-                    <label className="flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors">
+                    <label className="logo-container flex items-center justify-center w-48 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors bg-gray-50 p-2">
                       {logoPreview ? (
-                        <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain rounded-lg" />
+                        <img 
+                          src={logoPreview} 
+                          alt="Logo preview" 
+                          className="max-w-full max-h-full object-contain rounded-lg" 
+                        />
                       ) : (
                         <div className="text-center">
-                          <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                          <span className="text-sm text-gray-500">Ajouter un logo</span>
+                          <Upload className="h-6 w-6 mx-auto text-gray-400 mb-2" />
+                          <span className="text-xs text-gray-500">Zone d'affichage</span>
+                          <div className="text-xs text-gray-400">192 x 80 px</div>
                         </div>
                       )}
                       <input
@@ -289,6 +297,11 @@ const RegisterPage = () => {
                         onChange={handleLogoChange}
                       />
                     </label>
+                    <div className="text-xs text-gray-500">
+                      <div>• PNG, JPG, SVG acceptés</div>
+                      <div>• Taille min : 600 x 200 px</div>
+                      <div>• Fond transparent recommandé</div>
+                    </div>
                   </div>
                 </div>
               </div>

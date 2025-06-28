@@ -328,7 +328,7 @@ export default function OrganisationsAdminPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Organisation</TableHead>
+                        <TableHead className="w-64">Organisation</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Plan</TableHead>
@@ -342,19 +342,24 @@ export default function OrganisationsAdminPage() {
                       {filteredOrganizations.map((org) => (
                         <TableRow key={org.id}>
                           <TableCell>
-                            <div className="flex items-center gap-3">
-                              {org.logo_url ? (
-                                <img 
-                                  src={org.logo_url} 
-                                  alt={`${org.name} logo`}
-                                  className="h-8 w-8 rounded object-cover"
-                                />
-                              ) : (
-                                <div className="h-8 w-8 bg-[#6A9C89] rounded flex items-center justify-center">
-                                  <Building className="h-4 w-4 text-white" />
-                                </div>
-                              )}
-                              <span className="font-medium">{org.name}</span>
+                            <div className="flex items-center gap-4">
+                              <div className="logo-container w-16 h-16 flex items-center justify-center bg-white border border-gray-200 rounded-lg p-2 flex-shrink-0">
+                                {org.logo_url ? (
+                                  <img 
+                                    src={org.logo_url} 
+                                    alt={`${org.name} logo`}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-[#6A9C89] rounded flex items-center justify-center">
+                                    <Building className="h-6 w-6 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-gray-900 truncate">{org.name}</div>
+                                <div className="text-sm text-gray-500">ID: {org.id.slice(0, 8)}...</div>
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>{org.email || 'N/A'}</TableCell>
