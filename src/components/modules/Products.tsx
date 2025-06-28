@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,12 +21,14 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { ProductModal } from '@/components/modals/ProductModal';
 import { useProducts } from '@/hooks/useProducts';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
+  const { currency } = useCurrency();
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,7 +71,7 @@ const Products = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
   };
 
   const stats = {
