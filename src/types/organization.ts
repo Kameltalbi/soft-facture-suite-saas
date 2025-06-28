@@ -12,4 +12,8 @@ export interface Organization {
   subscription_start: string;
   subscription_end: string | null;
   logo_url: string | null;
+  // Ajout des propriétés manquantes de la base de données
+  updated_by?: string | null;
+  vat_number?: string | null;
+  website?: string | null;
 }

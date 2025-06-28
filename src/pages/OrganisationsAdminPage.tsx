@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -288,7 +289,7 @@ export default function OrganisationsAdminPage() {
                       <SelectItem value="all">Tous les statuts</SelectItem>
                       <SelectItem value="active">Actif</SelectItem>
                       <SelectItem value="suspended">Suspendu</SelectItem>
-                      <SelectItem value="inactive">Inactif</SelectItem>
+                      <SelectItem value="pending">En attente</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={planFilter} onValueChange={setPlanFilter}>
@@ -298,8 +299,8 @@ export default function OrganisationsAdminPage() {
                     <SelectContent>
                       <SelectItem value="all">Tous les plans</SelectItem>
                       <SelectItem value="free">Gratuit</SelectItem>
+                      <SelectItem value="standard">Standard</SelectItem>
                       <SelectItem value="premium">Premium</SelectItem>
-                      <SelectItem value="enterprise">Entreprise</SelectItem>
                     </SelectContent>
                   </Select>
                   <NewOrganizationForm onCreated={handleRefresh} />
@@ -357,17 +358,18 @@ export default function OrganisationsAdminPage() {
                             }>
                               {org.status === 'active' ? 'Actif' : 
                                org.status === 'suspended' ? 'Suspendu' : 
+                               org.status === 'pending' ? 'En attente' :
                                org.status}
                             </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge variant={
                               org.plan === 'premium' ? 'default' : 
-                              org.plan === 'enterprise' ? 'secondary' : 'outline'
+                              org.plan === 'standard' ? 'secondary' : 'outline'
                             }>
                               {org.plan === 'free' ? 'Gratuit' : 
-                               org.plan === 'premium' ? 'Premium' : 
-                               org.plan === 'enterprise' ? 'Entreprise' : org.plan}
+                               org.plan === 'standard' ? 'Standard' :
+                               org.plan === 'premium' ? 'Premium' : org.plan}
                             </Badge>
                           </TableCell>
                           <TableCell>{new Date(org.subscription_start).toLocaleDateString('fr-FR')}</TableCell>
