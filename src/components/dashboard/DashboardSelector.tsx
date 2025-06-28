@@ -24,15 +24,18 @@ export const DashboardSelector = () => {
   const { profile, user, loading } = useAuth();
   const [activeModule, setActiveModule] = useState('dashboard');
 
-  // Logs de débogage
-  console.log('DashboardSelector - Debug Info:');
+  // Logs de débogage détaillés
+  console.log('🔍 DashboardSelector - État complet:');
   console.log('- Loading:', loading);
-  console.log('- User:', user);
-  console.log('- Profile:', profile);
-  console.log('- Profile role:', profile?.role);
+  console.log('- User existe:', !!user);
+  console.log('- Profile existe:', !!profile);
+  console.log('- Profile complet:', profile);
+  console.log('- Role du profile:', profile?.role);
+  console.log('- Est superadmin?', profile?.role === 'superadmin');
 
   // Si on est encore en train de charger, afficher un loader
   if (loading) {
+    console.log('⏳ Affichage du loader (encore en chargement)');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6A9C89]"></div>
@@ -42,11 +45,11 @@ export const DashboardSelector = () => {
 
   // Si l'utilisateur est superadmin, afficher la page de gestion des organisations
   if (profile?.role === 'superadmin') {
-    console.log('Affichage de la page OrganisationsAdminPage pour superadmin');
+    console.log('🔥 SUPERADMIN DÉTECTÉ - Affichage de OrganisationsAdminPage');
     return <OrganisationsAdminPage />;
   }
 
-  console.log('Affichage du dashboard normal pour utilisateur standard');
+  console.log('👤 Utilisateur standard - Affichage du dashboard normal');
 
   // Pour les utilisateurs normaux, afficher le dashboard complet avec sidebar
   const renderModule = () => {
