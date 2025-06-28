@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -316,7 +315,7 @@ const RegisterPage = () => {
                     <span className="text-green-600 font-medium">✨ Redimensionnement automatique</span>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <label className="logo-container flex items-center justify-center w-48 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors bg-gray-50 p-2">
+                    <label className="logo-container flex items-center justify-center w-48 h-22 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors bg-gray-50 p-2">
                       {processingLogo ? (
                         <div className="text-center">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6A9C89] mx-auto mb-2"></div>
@@ -332,7 +331,7 @@ const RegisterPage = () => {
                         <div className="text-center">
                           <Upload className="h-6 w-6 mx-auto text-gray-400 mb-2" />
                           <span className="text-xs text-gray-500">Zone d'affichage</span>
-                          <div className="text-xs text-gray-400">192 x 80 px</div>
+                          <div className="text-xs text-gray-400">192 x 88 px</div>
                         </div>
                       )}
                       <input
