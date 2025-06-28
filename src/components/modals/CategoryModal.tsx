@@ -5,19 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Save, X, Trash2 } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Category {
   id?: string;
-  nom: string;
+  name: string;
   description: string;
-  type: 'produit' | 'service';
-  visible_public: boolean;
-  tenant_id?: string;
+  color: string;
+  active: boolean;
+  organization_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -26,42 +24,55 @@ interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   category?: Category;
-  onSave: (category: Category) => void;
-  onDelete?: (categoryId: string) => void;
+  onSave: (category: Omit<Category, 'id' | 'organization_id' | 'created_at' | 'updated_at'>) => void;
 }
 
-export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: CategoryModalProps) {
+const predefinedColors = [
+  '#3B82F6', // Blue
+  '#EF4444', // Red
+  '#10B981', // Green
+  '#F59E0B', // Yellow
+  '#8B5CF6', // Purple
+  '#F97316', // Orange
+  '#06B6D4', // Cyan
+  '#84CC16', // Lime
+  '#EC4899', // Pink
+  '#6B7280', // Gray
+  '#DC2626', // Red-600
+  '#059669', // Green-600
+  '#7C3AED', // Violet-600
+  '#DB2777', // Pink-600
+  '#0891B2', // Cyan-600
+  '#65A30D'  // Lime-600
+];
+
+export function CategoryModal({ isOpen, onClose, category, onSave }: CategoryModalProps) {
   const { toast } = useToast();
-  const [formData, setFormData] = useState<Category>({
-    nom: '',
+  const [formData, setFormData] = useState<Omit<Category, 'id' | 'organization_id' | 'created_at' | 'updated_at'>>({
+    name: '',
     description: '',
-    type: 'produit',
-    visible_public: false
+    color: '#3B82F6',
+    active: true
   });
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Validation en temps réel
-  const isFormValid = formData.nom.trim().length > 0;
+  const isFormValid = formData.name.trim().length > 0;
 
   useEffect(() => {
     if (category) {
       setFormData({
-        nom: category.nom || '',
+        name: category.name || '',
         description: category.description || '',
-        type: category.type || 'produit',
-        visible_public: category.visible_public || false,
-        id: category.id,
-        tenant_id: category.tenant_id,
-        created_at: category.created_at,
-        updated_at: category.updated_at
+        color: category.color || '#3B82F6',
+        active: category.active ?? true
       });
     } else {
       setFormData({
-        nom: '',
+        name: '',
         description: '',
-        type: 'produit',
-        visible_public: false
+        color: '#3B82F6',
+        active: true
       });
     }
   }, [category, isOpen]);
@@ -81,17 +92,11 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
     setIsSubmitting(true);
     
     try {
-      // Simulation d'un appel API - à remplacer par l'intégration Supabase
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      onSave({
-        ...formData,
-        updated_at: new Date().toISOString()
-      });
+      await onSave(formData);
       
       toast({
         title: category ? "Catégorie modifiée" : "Catégorie créée",
-        description: `La catégorie "${formData.nom}" a été ${category ? 'modifiée' : 'créée'} avec succès.`,
+        description: `La catégorie "${formData.name}" a été ${category ? 'modifiée' : 'créée'} avec succès.`,
       });
       
       onClose();
@@ -106,170 +111,120 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
     }
   };
 
-  const handleDelete = async () => {
-    if (!category?.id || !onDelete) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Simulation d'un appel API - à remplacer par l'intégration Supabase
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      onDelete(category.id);
-      
-      toast({
-        title: "Catégorie supprimée",
-        description: `La catégorie "${category.nom}" a été supprimée avec succès.`,
-      });
-      
-      setShowDeleteDialog(false);
-      onClose();
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
-            </DialogTitle>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
+          </DialogTitle>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nom de la catégorie */}
-            <div>
-              <Label htmlFor="nom">Nom de la catégorie *</Label>
-              <Input
-                id="nom"
-                value={formData.nom}
-                onChange={(e) => setFormData({...formData, nom: e.target.value})}
-                placeholder="Ex: Sanitaires, Matériaux, Prestations..."
-                required
-                className={!isFormValid && formData.nom.length > 0 ? 'border-red-500' : ''}
-              />
-              {!isFormValid && formData.nom.length === 0 && (
-                <p className="text-xs text-red-500 mt-1">Le nom est requis</p>
-              )}
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Nom de la catégorie */}
+          <div>
+            <Label htmlFor="name">Nom de la catégorie *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="Ex: Sanitaires, Matériaux, Prestations..."
+              required
+              className={!isFormValid && formData.name.length > 0 ? 'border-red-500' : ''}
+            />
+            {!isFormValid && formData.name.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">Le nom est requis</p>
+            )}
+          </div>
 
-            {/* Description */}
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Description ou remarque sur cette catégorie..."
-                rows={3}
-              />
-            </div>
+          {/* Description */}
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Description ou remarque sur cette catégorie..."
+              rows={3}
+            />
+          </div>
 
-            {/* Type de catégorie */}
-            <div>
-              <Label htmlFor="type">Type de catégorie</Label>
-              <Select 
-                value={formData.type} 
-                onValueChange={(value: 'produit' | 'service') => setFormData({...formData, type: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="produit">Produit</SelectItem>
-                  <SelectItem value="service">Service</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Visibilité publique */}
-            <div className="flex items-center justify-between p-3 border rounded-lg bg-neutral-50">
-              <div>
-                <Label htmlFor="visible_public" className="text-sm font-medium">
-                  Visibilité publique
-                </Label>
-                <p className="text-xs text-neutral-500">
-                  Afficher dans les listes publiques (si activé plus tard)
-                </p>
+          {/* Sélecteur de couleur */}
+          <div>
+            <Label htmlFor="color">Couleur de la catégorie</Label>
+            <div className="space-y-3">
+              {/* Couleur actuelle */}
+              <div className="flex items-center space-x-3">
+                <div 
+                  className="w-8 h-8 rounded-full border-2 border-gray-300"
+                  style={{ backgroundColor: formData.color }}
+                />
+                <Input
+                  type="text"
+                  value={formData.color}
+                  onChange={(e) => setFormData({...formData, color: e.target.value})}
+                  placeholder="#3B82F6"
+                  className="font-mono text-sm"
+                />
               </div>
-              <Switch
-                id="visible_public"
-                checked={formData.visible_public}
-                onCheckedChange={(checked) => setFormData({...formData, visible_public: checked})}
-              />
-            </div>
-
-            {/* Boutons d'action */}
-            <div className="flex justify-between pt-4">
-              <div>
-                {category?.id && onDelete && (
-                  <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="text-destructive hover:text-destructive border-destructive hover:bg-destructive/10"
-                        disabled={isSubmitting}
-                      >
-                        <Trash2 size={16} className="mr-2" />
-                        Supprimer
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Êtes-vous sûr de vouloir supprimer la catégorie "{category.nom}" ? 
-                          Cette action est irréversible et pourrait affecter les produits/services associés.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={handleDelete}
-                          className="bg-destructive hover:bg-destructive/90"
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? 'Suppression...' : 'Supprimer'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-
-              <div className="flex space-x-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                >
-                  <X size={16} className="mr-2" />
-                  Annuler
-                </Button>
-                <Button 
-                  type="submit" 
-                  className="bg-primary hover:bg-primary/90"
-                  disabled={!isFormValid || isSubmitting}
-                >
-                  <Save size={16} className="mr-2" />
-                  {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
-                </Button>
+              
+              {/* Palette de couleurs prédéfinies */}
+              <div className="grid grid-cols-8 gap-2">
+                {predefinedColors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-full border-2 hover:scale-110 transition-transform ${
+                      formData.color === color ? 'border-gray-800' : 'border-gray-300'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setFormData({...formData, color})}
+                    title={color}
+                  />
+                ))}
               </div>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </>
+          </div>
+
+          {/* Statut actif */}
+          <div className="flex items-center justify-between p-3 border rounded-lg bg-neutral-50">
+            <div>
+              <Label htmlFor="active" className="text-sm font-medium">
+                Catégorie active
+              </Label>
+              <p className="text-xs text-neutral-500">
+                Les catégories inactives n'apparaissent pas dans les listes
+              </p>
+            </div>
+            <Switch
+              id="active"
+              checked={formData.active}
+              onCheckedChange={(checked) => setFormData({...formData, active: checked})}
+            />
+          </div>
+
+          {/* Boutons d'action */}
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              <X size={16} className="mr-2" />
+              Annuler
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-[#6A9C89] hover:bg-[#5a8473]"
+              disabled={!isFormValid || isSubmitting}
+            >
+              <Save size={16} className="mr-2" />
+              {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

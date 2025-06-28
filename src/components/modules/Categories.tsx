@@ -45,13 +45,24 @@ const Categories = () => {
   };
 
   const handleSaveCategory = async (data) => {
-    await createCategory(data);
+    if (editingCategory) {
+      // TODO: Implement updateCategory function in useCategories hook
+      console.log('Updating category:', editingCategory.id, data);
+    } else {
+      const result = await createCategory(data);
+      if (result.error) {
+        console.error('Error creating category:', result.error);
+      } else {
+        console.log('Category created successfully');
+      }
+    }
     setShowModal(false);
   };
 
   const handleDeleteCategory = (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
       console.log('Deleting category:', id);
+      // TODO: Implement deleteCategory function in useCategories hook
     }
   };
 
