@@ -12,17 +12,25 @@ interface PaymentModalProps {
   onClose: () => void;
   invoice: {
     id: string;
-    invoice_number: string;
-    amount_total: number;
+    invoice_number?: string;
+    number?: string;
+    amount_total?: number;
+    amount?: number;
     amount_paid?: number;
+    paidAmount?: number;
   } | null;
-  onPaymentRecorded: () => void;
+  onPaymentRecorded?: () => void;
+  onSave?: (paymentData: any) => void;
 }
 
-export function PaymentModal({ open, onClose, invoice, onPaymentRecorded }: PaymentModalProps) {
+export function PaymentModal({ open, onClose, invoice, onPaymentRecorded, onSave }: PaymentModalProps) {
   if (!invoice) return null;
   
-  const remainingAmount = invoice.amount_total - (invoice.amount_paid || 0);
+  // Handle both invoice formats (from RecouvrementPage and InvoiceActionsMenu)
+  const invoiceNumber = invoice.invoice_number || invoice.number || '';
+  const totalAmount = invoice.amount_total || invoice.amount || 0;
+  const paidAmount = invoice.amount_paid || invoice.paidAmount || 0;
+  const remainingAmount = totalAmount - paidAmount;
 
   const [paymentData, setPaymentData] = useState({
     amount: remainingAmount,
@@ -35,7 +43,15 @@ export function PaymentModal({ open, onClose, invoice, onPaymentRecorded }: Paym
   const handleSave = () => {
     // Simulate saving payment
     console.log('Saving payment:', { ...paymentData, invoiceId: invoice.id });
-    onPaymentRecorded();
+    
+    if (onPaymentRecorded) {
+      onPaymentRecorded();
+    }
+    
+    if (onSave) {
+      onSave(paymentData);
+    }
+    
     onClose();
   };
 
@@ -51,9 +67,9 @@ export function PaymentModal({ open, onClose, invoice, onPaymentRecorded }: Paym
 
         <div className="space-y-4">
           <div className="bg-neutral-50 p-3 rounded-lg">
-            <p className="text-sm text-neutral-600">Facture: {invoice.invoice_number}</p>
+            <p className="text-sm text-neutral-600">Facture: {invoiceNumber}</p>
             <p className="text-sm">
-              Montant total: <span className="font-semibold">{invoice.amount_total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
+              Montant total: <span className="font-semibold">{totalAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
             </p>
             <p className="text-sm">
               Montant restant: <span className="font-semibold text-primary">{remainingAmount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
