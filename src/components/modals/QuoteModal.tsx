@@ -231,11 +231,12 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
         result = newQuote;
       }
 
-      // Insert quote items
+      // Insert quote items with organization_id
       const quoteItems = items
         .filter(item => item.description.trim())
         .map(item => ({
           quote_id: result.id,
+          organization_id: organization.id, // Added missing organization_id
           product_id: item.product_id || null,
           description: item.description,
           quantity: item.quantity,
