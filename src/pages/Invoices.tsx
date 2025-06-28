@@ -27,7 +27,6 @@ type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
 interface Invoice {
   id: string;
   number: string;
-  date: string;
   client: string;
   amount: number;
   status: InvoiceStatus;
@@ -121,7 +120,6 @@ export default function Invoices() {
     setEditingInvoice({
       id: invoice.id,
       number: invoice.invoice_number,
-      date: invoice.date,
       client: invoice.clients?.name || '',
       amount: invoice.total_amount,
       status: invoice.status as InvoiceStatus
