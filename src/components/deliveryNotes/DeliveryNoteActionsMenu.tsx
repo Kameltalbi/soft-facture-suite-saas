@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,7 +41,7 @@ interface DeliveryNote {
   date: string;
   client: string;
   amount: number;
-  status: 'draft' | 'sent' | 'delivered' | 'signed';
+  status: 'pending' | 'sent' | 'delivered' | 'signed';
   deliveryDate?: string;
 }
 
@@ -57,7 +58,7 @@ interface DeliveryNoteActionsMenuProps {
 }
 
 const statusLabels = {
-  draft: { label: 'Brouillon', variant: 'secondary' as const },
+  pending: { label: 'En attente', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
   delivered: { label: 'Livré', variant: 'default' as const },
   signed: { label: 'Signé', variant: 'default' as const }
@@ -78,7 +79,7 @@ export function DeliveryNoteActionsMenu({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const canEdit = deliveryNote.status === 'draft';
+  const canEdit = deliveryNote.status === 'pending';
   const canMarkAsDelivered = deliveryNote.status === 'sent';
   const canConvertToInvoice = deliveryNote.status === 'delivered' || deliveryNote.status === 'signed';
 
