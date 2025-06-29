@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     padding: 30,
-    paddingBottom: 45, // Espace pour le pied de page fixe
+    paddingBottom: 45,
     fontFamily: 'Helvetica',
   },
   header: {
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 15, // 1,5 cm = environ 42 points, on met 15 pour être dans la marge
+    bottom: 15,
     left: 30,
     right: 30,
     fontSize: 8,
@@ -222,7 +222,7 @@ export const DeliveryNotePDF = ({
           </View>
         )}
 
-        {/* Footer fixe en bas de page - only show if footer_content exists and footer_display allows it */}
+        {/* Footer fixe en bas de page */}
         {settings?.footer_content && settings?.footer_content.trim() && 
          (settings?.footer_display === 'all' || settings?.footer_display === 'delivery_notes_only') && (
           <View style={styles.footer} fixed>

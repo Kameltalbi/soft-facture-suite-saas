@@ -93,18 +93,6 @@ export function DeliveryNoteActionsMenu({
     setShowEmailModal(false);
   };
 
-  // Prepare company data from organization and user
-  const company = {
-    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
-    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
-    address: organization?.address || user?.user_metadata?.company_address,
-    email: organization?.email || user?.email,
-    phone: organization?.phone || user?.user_metadata?.company_phone,
-  };
-
-  // Create enhanced PDF component with company data
-  const enhancedPdfComponent = React.cloneElement(pdfComponent, { company });
-
   return (
     <>
       <DropdownMenu>
@@ -120,7 +108,7 @@ export function DeliveryNoteActionsMenu({
           </DropdownMenuItem>
 
           <PDFDownloadLink
-            document={enhancedPdfComponent}
+            document={pdfComponent}
             fileName={`${deliveryNote.number}.pdf`}
           >
             {({ loading }) => (
