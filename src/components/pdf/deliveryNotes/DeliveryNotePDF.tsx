@@ -142,6 +142,20 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
     paddingTop: 8,
   },
+  companyLogoSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 15,
+  },
+  companyLogo: {
+    width: 80,
+    height: 60,
+    marginRight: 15,
+    objectFit: 'contain',
+  },
+  companyDetails: {
+    flex: 1,
+  },
 });
 
 interface DeliveryNotePDFProps {
@@ -168,43 +182,33 @@ export const DeliveryNotePDF = ({
   console.log('PDF Component - Logo URL type:', typeof company?.logo_url);
   console.log('PDF Component - Logo URL length:', company?.logo_url?.length);
 
-  // Logique plus permissive pour l'URL du logo
-  const hasLogo = company?.logo_url && 
-    typeof company.logo_url === 'string' && 
-    company.logo_url.trim().length > 0;
-
-  console.log('PDF Component - Has logo:', hasLogo);
-  console.log('PDF Component - Will try to display logo with URL:', company?.logo_url);
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {hasLogo ? (
-              <Image 
-                style={styles.logo} 
-                src={company.logo_url}
-              />
-            ) : (
-              <View style={styles.logoPlaceholder}>
-                <Text style={styles.logoPlaceholderText}>LOGO{'\n'}ENTREPRISE</Text>
+            <View style={styles.companyLogoSection}>
+              {company?.logo_url && (
+                <Image
+                  style={styles.companyLogo}
+                  src={company.logo_url}
+                />
+              )}
+              <View style={styles.companyDetails}>
+                <Text style={styles.companyName}>
+                  {company?.name || 'Soft Facture'}
+                </Text>
+                <Text style={styles.companyDetails}>
+                  {company?.address || 'Adresse de l\'entreprise'}
+                </Text>
+                <Text style={styles.companyDetails}>
+                  {company?.email || 'contact@softfacture.fr'}
+                </Text>
+                <Text style={styles.companyDetails}>
+                  {company?.phone || 'Téléphone'}
+                </Text>
               </View>
-            )}
-            <View style={styles.companyInfo}>
-              <Text style={styles.companyName}>
-                {company?.name || 'Soft Facture'}
-              </Text>
-              <Text style={styles.companyDetails}>
-                {company?.address || 'Adresse de l\'entreprise'}
-              </Text>
-              <Text style={styles.companyDetails}>
-                {company?.email || 'contact@softfacture.fr'}
-              </Text>
-              <Text style={styles.companyDetails}>
-                {company?.phone || 'Téléphone'}
-              </Text>
             </View>
           </View>
           
