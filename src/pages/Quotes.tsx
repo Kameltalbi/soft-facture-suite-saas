@@ -65,9 +65,13 @@ const Quotes = () => {
         .from('global_settings')
         .select('*')
         .eq('organization_id', organization.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) {
+        console.error('Erreur lors de la récupération des paramètres globaux:', error);
+        return null;
+      }
+      
       return data;
     },
     enabled: !!organization?.id
@@ -450,6 +454,8 @@ const Quotes = () => {
                       footer_display: globalSettings?.footer_display || 'all'
                     }
                   };
+
+                  console.log('PDF Data settings:', pdfData.settings);
 
                   return (
                     <TableRow key={quote.id} className="hover:bg-neutral-50">
