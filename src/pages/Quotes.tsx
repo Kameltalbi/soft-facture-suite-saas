@@ -55,6 +55,24 @@ const Quotes = () => {
     enabled: !!organization?.id
   });
 
+  // Fetch global settings for PDF generation
+  const { data: globalSettings } = useQuery({
+    queryKey: ['globalSettings', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('global_settings')
+        .select('*')
+        .eq('tenant_id', organization.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!organization?.id
+  });
+
   const handleCreateQuote = () => {
     setSelectedQuote(null);
     setIsModalOpen(true);
@@ -398,7 +416,7 @@ const Quotes = () => {
                     status: getQuoteStatus(quote.status)
                   };
 
-                  // Prepare data for PDF
+                  // Prepare data for PDF with real settings from database
                   const pdfData = {
                     quoteData: {
                       number: quote.quote_number,
@@ -428,7 +446,8 @@ const Quotes = () => {
                     },
                     settings: {
                       showVat: true,
-                      footer_content: 'Soft Facture - Merci pour votre confiance'
+                      footer_content: globalSettings?.footer_content || '',
+                      footer_display: globalSettings?.footer_display || 'all'
                     }
                   };
 
