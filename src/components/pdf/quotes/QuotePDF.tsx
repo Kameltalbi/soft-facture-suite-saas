@@ -173,6 +173,10 @@ export const QuotePDF = ({
 
   const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
 
+  // Debug: log the settings to see what's being passed
+  console.log('QuotePDF settings:', settings);
+  console.log('Footer content:', settings?.footer_content);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -282,10 +286,13 @@ export const QuotePDF = ({
           </View>
         )}
 
-        {/* Footer fixe en bas de page */}
-        <View style={styles.footer} fixed>
-          <Text>{settings?.footer_content || 'Merci pour votre confiance'}</Text>
-        </View>
+        {/* Footer fixe en bas de page - only show if footer_content exists and footer_display allows it */}
+        {settings?.footer_content && settings?.footer_content.trim() && 
+         (settings?.footer_display === 'all' || settings?.footer_display === undefined) && (
+          <View style={styles.footer} fixed>
+            <Text>{settings.footer_content}</Text>
+          </View>
+        )}
       </Page>
     </Document>
   );
