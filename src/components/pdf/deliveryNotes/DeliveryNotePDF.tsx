@@ -159,7 +159,6 @@ export const DeliveryNotePDF = ({
               <Image 
                 style={styles.logo} 
                 src={company.logo_url}
-                onError={(error) => console.error('Erreur chargement logo:', error)}
               />
             )}
             <View style={styles.companyInfo}>
