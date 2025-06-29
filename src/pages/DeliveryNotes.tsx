@@ -17,6 +17,10 @@ import { DeliveryNoteModal } from '@/components/modals/DeliveryNoteModal';
 import { DeliveryNotePDF } from '@/components/pdf/deliveryNotes/DeliveryNotePDF';
 import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface DeliveryNote {
   id: string;
@@ -109,6 +113,8 @@ const statusLabels = {
 
 export default function DeliveryNotes() {
   const { generateInvoicePDF } = usePDFGeneration();
+  const { organization } = useAuth();
+  const { currency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [editingDelivery, setEditingDelivery] = useState<DeliveryNote | null>(null);
@@ -135,6 +141,28 @@ export default function DeliveryNotes() {
     { value: 11, label: 'Novembre' },
     { value: 12, label: 'Décembre' },
   ];
+
+  // Fetch global settings for PDF generation
+  const { data: globalSettings } = useQuery({
+    queryKey: ['globalSettings', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('global_settings')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erreur lors de la récupération des paramètres globaux:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!organization?.id
+  });
 
   const filteredDeliveryNotes = mockDeliveryNotes.filter(delivery => {
     const deliveryDate = new Date(delivery.date);
@@ -180,6 +208,10 @@ export default function DeliveryNotes() {
     console.log('Sending email:', emailData);
   };
 
+  const formatCurrency = (amount: number) => {
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
+  };
+
   const getPDFData = (delivery: DeliveryNote) => {
     const mockLineItems = [
       {
@@ -193,20 +225,12 @@ export default function DeliveryNotes() {
       }
     ];
 
-    const mockSettings = {
-      showVat: true,
-      showDiscount: false,
-      showAdvance: false,
-      currency: 'EUR',
-      amountInWords: false,
-      footer_content: 'Soft Facture SARL - Merci pour votre confiance'
-    };
-
     const company = {
-      name: 'Mon Entreprise',
-      address: 'Adresse de l\'entreprise',
-      email: 'contact@monentreprise.fr',
-      phone: 'Téléphone'
+      name: organization?.name || 'Mon Entreprise',
+      address: organization?.address || 'Adresse de l\'entreprise',
+      email: organization?.email || 'contact@monentreprise.fr',
+      phone: organization?.phone || 'Téléphone',
+      logo_url: organization?.logo_url
     };
 
     const client = {
@@ -226,7 +250,12 @@ export default function DeliveryNotes() {
       lineItems: mockLineItems,
       client,
       company,
-      settings: mockSettings
+      settings: {
+        showVat: true,
+        footer_content: globalSettings?.footer_content || '',
+        footer_display: globalSettings?.footer_display || 'all'
+      },
+      currency: currency
     };
   };
 
@@ -375,10 +404,7 @@ export default function DeliveryNotes() {
                   <TableCell>{new Date(delivery.date).toLocaleDateString('fr-FR')}</TableCell>
                   <TableCell>{delivery.client}</TableCell>
                   <TableCell>
-                    {delivery.amount.toLocaleString('fr-FR', {
-                      style: 'currency',
-                      currency: 'EUR'
-                    })}
+                    {formatCurrency(delivery.amount)}
                   </TableCell>
                   <TableCell>
                     {delivery.deliveryDate ? 
