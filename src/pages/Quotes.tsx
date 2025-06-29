@@ -64,7 +64,7 @@ const Quotes = () => {
       const { data, error } = await supabase
         .from('global_settings')
         .select('*')
-        .eq('tenant_id', organization.id)
+        .eq('organization_id', organization.id)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
