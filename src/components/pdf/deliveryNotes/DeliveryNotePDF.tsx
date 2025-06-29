@@ -30,6 +30,22 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
     marginRight: 15,
   },
+  logoPlaceholder: {
+    width: 80,
+    height: 60,
+    backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    borderStyle: 'dashed',
+    marginRight: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoPlaceholderText: {
+    fontSize: 8,
+    color: '#999999',
+    textAlign: 'center',
+  },
   companyInfo: {
     flex: 1,
   },
@@ -147,7 +163,20 @@ export const DeliveryNotePDF = ({
 }: DeliveryNotePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
 
-  console.log('PDF Component - Company logo_url:', company?.logo_url); // Debug log
+  console.log('PDF Component - Company data:', company);
+  console.log('PDF Component - Logo URL:', company?.logo_url);
+  console.log('PDF Component - Logo URL type:', typeof company?.logo_url);
+  console.log('PDF Component - Logo URL length:', company?.logo_url?.length);
+
+  // Vérifier si l'URL du logo est valide
+  const isValidLogoUrl = company?.logo_url && 
+    company.logo_url.trim() && 
+    (company.logo_url.startsWith('http://') || 
+     company.logo_url.startsWith('https://') || 
+     company.logo_url.startsWith('data:') ||
+     company.logo_url.startsWith('/'));
+
+  console.log('PDF Component - Is valid logo URL:', isValidLogoUrl);
 
   return (
     <Document>
@@ -155,11 +184,15 @@ export const DeliveryNotePDF = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {company?.logo_url && company.logo_url.trim() && (
+            {isValidLogoUrl ? (
               <Image 
                 style={styles.logo} 
                 src={company.logo_url}
               />
+            ) : (
+              <View style={styles.logoPlaceholder}>
+                <Text style={styles.logoPlaceholderText}>LOGO{'\n'}ENTREPRISE</Text>
+              </View>
             )}
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>
