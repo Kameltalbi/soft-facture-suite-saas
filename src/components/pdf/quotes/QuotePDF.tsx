@@ -7,6 +7,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     padding: 30,
+    paddingBottom: 45, // Espace pour le pied de page fixe
     fontFamily: 'Helvetica',
   },
   header: {
@@ -121,17 +122,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  footer: {
-    marginTop: 30,
-    fontSize: 8,
-    color: '#666666',
-    textAlign: 'center',
-  },
   notes: {
     marginTop: 20,
     fontSize: 9,
     color: '#666666',
     lineHeight: 1.4,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 15, // 1,5 cm = environ 42 points, on met 15 pour être dans la marge
+    left: 30,
+    right: 30,
+    fontSize: 8,
+    color: '#666666',
+    textAlign: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingTop: 8,
   },
 });
 
@@ -275,9 +282,9 @@ export const QuotePDF = ({
           </View>
         )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text>{settings?.footer_content || 'Soft Facture - Merci pour votre confiance'}</Text>
+        {/* Footer fixe en bas de page */}
+        <View style={styles.footer} fixed>
+          <Text>{settings?.footer_content || 'Merci pour votre confiance'}</Text>
         </View>
       </Page>
     </Document>
