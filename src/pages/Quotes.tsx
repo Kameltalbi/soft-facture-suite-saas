@@ -19,6 +19,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const Quotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,6 +28,7 @@ const Quotes = () => {
   const { organization } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency } = useCurrency();
 
   // Fetch quotes from Supabase
   const { data: quotes = [], isLoading } = useQuery({
@@ -255,7 +257,7 @@ const Quotes = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
   };
 
   const filteredQuotes = quotes.filter(quote =>
@@ -452,7 +454,8 @@ const Quotes = () => {
                       showVat: true,
                       footer_content: globalSettings?.footer_content || '',
                       footer_display: globalSettings?.footer_display || 'all'
-                    }
+                    },
+                    currency: currency
                   };
 
                   console.log('PDF Data settings:', pdfData.settings);
