@@ -12,6 +12,7 @@ import { CreateAvoirModal } from '@/components/modals/CreateAvoirModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { AvoirPDF } from '@/components/pdf/AvoirPDF';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Avoir {
   id: string;
@@ -62,6 +63,7 @@ const mockAvoirs: Avoir[] = [
 
 export default function Avoirs() {
   const { organization } = useAuth();
+  const { currency } = useCurrency();
   const [avoirs, setAvoirs] = useState<Avoir[]>(mockAvoirs);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -182,7 +184,7 @@ export default function Avoirs() {
     const settings = {
       showVat: true,
       showDiscount: false,
-      currency: 'EUR',
+      currency: currency.code,
       amountInWords: true
     };
 
@@ -260,7 +262,7 @@ export default function Avoirs() {
             <div className="text-2xl font-bold text-red-600">
               {stats.totalAmount.toLocaleString('fr-FR', { 
                 style: 'currency', 
-                currency: 'EUR' 
+                currency: currency.code 
               })}
             </div>
           </CardContent>
@@ -386,7 +388,7 @@ export default function Avoirs() {
                   <TableCell className="text-right font-medium text-red-600">
                     {avoir.amount.toLocaleString('fr-FR', { 
                       style: 'currency', 
-                      currency: 'EUR' 
+                      currency: currency.code 
                     })}
                   </TableCell>
                   <TableCell>
