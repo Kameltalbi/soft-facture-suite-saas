@@ -121,14 +121,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  validitySection: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 5,
-    borderLeftWidth: 4,
-    borderLeftColor: '#F59E0B',
-  },
   footer: {
     marginTop: 30,
     paddingTop: 20,
@@ -276,14 +268,6 @@ export const QuotePDF = ({
             <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
             <Text style={styles.grandTotalText}>{totalTTC.toFixed(2)} {currencySymbol}</Text>
           </View>
-        </View>
-
-        {/* Validity Section */}
-        <View style={styles.validitySection}>
-          <Text style={styles.sectionTitle}>VALIDITÉ DU DEVIS :</Text>
-          <Text style={styles.clientInfo}>
-            Ce devis est valable jusqu'au {quoteData?.validUntil ? new Date(quoteData.validUntil).toLocaleDateString('fr-FR') : 'Non spécifiée'}
-          </Text>
         </View>
 
         {/* Notes */}
