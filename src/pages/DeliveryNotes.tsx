@@ -183,13 +183,16 @@ export default function DeliveryNotes() {
       email: delivery.clients?.email || 'client@email.com'
     };
 
+    // Transform the delivery note data to match what the PDF component expects
+    const deliveryData = {
+      number: delivery.delivery_number,
+      date: delivery.date,
+      subject: `Bon de livraison pour ${client.company}`,
+      notes: delivery.notes || (delivery.expected_delivery_date ? `Livraison prévue le ${new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR')}` : 'En cours de livraison')
+    };
+
     return {
-      deliveryData: {
-        number: delivery.delivery_number,
-        date: delivery.date,
-        subject: `Bon de livraison pour ${client.company}`,
-        notes: delivery.notes || (delivery.expected_delivery_date ? `Livraison prévue le ${new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR')}` : 'En cours de livraison')
-      },
+      deliveryData,
       lineItems: mockLineItems,
       client,
       company,
