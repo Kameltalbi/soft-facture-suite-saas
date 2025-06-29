@@ -202,6 +202,17 @@ export default function DeliveryNotes() {
     };
   };
 
+  // Transform delivery note data for the actions menu component
+  const transformDeliveryForActionsMenu = (delivery: any) => ({
+    id: delivery.id,
+    number: delivery.delivery_number,
+    date: delivery.date,
+    client: delivery.clients?.company || delivery.clients?.name || 'Client',
+    amount: 0, // Delivery notes don't have amounts, so we set to 0
+    status: delivery.status as 'draft' | 'sent' | 'delivered' | 'signed',
+    deliveryDate: delivery.expected_delivery_date
+  });
+
   if (loading) {
     return (
       <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
@@ -368,7 +379,7 @@ export default function DeliveryNotes() {
                   </TableCell>
                   <TableCell className="text-right">
                     <DeliveryNoteActionsMenu
-                      deliveryNote={delivery}
+                      deliveryNote={transformDeliveryForActionsMenu(delivery)}
                       pdfComponent={<DeliveryNotePDF {...getPDFData(delivery)} />}
                       onView={() => handleViewDelivery(delivery)}
                       onEdit={() => handleEditDelivery(delivery)}
