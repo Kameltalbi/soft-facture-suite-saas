@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -172,7 +173,7 @@ export default function DeliveryNotes() {
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
-      logo_url: organization?.logo_url || null // Assurer que le logo_url est bien passé
+      logo_url: organization?.logo_url
     };
 
     const client = {
@@ -181,8 +182,6 @@ export default function DeliveryNotes() {
       address: delivery.clients?.address || 'Adresse du client',
       email: delivery.clients?.email || 'client@email.com'
     };
-
-    console.log('Organization logo URL:', organization?.logo_url); // Debug log
 
     return {
       deliveryData: {
@@ -202,17 +201,6 @@ export default function DeliveryNotes() {
       currency: currency
     };
   };
-
-  // Transform delivery note data for the actions menu component
-  const transformDeliveryForActionsMenu = (delivery: any) => ({
-    id: delivery.id,
-    number: delivery.delivery_number,
-    date: delivery.date,
-    client: delivery.clients?.company || delivery.clients?.name || 'Client',
-    amount: 0, // Delivery notes don't have amounts, so we set to 0
-    status: delivery.status as 'draft' | 'sent' | 'delivered' | 'signed',
-    deliveryDate: delivery.expected_delivery_date
-  });
 
   if (loading) {
     return (
@@ -380,7 +368,7 @@ export default function DeliveryNotes() {
                   </TableCell>
                   <TableCell className="text-right">
                     <DeliveryNoteActionsMenu
-                      deliveryNote={transformDeliveryForActionsMenu(delivery)}
+                      deliveryNote={delivery}
                       pdfComponent={<DeliveryNotePDF {...getPDFData(delivery)} />}
                       onView={() => handleViewDelivery(delivery)}
                       onEdit={() => handleEditDelivery(delivery)}

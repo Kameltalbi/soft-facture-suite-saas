@@ -30,22 +30,6 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
     marginRight: 15,
   },
-  logoPlaceholder: {
-    width: 80,
-    height: 60,
-    backgroundColor: '#F0F0F0',
-    borderWidth: 1,
-    borderColor: '#CCCCCC',
-    borderStyle: 'dashed',
-    marginRight: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoPlaceholderText: {
-    fontSize: 8,
-    color: '#999999',
-    textAlign: 'center',
-  },
   companyInfo: {
     flex: 1,
   },
@@ -163,34 +147,14 @@ export const DeliveryNotePDF = ({
 }: DeliveryNotePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
 
-  console.log('PDF Component - Company data:', company);
-  console.log('PDF Component - Logo URL:', company?.logo_url);
-  console.log('PDF Component - Logo URL type:', typeof company?.logo_url);
-  console.log('PDF Component - Logo URL length:', company?.logo_url?.length);
-
-  // Logique plus permissive pour l'URL du logo
-  const hasLogo = company?.logo_url && 
-    typeof company.logo_url === 'string' && 
-    company.logo_url.trim().length > 0;
-
-  console.log('PDF Component - Has logo:', hasLogo);
-  console.log('PDF Component - Will try to display logo with URL:', company?.logo_url);
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {hasLogo ? (
-              <Image 
-                style={styles.logo} 
-                src={company.logo_url}
-              />
-            ) : (
-              <View style={styles.logoPlaceholder}>
-                <Text style={styles.logoPlaceholderText}>LOGO{'\n'}ENTREPRISE</Text>
-              </View>
+            {company?.logo_url && (
+              <Image style={styles.logo} src={company.logo_url} />
             )}
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>
