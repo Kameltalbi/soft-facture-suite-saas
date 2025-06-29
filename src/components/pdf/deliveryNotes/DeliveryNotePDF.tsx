@@ -168,15 +168,13 @@ export const DeliveryNotePDF = ({
   console.log('PDF Component - Logo URL type:', typeof company?.logo_url);
   console.log('PDF Component - Logo URL length:', company?.logo_url?.length);
 
-  // Vérifier si l'URL du logo est valide
-  const isValidLogoUrl = company?.logo_url && 
-    company.logo_url.trim() && 
-    (company.logo_url.startsWith('http://') || 
-     company.logo_url.startsWith('https://') || 
-     company.logo_url.startsWith('data:') ||
-     company.logo_url.startsWith('/'));
+  // Logique plus permissive pour l'URL du logo
+  const hasLogo = company?.logo_url && 
+    typeof company.logo_url === 'string' && 
+    company.logo_url.trim().length > 0;
 
-  console.log('PDF Component - Is valid logo URL:', isValidLogoUrl);
+  console.log('PDF Component - Has logo:', hasLogo);
+  console.log('PDF Component - Will try to display logo with URL:', company?.logo_url);
 
   return (
     <Document>
@@ -184,7 +182,7 @@ export const DeliveryNotePDF = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {isValidLogoUrl ? (
+            {hasLogo ? (
               <Image 
                 style={styles.logo} 
                 src={company.logo_url}
