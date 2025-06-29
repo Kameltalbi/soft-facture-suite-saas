@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     marginRight: 15,
     objectFit: 'contain',
   },
-  companyDetails: {
+  companyDetailsContainer: {
     flex: 1,
   },
 });
@@ -195,7 +195,7 @@ export const DeliveryNotePDF = ({
                   src={company.logo_url}
                 />
               )}
-              <View style={styles.companyDetails}>
+              <View style={styles.companyDetailsContainer}>
                 <Text style={styles.companyName}>
                   {company?.name || 'Soft Facture'}
                 </Text>
