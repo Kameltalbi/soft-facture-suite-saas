@@ -90,7 +90,13 @@ export function useDeliveryNotes() {
         return;
       }
 
-      setDeliveryNotes(data || []);
+      // Type assertion to ensure status is properly typed
+      const typedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'pending' | 'sent' | 'delivered' | 'signed'
+      }));
+
+      setDeliveryNotes(typedData);
     } catch (err) {
       console.error('Error in fetchDeliveryNotes:', err);
       setError('Une erreur est survenue lors du chargement des bons de livraison');
