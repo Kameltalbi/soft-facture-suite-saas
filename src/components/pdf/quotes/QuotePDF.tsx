@@ -123,9 +123,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 30,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
     fontSize: 8,
     color: '#666666',
     textAlign: 'center',
