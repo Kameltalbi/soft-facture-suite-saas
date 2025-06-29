@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -173,7 +172,7 @@ export default function DeliveryNotes() {
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
-      logo_url: organization?.logo_url
+      logo_url: organization?.logo_url || null // Assurer que le logo_url est bien passé
     };
 
     const client = {
@@ -182,6 +181,8 @@ export default function DeliveryNotes() {
       address: delivery.clients?.address || 'Adresse du client',
       email: delivery.clients?.email || 'client@email.com'
     };
+
+    console.log('Organization logo URL:', organization?.logo_url); // Debug log
 
     return {
       deliveryData: {

@@ -147,14 +147,20 @@ export const DeliveryNotePDF = ({
 }: DeliveryNotePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
 
+  console.log('PDF Component - Company logo_url:', company?.logo_url); // Debug log
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {company?.logo_url && (
-              <Image style={styles.logo} src={company.logo_url} />
+            {company?.logo_url && company.logo_url.trim() && (
+              <Image 
+                style={styles.logo} 
+                src={company.logo_url}
+                onError={(error) => console.error('Erreur chargement logo:', error)}
+              />
             )}
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>
