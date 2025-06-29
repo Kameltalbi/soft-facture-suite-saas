@@ -72,6 +72,7 @@ export function useDeliveryNotes() {
           ),
           delivery_note_items (
             id,
+            delivery_note_id,
             description,
             quantity,
             delivered_quantity,
@@ -90,11 +91,15 @@ export function useDeliveryNotes() {
         return;
       }
 
-      // Type assertion to ensure status is properly typed
+      // Type assertion to ensure proper typing
       const typedData = (data || []).map(item => ({
         ...item,
-        status: item.status as 'pending' | 'sent' | 'delivered' | 'signed'
-      }));
+        status: item.status as 'pending' | 'sent' | 'delivered' | 'signed',
+        delivery_note_items: (item.delivery_note_items || []).map((noteItem: any) => ({
+          ...noteItem,
+          status: noteItem.status as 'pending' | 'delivered' | 'partial'
+        }))
+      })) as DeliveryNote[];
 
       setDeliveryNotes(typedData);
     } catch (err) {
