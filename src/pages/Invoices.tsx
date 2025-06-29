@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
 
@@ -45,6 +45,7 @@ export default function Invoices() {
   const { organization } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
@@ -98,6 +99,28 @@ export default function Invoices() {
         throw error;
       }
       return data || [];
+    },
+    enabled: !!organization?.id
+  });
+
+  // Fetch global settings for PDF generation
+  const { data: globalSettings } = useQuery({
+    queryKey: ['globalSettings', organization?.id],
+    queryFn: async () => {
+      if (!organization?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('global_settings')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erreur lors de la récupération des paramètres globaux:', error);
+        return null;
+      }
+      
+      return data;
     },
     enabled: !!organization?.id
   });
@@ -397,6 +420,10 @@ export default function Invoices() {
     });
   };
 
+  const formatCurrency = (amount) => {
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
+  };
+
   const getPDFData = (invoice: any) => {
     const mockLineItems = invoice.invoice_items?.map(item => ({
       id: item.id,
@@ -408,21 +435,12 @@ export default function Invoices() {
       total: item.total_price
     })) || [];
 
-    const mockSettings = {
-      showVat: true,
-      showDiscount: false,
-      showAdvance: false,
-      currency: 'EUR',
-      amountInWords: true,
-      footer_content: 'Soft Facture SARL - Merci pour votre confiance'
-    };
-
     const company = {
       name: organization?.name || 'Mon Entreprise',
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
-      logo: organization?.logo_url // Correction: utiliser logo_url au lieu de logo
+      logo_url: organization?.logo_url
     };
 
     const client = {
@@ -443,7 +461,12 @@ export default function Invoices() {
       lineItems: mockLineItems,
       client,
       company,
-      settings: mockSettings
+      settings: {
+        showVat: true,
+        footer_content: globalSettings?.footer_content || '',
+        footer_display: globalSettings?.footer_display || 'all'
+      },
+      currency: currency
     };
   };
 
@@ -608,10 +631,7 @@ export default function Invoices() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {invoice.total_amount.toLocaleString('fr-FR', {
-                      style: 'currency',
-                      currency: 'EUR'
-                    })}
+                    {formatCurrency(invoice.total_amount)}
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusLabels[invoice.status as InvoiceStatus]?.variant || 'secondary'}>

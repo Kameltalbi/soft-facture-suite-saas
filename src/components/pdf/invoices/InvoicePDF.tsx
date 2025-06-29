@@ -7,6 +7,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     padding: 30,
+    paddingBottom: 45, // Espace pour le pied de page fixe
     fontFamily: 'Helvetica',
   },
   header: {
@@ -142,20 +143,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  footer: {
-    marginTop: 30,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    fontSize: 8,
-    color: '#666666',
-    textAlign: 'center',
-  },
   notes: {
     marginTop: 20,
     fontSize: 9,
     color: '#666666',
     lineHeight: 1.4,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 15, // 1,5 cm = environ 42 points, on met 15 pour être dans la marge
+    left: 30,
+    right: 30,
+    fontSize: 8,
+    color: '#666666',
+    textAlign: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingTop: 8,
   },
 });
 
@@ -179,9 +183,9 @@ export const InvoicePDF = ({
   const currencySymbol = currency?.symbol || '€';
   
   const calculateTotals = () => {
-    const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
+    const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
     const totalVAT = lineItems.reduce((sum, item) => {
-      return sum + (item.total * item.vatRate / 100);
+      return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0);
     const totalTTC = subtotalHT + totalVAT;
 
@@ -196,8 +200,8 @@ export const InvoicePDF = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.leftSection}>
-            {company?.logo && (
-              <Image style={styles.logo} src={company.logo} />
+            {company?.logo_url && (
+              <Image style={styles.logo} src={company.logo_url} />
             )}
             <View style={styles.companyInfo}>
               <Text style={styles.companyName}>
@@ -218,19 +222,14 @@ export const InvoicePDF = ({
           <View style={styles.rightSection}>
             <Text style={styles.documentTitle}>FACTURE</Text>
             <View style={styles.documentInfo}>
-              <Text style={styles.documentNumber}>Numéro</Text>
-              <Text style={styles.documentNumber}>{invoiceData?.number}</Text>
-              <Text style={styles.documentDate}>Date</Text>
+              <Text style={styles.documentNumber}>N° {invoiceData?.number || 'N/A'}</Text>
               <Text style={styles.documentDate}>
-                {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
+                Date: {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
               </Text>
               {invoiceData?.dueDate && (
-                <>
-                  <Text style={styles.documentDate}>Échéance</Text>
-                  <Text style={styles.documentDate}>
-                    {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}
-                  </Text>
-                </>
+                <Text style={styles.documentDate}>
+                  Échéance: {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}
+                </Text>
               )}
             </View>
           </View>
@@ -262,20 +261,20 @@ export const InvoicePDF = ({
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>TOTAL HT</Text>
           </View>
 
-          {lineItems?.map((item, index) => (
+          {lineItems?.filter(item => item.description && item.description.trim()).map((item, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={[styles.tableCell, { flex: 3 }]}>{item.description}</Text>
-              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity}</Text>
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity || 0}</Text>
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
-                {item.unitPrice?.toFixed(2)} {currencySymbol}
+                {(item.unitPrice || 0).toFixed(2)} {currencySymbol}
               </Text>
               {settings?.showVat && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
-                  {item.vatRate}%
+                  {item.vatRate || 0}%
                 </Text>
               )}
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
-                {item.total?.toFixed(2)} {currencySymbol}
+                {(item.total || 0).toFixed(2)} {currencySymbol}
               </Text>
             </View>
           ))}
@@ -300,17 +299,20 @@ export const InvoicePDF = ({
         </View>
 
         {/* Notes */}
-        {invoiceData?.notes && (
+        {invoiceData?.notes && invoiceData.notes.trim() && (
           <View style={styles.notes}>
             <Text style={styles.sectionTitle}>NOTES :</Text>
             <Text>{invoiceData.notes}</Text>
           </View>
         )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text>{settings?.footer_content || 'Soft Facture - Merci pour votre confiance'}</Text>
-        </View>
+        {/* Footer fixe en bas de page - only show if footer_content exists and footer_display allows it */}
+        {settings?.footer_content && settings?.footer_content.trim() && 
+         (settings?.footer_display === 'all' || settings?.footer_display === 'invoices_only') && (
+          <View style={styles.footer} fixed>
+            <Text>{settings.footer_content}</Text>
+          </View>
+        )}
       </Page>
     </Document>
   );
