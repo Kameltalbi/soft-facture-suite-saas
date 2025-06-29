@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -71,6 +72,7 @@ export function useDeliveryNotes() {
           ),
           delivery_note_items (
             id,
+            delivery_note_id,
             description,
             quantity,
             delivered_quantity,
@@ -92,7 +94,11 @@ export function useDeliveryNotes() {
       // Transform data to match DeliveryNote interface
       const transformedData: DeliveryNote[] = (data || []).map(item => ({
         ...item,
-        status: item.status as 'pending' | 'sent' | 'delivered' | 'signed'
+        status: item.status as 'pending' | 'sent' | 'delivered' | 'signed',
+        delivery_note_items: item.delivery_note_items?.map((deliveryItem: any) => ({
+          ...deliveryItem,
+          status: deliveryItem.status as 'pending' | 'delivered' | 'partial'
+        })) || []
       }));
 
       setDeliveryNotes(transformedData);
