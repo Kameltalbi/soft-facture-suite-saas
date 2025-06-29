@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,108 +17,28 @@ import {
 import { DeliveryNoteModal } from '@/components/modals/DeliveryNoteModal';
 import { DeliveryNotePDF } from '@/components/pdf/deliveryNotes/DeliveryNotePDF';
 import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
-import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { useDeliveryNotes } from '@/hooks/useDeliveryNotes';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrency } from '@/contexts/CurrencyContext';
-
-interface DeliveryNote {
-  id: string;
-  number: string;
-  date: string;
-  client: string;
-  amount: number;
-  status: 'draft' | 'sent' | 'delivered' | 'signed';
-  deliveryDate?: string;
-}
-
-const mockDeliveryNotes: DeliveryNote[] = [
-  {
-    id: '1',
-    number: 'BL-2024-001',
-    date: '2024-01-10',
-    client: 'Client Premium',
-    amount: 2100.00,
-    status: 'delivered',
-    deliveryDate: '2024-01-12'
-  },
-  {
-    id: '2',
-    number: 'BL-2024-002',
-    date: '2024-01-15',
-    client: 'Entreprise ABC',
-    amount: 1250.00,
-    status: 'signed',
-    deliveryDate: '2024-01-16'
-  },
-  {
-    id: '3',
-    number: 'BL-2024-003',
-    date: '2024-01-20',
-    client: 'Société Tech',
-    amount: 980.00,
-    status: 'sent'
-  },
-  {
-    id: '4',
-    number: 'BL-2024-004',
-    date: '2024-02-05',
-    client: 'Commerce Digital',
-    amount: 1800.75,
-    status: 'delivered',
-    deliveryDate: '2024-02-07'
-  },
-  {
-    id: '5',
-    number: 'BL-2024-005',
-    date: '2024-02-10',
-    client: 'Startup Innovation',
-    amount: 750.00,
-    status: 'draft'
-  },
-  {
-    id: '6',
-    number: 'BL-2024-006',
-    date: '2024-02-15',
-    client: 'Groupe Industriel SA',
-    amount: 4500.00,
-    status: 'sent'
-  },
-  {
-    id: '7',
-    number: 'BL-2024-007',
-    date: '2024-02-20',
-    client: 'Restaurant Le Gourmet',
-    amount: 980.00,
-    status: 'signed',
-    deliveryDate: '2024-02-22'
-  },
-  {
-    id: '8',
-    number: 'BL-2024-008',
-    date: '2024-02-25',
-    client: 'Cabinet Avocat & Associés',
-    amount: 5200.00,
-    status: 'delivered',
-    deliveryDate: '2024-02-27'
-  }
-];
+import { toast } from 'sonner';
 
 const statusLabels = {
-  draft: { label: 'Brouillon', variant: 'secondary' as const },
+  pending: { label: 'En attente', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
   delivered: { label: 'Livré', variant: 'default' as const },
   signed: { label: 'Signé', variant: 'default' as const }
 };
 
 export default function DeliveryNotes() {
-  const { generateInvoicePDF } = usePDFGeneration();
   const { organization } = useAuth();
   const { currency } = useCurrency();
+  const { deliveryNotes, loading, createDeliveryNote, updateDeliveryNote, deleteDeliveryNote } = useDeliveryNotes();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
-  const [editingDelivery, setEditingDelivery] = useState<DeliveryNote | null>(null);
+  const [editingDelivery, setEditingDelivery] = useState<any>(null);
   
   // Date filters
   const currentDate = new Date();
@@ -164,10 +85,11 @@ export default function DeliveryNotes() {
     enabled: !!organization?.id
   });
 
-  const filteredDeliveryNotes = mockDeliveryNotes.filter(delivery => {
+  const filteredDeliveryNotes = deliveryNotes.filter(delivery => {
     const deliveryDate = new Date(delivery.date);
-    const matchesSearch = delivery.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.number.toLowerCase().includes(searchTerm.toLowerCase());
+    const clientName = delivery.clients?.company || delivery.clients?.name || '';
+    const matchesSearch = clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      delivery.delivery_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesYear = deliveryDate.getFullYear() === selectedYear;
     const matchesMonth = deliveryDate.getMonth() + 1 === selectedMonth;
     
@@ -179,51 +101,72 @@ export default function DeliveryNotes() {
     setShowDeliveryModal(true);
   };
 
-  const handleViewDelivery = (delivery: DeliveryNote) => {
-    console.log('Viewing delivery note:', delivery.number);
+  const handleViewDelivery = (delivery: any) => {
+    console.log('Viewing delivery note:', delivery.delivery_number);
   };
 
-  const handleEditDelivery = (delivery: DeliveryNote) => {
+  const handleEditDelivery = (delivery: any) => {
     setEditingDelivery(delivery);
     setShowDeliveryModal(true);
   };
 
-  const handleDuplicateDelivery = (delivery: DeliveryNote) => {
-    console.log('Duplicating delivery note:', delivery.number);
+  const handleDuplicateDelivery = (delivery: any) => {
+    console.log('Duplicating delivery note:', delivery.delivery_number);
   };
 
-  const handleMarkAsDelivered = (delivery: DeliveryNote) => {
-    console.log('Marking as delivered:', delivery.number);
+  const handleMarkAsDelivered = async (delivery: any) => {
+    const result = await updateDeliveryNote(delivery.id, { status: 'delivered' });
+    if (result.error) {
+      toast.error('Erreur lors de la mise à jour du statut');
+    } else {
+      toast.success('Bon de livraison marqué comme livré');
+    }
   };
 
-  const handleConvertToInvoice = (delivery: DeliveryNote) => {
-    console.log('Converting to invoice:', delivery.number);
+  const handleConvertToInvoice = (delivery: any) => {
+    console.log('Converting to invoice:', delivery.delivery_number);
   };
 
-  const handleDeleteDelivery = (delivery: DeliveryNote) => {
-    console.log('Deleting delivery note:', delivery.number);
+  const handleDeleteDelivery = async (delivery: any) => {
+    const result = await deleteDeliveryNote(delivery.id);
+    if (result.error) {
+      toast.error('Erreur lors de la suppression');
+    } else {
+      toast.success('Bon de livraison supprimé');
+    }
   };
 
   const handleEmailSent = (emailData: any) => {
     console.log('Sending email:', emailData);
   };
 
-  const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
+  const handleSaveDelivery = async (data: any) => {
+    if (editingDelivery) {
+      const result = await updateDeliveryNote(editingDelivery.id, data);
+      if (result.error) {
+        toast.error('Erreur lors de la mise à jour');
+      } else {
+        toast.success('Bon de livraison mis à jour');
+        setShowDeliveryModal(false);
+      }
+    } else {
+      const result = await createDeliveryNote(data);
+      if (result.error) {
+        toast.error('Erreur lors de la création');
+      } else {
+        toast.success('Bon de livraison créé');
+        setShowDeliveryModal(false);
+      }
+    }
   };
 
-  const getPDFData = (delivery: DeliveryNote) => {
-    const mockLineItems = [
-      {
-        id: '1',
-        description: 'Produits livrés',
-        quantity: 1,
-        unitPrice: delivery.amount,
-        vatRate: 20,
-        discount: 0,
-        total: delivery.amount
-      }
-    ];
+  const getPDFData = (delivery: any) => {
+    const mockLineItems = delivery.delivery_note_items?.map((item: any) => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      deliveredQuantity: item.delivered_quantity
+    })) || [];
 
     const company = {
       name: organization?.name || 'Mon Entreprise',
@@ -234,18 +177,18 @@ export default function DeliveryNotes() {
     };
 
     const client = {
-      name: delivery.client,
-      company: delivery.client,
-      address: 'Adresse du client',
-      email: 'client@email.com'
+      name: delivery.clients?.name || 'Client',
+      company: delivery.clients?.company || delivery.clients?.name || 'Client',
+      address: delivery.clients?.address || 'Adresse du client',
+      email: delivery.clients?.email || 'client@email.com'
     };
 
     return {
       deliveryData: {
-        number: delivery.number,
+        number: delivery.delivery_number,
         date: delivery.date,
-        subject: `Bon de livraison pour ${delivery.client}`,
-        notes: delivery.deliveryDate ? `Livré le ${new Date(delivery.deliveryDate).toLocaleDateString('fr-FR')}` : 'En cours de livraison'
+        subject: `Bon de livraison pour ${client.company}`,
+        notes: delivery.notes || (delivery.expected_delivery_date ? `Livraison prévue le ${new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR')}` : 'En cours de livraison')
       },
       lineItems: mockLineItems,
       client,
@@ -258,6 +201,16 @@ export default function DeliveryNotes() {
       currency: currency
     };
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Chargement des bons de livraison...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
@@ -368,7 +321,7 @@ export default function DeliveryNotes() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">En cours</p>
-                <p className="text-2xl font-bold text-secondary">{filteredDeliveryNotes.filter(d => d.status === 'sent').length}</p>
+                <p className="text-2xl font-bold text-secondary">{filteredDeliveryNotes.filter(d => d.status === 'sent' || d.status === 'pending').length}</p>
               </div>
               <div className="w-3 h-3 bg-secondary rounded-full"></div>
             </div>
@@ -391,8 +344,7 @@ export default function DeliveryNotes() {
                 <TableHead>Numéro</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Montant</TableHead>
-                <TableHead>Date livraison</TableHead>
+                <TableHead>Date livraison prévue</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -400,21 +352,18 @@ export default function DeliveryNotes() {
             <TableBody>
               {filteredDeliveryNotes.map((delivery) => (
                 <TableRow key={delivery.id} className="hover:bg-neutral-50">
-                  <TableCell className="font-mono">{delivery.number}</TableCell>
+                  <TableCell className="font-mono">{delivery.delivery_number}</TableCell>
                   <TableCell>{new Date(delivery.date).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>{delivery.client}</TableCell>
+                  <TableCell>{delivery.clients?.company || delivery.clients?.name || 'Client'}</TableCell>
                   <TableCell>
-                    {formatCurrency(delivery.amount)}
-                  </TableCell>
-                  <TableCell>
-                    {delivery.deliveryDate ? 
-                      new Date(delivery.deliveryDate).toLocaleDateString('fr-FR') : 
+                    {delivery.expected_delivery_date ? 
+                      new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR') : 
                       <span className="text-neutral-400">-</span>
                     }
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusLabels[delivery.status].variant}>
-                      {statusLabels[delivery.status].label}
+                    <Badge variant={statusLabels[delivery.status as keyof typeof statusLabels]?.variant || 'secondary'}>
+                      {statusLabels[delivery.status as keyof typeof statusLabels]?.label || delivery.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -442,10 +391,7 @@ export default function DeliveryNotes() {
         open={showDeliveryModal}
         onClose={() => setShowDeliveryModal(false)}
         deliveryNote={editingDelivery}
-        onSave={(data) => {
-          console.log('Saving delivery note:', data);
-          setShowDeliveryModal(false);
-        }}
+        onSave={handleSaveDelivery}
       />
     </div>
   );
