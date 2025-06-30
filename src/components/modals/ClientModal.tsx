@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
     postal_code: '',
     country: 'France',
     vat_number: '',
-    status: 'active' as 'active' | 'inactive'
+    status: 'active' as 'active' | 'inactive',
+    payment_terms: 30
   });
 
   useEffect(() => {
@@ -41,7 +43,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         postal_code: client.postal_code || '',
         country: client.country || 'France',
         vat_number: client.vat_number || '',
-        status: client.status || 'active'
+        status: client.status || 'active',
+        payment_terms: client.payment_terms || 30
       });
     } else {
       setFormData({
@@ -54,7 +57,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         postal_code: '',
         country: 'France',
         vat_number: '',
-        status: 'active'
+        status: 'active',
+        payment_terms: 30
       });
     }
   }, [client, open]);
@@ -73,7 +77,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         postal_code: formData.postal_code || null,
         country: formData.country,
         vat_number: formData.vat_number || null,
-        status: formData.status
+        status: formData.status,
+        payment_terms: formData.payment_terms
       };
 
       const result = await createClient(clientData);
@@ -239,10 +244,10 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
               </div>
 
               <div>
-                <Label htmlFor="paymentTerms">Conditions de paiement</Label>
+                <Label htmlFor="payment_terms">Conditions de paiement</Label>
                 <Select 
-                  value={formData.paymentTerms.toString()} 
-                  onValueChange={(value) => setFormData({...formData, paymentTerms: parseInt(value)})}
+                  value={formData.payment_terms.toString()} 
+                  onValueChange={(value) => setFormData({...formData, payment_terms: parseInt(value)})}
                 >
                   <SelectTrigger>
                     <SelectValue />
