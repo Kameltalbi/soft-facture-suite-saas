@@ -10,6 +10,13 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import Reports from "./pages/Reports";
+import InvoiceReportPage from "./pages/reports/InvoiceReportPage";
+import ProductRevenueReportPage from "./pages/reports/ProductRevenueReportPage";
+import MonthlyRevenueReportPage from "./pages/reports/MonthlyRevenueReportPage";
+import YearComparisonReportPage from "./pages/reports/YearComparisonReportPage";
+import ProductRankingReportPage from "./pages/reports/ProductRankingReportPage";
+import ClientRevenueReportPage from "./pages/reports/ClientRevenueReportPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +34,46 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/app" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports" element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/invoices" element={
+              <ProtectedRoute>
+                <InvoiceReportPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/product-revenue" element={
+              <ProtectedRoute>
+                <ProductRevenueReportPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/monthly-revenue" element={
+              <ProtectedRoute>
+                <MonthlyRevenueReportPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/year-comparison" element={
+              <ProtectedRoute>
+                <YearComparisonReportPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/product-ranking" element={
+              <ProtectedRoute>
+                <ProductRankingReportPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/client-revenue" element={
+              <ProtectedRoute>
+                <ClientRevenueReportPage />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
