@@ -29,6 +29,8 @@ const Categories = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const { categories, loading, createCategory } = useCategories();
 
+  console.log('Categories loaded:', categories);
+
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     category.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -40,13 +42,20 @@ const Categories = () => {
   };
 
   const handleEditCategory = (category) => {
+    console.log('Editing category:', category);
     setEditingCategory(category);
     setShowModal(true);
   };
 
   const handleSaveCategory = async (data) => {
-    await createCategory(data);
-    setShowModal(false);
+    console.log('Saving category data:', data);
+    const result = await createCategory(data);
+    if (result.error) {
+      console.error('Error saving category:', result.error);
+    } else {
+      console.log('Category saved successfully');
+      setShowModal(false);
+    }
   };
 
   const handleDeleteCategory = (id) => {
