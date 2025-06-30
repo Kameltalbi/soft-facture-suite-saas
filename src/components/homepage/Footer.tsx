@@ -91,15 +91,15 @@ export function Footer() {
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-gray-300" />
                 <a 
-                  href="mailto:contact@softfacture.tn" 
+                  href="mailto:contact@softfacture.com" 
                   className="text-gray-300 hover:text-white transition-colors duration-200 text-sm"
                 >
-                  contact@softfacture.tn
+                  contact@softfacture.com
                 </a>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-gray-300" />
-                <span className="text-gray-300 text-sm">+216 XX XX XX XX</span>
+                <span className="text-gray-300 text-sm">+216 55 053 505</span>
               </div>
             </div>
             
