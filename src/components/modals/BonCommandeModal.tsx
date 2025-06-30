@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,8 +32,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
-import { Fournisseur } from '@/types/fournisseur';
 import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
+import { useFournisseurs } from '@/hooks/useFournisseurs';
 
 interface BonCommandeModalProps {
   isOpen: boolean;
@@ -45,6 +44,8 @@ interface BonCommandeModalProps {
 
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
   const { exportToPDF } = useBonCommandePDF();
+  const { fournisseurs, loading: fournisseursLoading } = useFournisseurs();
+  
   const [formData, setFormData] = useState<{
     numero: string;
     fournisseurId: string;
@@ -63,30 +64,6 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
 
   const [lignes, setLignes] = useState<LigneBonCommande[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-
-  // Données de démonstration pour les fournisseurs
-  const fournisseurs: Fournisseur[] = [
-    {
-      id: 'f1',
-      nom: 'Fournisseur ABC',
-      contactPrincipal: { nom: 'Jean Dupont', email: 'jean@abc.com', telephone: '123456789' },
-      adresse: { rue: '123 Rue Example', ville: 'Paris', codePostal: '75001', pays: 'France' },
-      secteurActivite: 'Informatique',
-      statut: 'actif',
-      dateAjout: '2025-01-01',
-      organisationId: 'org1'
-    },
-    {
-      id: 'f2',
-      nom: 'Fournisseur XYZ',
-      contactPrincipal: { nom: 'Marie Martin', email: 'marie@xyz.com', telephone: '987654321' },
-      adresse: { rue: '456 Avenue Test', ville: 'Lyon', codePostal: '69000', pays: 'France' },
-      secteurActivite: 'Commerce',
-      statut: 'actif',
-      dateAjout: '2025-01-02',
-      organisationId: 'org1'
-    }
-  ];
 
   useEffect(() => {
     if (bonCommande) {
@@ -229,9 +206,13 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
 
             <div>
               <Label htmlFor="fournisseur">Fournisseur</Label>
-              <Select value={formData.fournisseurId} onValueChange={(value) => setFormData({ ...formData, fournisseurId: value })}>
+              <Select 
+                value={formData.fournisseurId} 
+                onValueChange={(value) => setFormData({ ...formData, fournisseurId: value })}
+                disabled={fournisseursLoading}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un fournisseur" />
+                  <SelectValue placeholder={fournisseursLoading ? "Chargement..." : "Sélectionner un fournisseur"} />
                 </SelectTrigger>
                 <SelectContent>
                   {fournisseurs.map((fournisseur) => (
