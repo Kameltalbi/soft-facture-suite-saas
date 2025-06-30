@@ -23,7 +23,7 @@ export function Header({ activeModule }: HeaderProps) {
   };
 
   return (
-    <div className="flex items-center justify-between h-24 py-4">
+    <div className="flex items-center justify-between h-24 py-4 bg-background border-b border-border">
       <div className="flex items-center gap-3">
         {organization?.logo_url ? (
           <img 
@@ -32,7 +32,7 @@ export function Header({ activeModule }: HeaderProps) {
             className="h-16 w-auto object-contain max-w-[180px]"
           />
         ) : (
-          <div className="h-16 w-16 bg-[#6A9C89] rounded-lg flex items-center justify-center">
+          <div className="h-16 w-16 bg-primary rounded-xl flex items-center justify-center shadow-primary">
             <Building className="h-8 w-8 text-white" />
           </div>
         )}
@@ -40,9 +40,11 @@ export function Header({ activeModule }: HeaderProps) {
       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">
+          <Button variant="ghost" className="flex items-center gap-2 hover:bg-accent transition-colors">
+            <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
+              <User className="h-4 w-4 text-white" />
+            </div>
+            <span className="hidden sm:inline text-text-primary font-medium">
               {profile?.first_name && profile?.last_name 
                 ? `${profile.first_name} ${profile.last_name}`
                 : user?.email
@@ -50,22 +52,22 @@ export function Header({ activeModule }: HeaderProps) {
             </span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-56 bg-white border border-border shadow-medium">
+          <DropdownMenuLabel className="text-text-primary">Mon compte</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem disabled className="text-text-secondary">
             <User className="mr-2 h-4 w-4" />
             <span>{user?.email}</span>
           </DropdownMenuItem>
           {profile?.role && (
-            <DropdownMenuItem disabled>
-              <span className="mr-2 text-xs bg-gray-100 px-2 py-1 rounded">
+            <DropdownMenuItem disabled className="text-text-secondary">
+              <span className="mr-2 text-xs bg-accent px-2 py-1 rounded text-text-primary">
                 {profile.role}
               </span>
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
+          <DropdownMenuItem onClick={handleSignOut} className="text-destructive hover:bg-destructive/10">
             <LogOut className="mr-2 h-4 w-4" />
             <span>Déconnexion</span>
           </DropdownMenuItem>

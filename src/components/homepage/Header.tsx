@@ -16,20 +16,20 @@ export function Header() {
     <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 bg-[#6A9C89] rounded-lg flex items-center justify-center">
+          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">SF</span>
           </div>
-          <span className="text-xl font-bold text-gray-900">Soft Facture</span>
+          <span className="text-xl font-bold text-text-primary">Soft Facture</span>
         </div>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-gray-600 hover:text-[#6A9C89] font-medium">
+          <a href="#features" className="text-text-secondary hover:text-primary font-medium transition-colors">
             Fonctionnalités
           </a>
-          <a href="#pricing" className="text-gray-600 hover:text-[#6A9C89] font-medium">
+          <a href="#pricing" className="text-text-secondary hover:text-primary font-medium transition-colors">
             Tarifs
           </a>
-          <a href="#testimonials" className="text-gray-600 hover:text-[#6A9C89] font-medium">
+          <a href="#testimonials" className="text-text-secondary hover:text-primary font-medium transition-colors">
             Témoignages
           </a>
         </nav>
@@ -38,14 +38,14 @@ export function Header() {
           {user ? (
             <Button 
               variant="outline"
-              className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
+              className="text-primary border-primary hover:bg-primary hover:text-white transition-all"
               onClick={handleSignOut}
             >
               Déconnexion
             </Button>
           ) : (
             <Button 
-              className="bg-[#D96C4F] hover:bg-[#C25A43] text-white"
+              className="bg-primary hover:bg-primary-hover text-white font-medium px-6 py-2 rounded-xl transition-all duration-200 hover:scale-105"
               onClick={() => navigate('/auth')}
             >
               Connexion
