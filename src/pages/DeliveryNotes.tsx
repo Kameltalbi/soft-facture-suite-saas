@@ -17,7 +17,7 @@ import { DeliveryNoteModal } from '@/components/modals/DeliveryNoteModal';
 import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
 import { useDeliveryNotes } from '@/hooks/useDeliveryNotes';
 
-interface DeliveryNote {
+interface DeliveryNoteFromDB {
   id: string;
   organization_id: string;
   client_id: string;
@@ -47,7 +47,7 @@ interface DeliveryNoteModalData {
 }
 
 interface DeliveryNoteActionsMenuProps {
-  deliveryNote: DeliveryNote;
+  deliveryNote: DeliveryNoteFromDB;
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -58,7 +58,10 @@ const DeliveryNotes = () => {
   const [editingDeliveryNote, setEditingDeliveryNote] = useState<DeliveryNoteModalData | null>(null);
   const { deliveryNotes, loading, createDeliveryNote, updateDeliveryNote, deleteDeliveryNote } = useDeliveryNotes();
 
-  const filteredDeliveryNotes = deliveryNotes.filter(note =>
+  // Cast the delivery notes to our local interface to avoid type conflicts
+  const typedDeliveryNotes = deliveryNotes as DeliveryNoteFromDB[];
+
+  const filteredDeliveryNotes = typedDeliveryNotes.filter(note =>
     note.delivery_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     note.clients?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -68,7 +71,7 @@ const DeliveryNotes = () => {
     setShowModal(true);
   };
 
-  const handleEditDeliveryNote = (note: DeliveryNote) => {
+  const handleEditDeliveryNote = (note: DeliveryNoteFromDB) => {
     // Transform the delivery note to match the expected modal interface
     const transformedNote: DeliveryNoteModalData = {
       id: note.id,
@@ -121,10 +124,10 @@ const DeliveryNotes = () => {
   };
 
   const stats = {
-    totalNotes: deliveryNotes.length,
-    pendingNotes: deliveryNotes.filter(n => n.status === 'pending').length,
-    deliveredNotes: deliveryNotes.filter(n => n.status === 'delivered').length,
-    sentNotes: deliveryNotes.filter(n => n.status === 'sent').length
+    totalNotes: typedDeliveryNotes.length,
+    pendingNotes: typedDeliveryNotes.filter(n => n.status === 'pending').length,
+    deliveredNotes: typedDeliveryNotes.filter(n => n.status === 'delivered').length,
+    sentNotes: typedDeliveryNotes.filter(n => n.status === 'sent').length
   };
 
   if (loading) {
@@ -269,7 +272,7 @@ const DeliveryNotes = () => {
               {filteredDeliveryNotes.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
-                    {deliveryNotes.length === 0
+                    {typedDeliveryNotes.length === 0
                       ? 'Aucun bon de livraison trouvé. Créez votre premier bon de livraison !'
                       : 'Aucun bon de livraison ne correspond à votre recherche'
                     }
