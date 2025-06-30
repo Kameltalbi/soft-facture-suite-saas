@@ -14,6 +14,7 @@ interface Client {
   postal_code: string | null;
   country: string | null;
   vat_number: string | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -25,18 +26,30 @@ export function useClients() {
   const { organization } = useAuth();
 
   const fetchClients = async () => {
-    if (!organization?.id) return;
+    if (!organization?.id) {
+      console.log('Pas d\'organisation trouvée');
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('Récupération des clients pour l\'organisation:', organization.id);
+      
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .eq('organization_id', organization.id)
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Clients récupérés:', data);
       setClients(data || []);
+      setError(null);
     } catch (err) {
       console.error('Error fetching clients:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des clients');
@@ -50,9 +63,15 @@ export function useClients() {
   }, [organization?.id]);
 
   const createClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>) => {
-    if (!organization?.id) return { error: 'Organization not found' };
+    if (!organization?.id) {
+      console.error('Pas d\'organisation trouvée');
+      return { error: 'Organization not found' };
+    }
 
     try {
+      console.log('Création du client avec les données:', clientData);
+      console.log('Organization ID:', organization.id);
+      
       const { data, error } = await supabase
         .from('clients')
         .insert({
@@ -62,7 +81,12 @@ export function useClients() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur lors de la création:', error);
+        throw error;
+      }
+      
+      console.log('Client créé:', data);
       
       // Refresh the clients list
       await fetchClients();
