@@ -41,7 +41,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
       setFormData({
         name: product.name || '',
         description: product.description || '',
-        price: product.price || 0,
+        // Convertir de centimes vers unité principale pour l'affichage
+        price: (product.price || 0) / 100,
         unit: product.unit || 'unité',
         category: product.category || '',
         stock_quantity: product.stock_quantity || 0,
@@ -78,9 +79,15 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     setIsSubmitting(true);
 
     try {
+      // Convertir le prix vers centimes pour la sauvegarde
+      const dataToSave = {
+        ...formData,
+        price: Math.round(formData.price * 100)
+      };
+
       if (product) {
         // Mode édition
-        const result = await updateProduct(product.id, formData);
+        const result = await updateProduct(product.id, dataToSave);
         if (result.error) {
           console.error('Error updating product:', result.error);
           setError(result.error);
@@ -90,7 +97,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         }
       } else {
         // Mode création
-        const result = await createProduct(formData);
+        const result = await createProduct(dataToSave);
         if (result.error) {
           console.error('Error creating product:', result.error);
           setError(result.error);
