@@ -119,7 +119,7 @@ const LoginPage = () => {
               <div className="text-right">
                 <Link 
                   to="/forgot-password" 
-                  className="text-sm text-[#6A9C89] hover:underline"
+                  className="text-sm text-primary hover:underline"
                 >
                   Mot de passe oublié ?
                 </Link>
@@ -127,7 +127,7 @@ const LoginPage = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#6A9C89] hover:bg-[#5c8876] text-white font-semibold py-3 h-12"
+                className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 h-12"
               >
                 Se connecter
               </Button>
@@ -135,7 +135,7 @@ const LoginPage = () => {
               <div className="text-center pt-4">
                 <p className="text-sm text-gray-600">
                   Vous n'avez pas encore de compte ?{' '}
-                  <Link to="/register" className="text-[#6A9C89] hover:underline font-medium">
+                  <Link to="/register" className="text-primary hover:underline font-medium">
                     Créez un compte
                   </Link>
                 </p>
