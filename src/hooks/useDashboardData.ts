@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -71,6 +72,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
 
   useEffect(() => {
     if (profile?.organization_id) {
+      console.log('🔍 Dashboard - Fetching data for organization:', profile.organization_id);
       fetchDashboardData();
     }
   }, [profile?.organization_id, selectedYear, selectedMonth]);
@@ -103,15 +105,23 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
   };
 
   const fetchDashboardData = async () => {
-    if (!profile?.organization_id) return;
+    if (!profile?.organization_id) {
+      console.log('❌ Dashboard - No organization_id found in profile');
+      return;
+    }
 
+    console.log('📊 Dashboard - Starting data fetch for org:', profile.organization_id);
     setLoading(true);
+    
     try {
       // Récupérer la devise de l'organisation
       const currency = await fetchOrganizationCurrency();
+      console.log('💰 Dashboard - Currency:', currency);
 
       // Récupérer les données KPI
       const kpis = await fetchKpiData();
+      console.log('📈 Dashboard - KPIs:', kpis);
+      
       setKpiData({
         ...kpis,
         currency
@@ -119,9 +129,10 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
 
       // Récupérer les données pour les graphiques
       const charts = await fetchChartData();
+      console.log('📊 Dashboard - Charts:', charts);
       setChartData(charts);
     } catch (error) {
-      console.error('Erreur lors de la récupération des données du dashboard:', error);
+      console.error('❌ Dashboard - Erreur lors de la récupération des données:', error);
     } finally {
       setLoading(false);
     }
@@ -129,46 +140,88 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
 
   const fetchKpiData = async (): Promise<Omit<DashboardKpiData, 'currency'>> => {
     const orgId = profile?.organization_id;
+    if (!orgId) {
+      console.log('❌ KPI - No organization ID');
+      return {
+        totalInvoices: 0,
+        paidInvoices: 0,
+        pendingInvoices: 0,
+        overdueInvoices: 0,
+        totalCredits: 0,
+        totalRevenue: 0,
+        totalVat: 0,
+        quotesThisMonth: 0,
+        pendingOrders: 0,
+        lowStockProducts: 0,
+        topProduct: { name: 'Aucun produit', revenue: 0 },
+        categorySales: []
+      };
+    }
+
     const startDate = new Date(selectedYear, selectedMonth - 1, 1);
     const endDate = new Date(selectedYear, selectedMonth, 0);
 
+    console.log('📅 KPI - Date range:', { startDate: startDate.toISOString().split('T')[0], endDate: endDate.toISOString().split('T')[0] });
+
     // Factures
-    const { data: invoices } = await supabase
+    const { data: invoices, error: invoicesError } = await supabase
       .from('invoices')
       .select('*')
       .eq('organization_id', orgId)
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
 
+    if (invoicesError) {
+      console.error('❌ KPI - Error fetching invoices:', invoicesError);
+    } else {
+      console.log('📄 KPI - Invoices found:', invoices?.length || 0);
+    }
+
     // Avoirs
-    const { data: credits } = await supabase
+    const { data: credits, error: creditsError } = await supabase
       .from('credit_notes')
       .select('total_amount')
       .eq('organization_id', orgId)
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
 
+    if (creditsError) {
+      console.error('❌ KPI - Error fetching credits:', creditsError);
+    }
+
     // Devis
-    const { data: quotes } = await supabase
+    const { data: quotes, error: quotesError } = await supabase
       .from('quotes')
       .select('*')
       .eq('organization_id', orgId)
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
 
+    if (quotesError) {
+      console.error('❌ KPI - Error fetching quotes:', quotesError);
+    }
+
     // Bons de commande
-    const { data: purchaseOrders } = await supabase
+    const { data: purchaseOrders, error: purchaseOrdersError } = await supabase
       .from('purchase_orders')
       .select('*')
       .eq('organization_id', orgId)
       .eq('status', 'pending');
 
+    if (purchaseOrdersError) {
+      console.error('❌ KPI - Error fetching purchase orders:', purchaseOrdersError);
+    }
+
     // Produits avec stock faible
-    const { data: lowStockProducts } = await supabase
+    const { data: lowStockProducts, error: lowStockError } = await supabase
       .from('products')
       .select('*')
       .eq('organization_id', orgId)
       .lt('stock_quantity', 10);
+
+    if (lowStockError) {
+      console.error('❌ KPI - Error fetching low stock products:', lowStockError);
+    }
 
     // Calculs des KPI
     const totalInvoices = invoices?.length || 0;
@@ -178,6 +231,16 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     const totalCredits = credits?.reduce((sum, credit) => sum + (credit.total_amount || 0), 0) || 0;
     const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
     const totalVat = invoices?.reduce((sum, inv) => sum + (inv.tax_amount || 0), 0) || 0;
+
+    console.log('📊 KPI - Calculated values:', {
+      totalInvoices,
+      paidInvoices,
+      pendingInvoices,
+      overdueInvoices,
+      totalCredits,
+      totalRevenue,
+      totalVat
+    });
 
     // Top produit (approximatif - nécessiterait une jointure plus complexe)
     const topProduct = { name: 'Données indisponibles', revenue: 0 };
@@ -207,6 +270,18 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
 
   const fetchChartData = async (): Promise<DashboardChartData> => {
     const orgId = profile?.organization_id;
+    if (!orgId) {
+      console.log('❌ Charts - No organization ID');
+      return {
+        monthlyComparison: [],
+        topProducts: [],
+        categorySales: [],
+        invoiceStatus: [],
+        clientRevenue: []
+      };
+    }
+
+    console.log('📊 Charts - Fetching data for org:', orgId);
 
     // Données mensuelles pour l'année en cours et précédente
     const monthlyComparison = [];
@@ -243,10 +318,16 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     }
 
     // Récupérer les données pour les autres graphiques
-    const { data: invoices } = await supabase
+    const { data: invoices, error: invoicesError } = await supabase
       .from('invoices')
       .select('*, clients(*)')
       .eq('organization_id', orgId);
+
+    if (invoicesError) {
+      console.error('❌ Charts - Error fetching invoices:', invoicesError);
+    } else {
+      console.log('📊 Charts - Total invoices found:', invoices?.length || 0);
+    }
 
     // Statuts des factures
     const invoiceStatus = [
@@ -256,9 +337,14 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
         color: '#648B78' 
       },
       { 
+        name: 'Payées P.', 
+        value: invoices?.filter(inv => inv.status === 'partially_paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
+        color: '#F59E0B' 
+      },
+      { 
         name: 'En attente', 
         value: invoices?.filter(inv => inv.status === 'sent').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-        color: '#F59E0B' 
+        color: '#3B82F6' 
       },
       { 
         name: 'En retard', 
@@ -279,6 +365,12 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       .map(([name, revenue]) => ({ name, revenue }))
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
+
+    console.log('📊 Charts - Final data:', {
+      monthlyComparison: monthlyComparison.length,
+      invoiceStatus: invoiceStatus.length,
+      clientRevenue: clientRevenue.length
+    });
 
     return {
       monthlyComparison,
