@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -63,8 +62,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const [productsLoading, setProductsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  // Form state
-  const [quoteNumber, setQuoteNumber] = useState(quote?.number || `DEVIS-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`);
+  // Form state - Générer un numéro unique basé sur timestamp
+  const [quoteNumber, setQuoteNumber] = useState(quote?.number || `DEVIS-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`);
   const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
   const [clientSearch, setClientSearch] = useState('');
@@ -80,6 +79,37 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   
   // Product search
   const [productSearch, setProductSearch] = useState('');
+
+  // Générer un numéro de devis unique
+  const generateUniqueQuoteNumber = async () => {
+    if (!organization?.id) return `DEVIS-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+    
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      const timestamp = Date.now() + attempts;
+      const newNumber = `DEVIS-${new Date().getFullYear()}-${timestamp.toString().slice(-6)}`;
+      
+      // Vérifier si ce numéro existe déjà
+      const { data: existingQuote } = await supabase
+        .from('quotes')
+        .select('id')
+        .eq('organization_id', organization.id)
+        .eq('quote_number', newNumber)
+        .single();
+      
+      if (!existingQuote) {
+        return newNumber;
+      }
+      
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, 10)); // Petite pause
+    }
+    
+    // Fallback avec timestamp complet
+    return `DEVIS-${new Date().getFullYear()}-${Date.now()}`;
+  };
 
   // Fetch clients from Supabase
   const fetchClients = async () => {
@@ -129,8 +159,16 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     if (open && organization?.id) {
       fetchClients();
       fetchProducts();
+      
+      // Si c'est un nouveau devis, générer un numéro unique
+      if (!quote) {
+        generateUniqueQuoteNumber().then(newNumber => {
+          setQuoteNumber(newNumber);
+        });
+      }
     }
-  }, [open, organization?.id]);
+  }, [open, organization?.id, quote]);
+  
   
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
@@ -219,11 +257,20 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     try {
       setSaving(true);
 
+      // Si c'est un nouveau devis, s'assurer d'avoir un numéro unique
+      let finalQuoteNumber = quoteNumber;
+      if (!quote) {
+        finalQuoteNumber = await generateUniqueQuoteNumber();
+        setQuoteNumber(finalQuoteNumber);
+      }
+
+      console.log('Saving quote with number:', finalQuoteNumber);
+
       // Save quote to database
       const { data: savedQuote, error: quoteError } = await supabase
         .from('quotes')
         .insert({
-          quote_number: quoteNumber,
+          quote_number: finalQuoteNumber,
           date: quoteDate,
           valid_until: validUntil,
           client_id: selectedClient.id,
@@ -237,7 +284,10 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
         .select()
         .single();
 
-      if (quoteError) throw quoteError;
+      if (quoteError) {
+        console.error('Quote save error:', quoteError);
+        throw quoteError;
+      }
 
       // Save quote items
       const quoteItemsToSave = quoteItems
@@ -257,7 +307,10 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           .from('quote_items')
           .insert(quoteItemsToSave);
 
-        if (itemsError) throw itemsError;
+        if (itemsError) {
+          console.error('Quote items save error:', itemsError);
+          throw itemsError;
+        }
       }
 
       // Refresh quotes list
@@ -269,7 +322,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       });
 
       const quoteData = {
-        number: quoteNumber,
+        number: finalQuoteNumber,
         date: quoteDate,
         validUntil,
         client: selectedClient,
@@ -293,6 +346,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       setSaving(false);
     }
   };
+
+  
 
   // Prepare PDF data
   const pdfData = {
