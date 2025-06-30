@@ -13,6 +13,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import { AvoirPDF } from '@/components/pdf/AvoirPDF';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useSettings } from '@/hooks/useSettings';
 
 interface Avoir {
   id: string;
@@ -64,6 +65,7 @@ const mockAvoirs: Avoir[] = [
 export default function Avoirs() {
   const { organization } = useAuth();
   const { currency } = useCurrency();
+  const { globalSettings } = useSettings();
   const [avoirs, setAvoirs] = useState<Avoir[]>(mockAvoirs);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -192,8 +194,13 @@ export default function Avoirs() {
       showVat: true,
       showDiscount: false,
       currency: 'EUR',
-      amountInWords: true
+      amountInWords: true,
+      credit_template: globalSettings?.credit_template || 'classic',
+      unified_template: globalSettings?.unified_template || 'classic',
+      use_unified_template: globalSettings?.use_unified_template || false
     };
+
+    console.log('Avoirs PDF settings:', settings);
 
     return {
       avoirData: avoir,
