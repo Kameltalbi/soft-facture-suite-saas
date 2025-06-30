@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Package, TrendingUp, Calendar, Trophy, Users, Receipt } from 'lucide-react';
+import { FileText, Package, TrendingUp, Calendar, Trophy, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Reports = () => {
@@ -54,14 +54,6 @@ const Reports = () => {
       icon: Users,
       color: 'bg-red-500',
       route: '/reports/client-revenue'
-    },
-    {
-      id: 'vat-report',
-      title: 'TVA collectée par mois',
-      description: 'Détail de la TVA collectée par mois avec répartition par taux et analyse fiscale',
-      icon: Receipt,
-      color: 'bg-indigo-500',
-      route: '/reports/vat-report'
     }
   ];
 
