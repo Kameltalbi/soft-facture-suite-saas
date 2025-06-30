@@ -1,92 +1,64 @@
 
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Package, AlertTriangle, TrendingUp, Boxes } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
-import { ProductModal } from '@/components/modals/ProductModal';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Search, Package, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
+import { ProductModal } from '@/components/modals/ProductModal';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
-const Products = () => {
+export function Products() {
+  const { products, loading } = useProducts();
+  const { currency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const { products, loading, createProduct, updateProduct } = useProducts();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const activeProducts = products.filter(p => p.active);
+  const inactiveProducts = products.filter(p => !p.active);
+  const lowStockProducts = products.filter(p => p.track_stock && p.stock_quantity !== null && p.stock_quantity < 10);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(price / 100) + ' ' + currency.symbol;
+  };
+
   const handleAddProduct = () => {
-    setEditingProduct(null);
-    setShowModal(true);
+    setSelectedProduct(null);
+    setIsModalOpen(true);
   };
 
-  const handleEditProduct = (product) => {
-    setEditingProduct(product);
-    setShowModal(true);
+  const handleEditProduct = (product: any) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
   };
 
-  const handleSaveProduct = async (data) => {
-    if (editingProduct) {
-      await updateProduct(editingProduct.id, data);
-    } else {
-      await createProduct(data);
-    }
-    setShowModal(false);
-  };
-
-  const handleDeleteProduct = (id) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      console.log('Deleting product:', id);
-    }
-  };
-
-  const handleViewProduct = (product) => {
-    console.log('Viewing product:', product);
-  };
-
-  const formatCurrency = (amount) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
-  };
-
-  const stats = {
-    totalProducts: products.length,
-    lowStock: products.filter(p => (p.stock_quantity || 0) < 10).length,
-    outOfStock: products.filter(p => (p.stock_quantity || 0) === 0).length,
-    totalValue: products.reduce((sum, p) => sum + (p.price * (p.stock_quantity || 0)), 0)
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
   };
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Chargement des produits...</div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 bg-[#F7F9FA] min-h-screen">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -117,166 +89,163 @@ const Products = () => {
         </div>
       </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Total produits</p>
-                <p className="text-2xl font-bold text-neutral-900">{stats.totalProducts}</p>
-              </div>
-              <Package className="h-8 w-8 text-[#6A9C89]" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Produits</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{products.length}</div>
+            <p className="text-xs text-muted-foreground">
+              produits et services
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Stock faible</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.lowStock}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-orange-600" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Actifs</CardTitle>
+            <Package className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{activeProducts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              produits actifs
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Rupture de stock</p>
-                <p className="text-2xl font-bold text-red-600">{stats.outOfStock}</p>
-              </div>
-              <Boxes className="h-8 w-8 text-red-600" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Inactifs</CardTitle>
+            <Package className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-500">{inactiveProducts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              produits inactifs
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Valeur stock</p>
-                <p className="text-2xl font-bold text-success">{formatCurrency(stats.totalValue)}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-success" />
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Stock Faible</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-500">{lowStockProducts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              produits en rupture
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tableau des produits */}
+      {/* Products Table */}
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Catégorie</TableHead>
-                <TableHead>Prix</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Unité</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id} className="hover:bg-neutral-50">
-                  <TableCell>
-                    <div>
-                      <div className="font-medium text-neutral-900">{product.name}</div>
-                      {product.description && (
-                        <div className="text-sm text-neutral-500 truncate max-w-xs">
-                          {product.description}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm font-mono">{product.sku || 'N/A'}</span>
-                  </TableCell>
-                  <TableCell>
-                    {product.category ? (
-                      <Badge variant="outline">{product.category}</Badge>
-                    ) : (
-                      <span className="text-neutral-400">Non catégorisé</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium">{formatCurrency(product.price)}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <span className={`font-medium ${
-                        (product.stock_quantity || 0) === 0 ? 'text-red-600' :
-                        (product.stock_quantity || 0) < 10 ? 'text-orange-600' :
-                        'text-success'
-                      }`}>
-                        {product.stock_quantity || 0}
-                      </span>
-                      {(product.stock_quantity || 0) === 0 && (
-                        <AlertTriangle size={16} className="ml-2 text-red-600" />
-                      )}
-                      {(product.stock_quantity || 0) > 0 && (product.stock_quantity || 0) < 10 && (
-                        <AlertTriangle size={16} className="ml-2 text-orange-600" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{product.unit || 'pièce'}</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewProduct(product)}>
-                          <Eye size={16} className="mr-2" />
-                          Voir les détails
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditProduct(product)}>
-                          <Edit size={16} className="mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 size={16} className="mr-2" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredProducts.length === 0 && (
+        <CardHeader>
+          <CardTitle>Liste des produits</CardTitle>
+          <CardDescription>
+            {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-neutral-500">
-                    {products.length === 0 ? 'Aucun produit trouvé. Ajoutez votre premier produit !' : 'Aucun produit ne correspond à votre recherche'}
-                  </TableCell>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Catégorie</TableHead>
+                  <TableHead>Prix</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Unité</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{product.name}</div>
+                          {product.description && (
+                            <div className="text-sm text-muted-foreground">
+                              {product.description}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{product.sku || '-'}</TableCell>
+                      <TableCell>
+                        {product.category ? (
+                          <Badge variant="outline">{product.category}</Badge>
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatPrice(product.price)}
+                      </TableCell>
+                      <TableCell>
+                        {product.track_stock ? (
+                          <div className="flex items-center gap-1">
+                            <span>{product.stock_quantity}</span>
+                            {product.stock_quantity !== null && product.stock_quantity < 10 && (
+                              <AlertTriangle className="h-4 w-4 text-orange-500" />
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Non suivi</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{product.unit}</TableCell>
+                      <TableCell>
+                        <Badge variant={product.active ? "default" : "secondary"}>
+                          {product.active ? "Actif" : "Inactif"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditProduct(product)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center">
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Package className="h-8 w-8 mb-2" />
+                        <p>Aucun produit trouvé</p>
+                        <p className="text-sm">Commencez par ajouter votre premier produit</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Modal */}
+      {/* Product Modal */}
       <ProductModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        product={editingProduct}
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        product={selectedProduct}
       />
     </div>
   );
-};
-
-export default Products;
+}
