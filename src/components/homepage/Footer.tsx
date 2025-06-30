@@ -1,5 +1,5 @@
-
 import { Facebook, Linkedin, Mail, Phone } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
@@ -14,12 +14,12 @@ export function Footer() {
                 La solution de facturation intuitive pour les entreprises modernes.
               </p>
             </div>
-            <a 
-              href="#about" 
+            <Link 
+              to="/about" 
               className="inline-block text-sm text-gray-300 hover:text-white transition-colors duration-200 underline-offset-4 hover:underline"
             >
               À propos de nous
-            </a>
+            </Link>
           </div>
 
           {/* Colonne 2 - Navigation */}
