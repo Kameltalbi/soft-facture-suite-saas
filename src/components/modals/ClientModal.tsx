@@ -99,15 +99,6 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
     }
   };
 
-  const countries = [
-    'France',
-    'Belgique',
-    'Suisse',
-    'Canada',
-    'Luxembourg',
-    'Autre'
-  ];
-
   const paymentTermsOptions = [
     { value: 0, label: 'Comptant' },
     { value: 15, label: '15 jours' },
@@ -215,16 +206,12 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
 
               <div>
                 <Label htmlFor="country">Pays</Label>
-                <Select value={formData.country} onValueChange={(value) => setFormData({...formData, country: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map(country => (
-                      <SelectItem key={country} value={country}>{country}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="country"
+                  value={formData.country}
+                  onChange={(e) => setFormData({...formData, country: e.target.value})}
+                  placeholder="France"
+                />
               </div>
             </div>
           </div>
