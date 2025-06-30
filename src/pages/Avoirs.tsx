@@ -12,6 +12,7 @@ import { CreateAvoirModal } from '@/components/modals/CreateAvoirModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { AvoirPDF } from '@/components/pdf/AvoirPDF';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Avoir {
   id: string;
@@ -62,6 +63,7 @@ const mockAvoirs: Avoir[] = [
 
 export default function Avoirs() {
   const { organization } = useAuth();
+  const { currency } = useCurrency();
   const [avoirs, setAvoirs] = useState<Avoir[]>(mockAvoirs);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -153,6 +155,13 @@ export default function Avoirs() {
 
     setAvoirs([...avoirs, newAvoir]);
     setIsCreateModalOpen(false);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: currency.code 
+    });
   };
 
   const stats = {
@@ -258,10 +267,7 @@ export default function Avoirs() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {stats.totalAmount.toLocaleString('fr-FR', { 
-                style: 'currency', 
-                currency: 'EUR' 
-              })}
+              {formatCurrency(stats.totalAmount)}
             </div>
           </CardContent>
         </Card>
@@ -384,10 +390,7 @@ export default function Avoirs() {
                   </TableCell>
                   <TableCell>{avoir.clientName}</TableCell>
                   <TableCell className="text-right font-medium text-red-600">
-                    {avoir.amount.toLocaleString('fr-FR', { 
-                      style: 'currency', 
-                      currency: 'EUR' 
-                    })}
+                    {formatCurrency(avoir.amount)}
                   </TableCell>
                   <TableCell>
                     {new Date(avoir.date).toLocaleDateString('fr-FR')}
@@ -424,6 +427,7 @@ export default function Avoirs() {
         </CardContent>
       </Card>
 
+      {/* Empty state */}
       {filteredAvoirs.length === 0 && (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
