@@ -263,25 +263,30 @@ export function useSettings() {
     }
   };
 
-  // Save global settings
+  // Save global settings - Updated to handle unified template fields
   const saveGlobalSettings = async (settings: Partial<GlobalSettings>) => {
     if (!organization?.id) return;
 
     try {
+      console.log('Saving global settings:', settings);
+      
+      const updateData = {
+        footer_content: settings.footer_content,
+        footer_display: settings.footer_display,
+        primary_currency: settings.primary_currency,
+        invoice_template: settings.invoice_template,
+        quote_template: settings.quote_template,
+        delivery_note_template: settings.delivery_note_template,
+        credit_template: settings.credit_template,
+        unified_template: settings.unified_template,
+        use_unified_template: settings.use_unified_template,
+        organization_id: organization.id,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('global_settings')
-        .upsert({
-          footer_content: settings.footer_content,
-          footer_display: settings.footer_display,
-          primary_currency: settings.primary_currency,
-          invoice_template: settings.invoice_template,
-          quote_template: settings.quote_template,
-          delivery_note_template: settings.delivery_note_template,
-          credit_template: settings.credit_template,
-          unified_template: settings.unified_template,
-          use_unified_template: settings.use_unified_template,
-          organization_id: organization.id
-        });
+        .upsert(updateData);
 
       if (error) throw error;
       
