@@ -3,15 +3,17 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, FileText, Receipt } from 'lucide-react';
+import { Download, FileText, Receipt, ArrowLeft } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useReportExport } from '@/hooks/useReportExport';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useNavigate } from 'react-router-dom';
 
 const VatReportPage = () => {
-  const { exportToCSV, exportToPDF, formatCurrency } = useReportExport();
+  const { exportToCSV, exportToPDF } = useReportExport();
   const { currency } = useCurrency();
+  const navigate = useNavigate();
   
   // Date filters
   const currentDate = new Date();
@@ -35,6 +37,14 @@ const VatReportPage = () => {
     { value: 11, label: 'Novembre' },
     { value: 12, label: 'Décembre' },
   ];
+
+  // Format currency with the configured currency
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: currency.code 
+    });
+  };
 
   // Mock data - à remplacer par de vraies données
   const vatData = [
@@ -117,11 +127,21 @@ const VatReportPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">TVA Collectée par Mois</h1>
-          <p className="text-muted-foreground">
-            Analyse détaillée de la TVA collectée avec répartition par taux
-          </p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/reports')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour aux rapports
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">TVA Collectée par Mois</h1>
+            <p className="text-muted-foreground">
+              Analyse détaillée de la TVA collectée avec répartition par taux
+            </p>
+          </div>
         </div>
         
         <div className="flex space-x-2">
@@ -135,6 +155,23 @@ const VatReportPage = () => {
           </Button>
         </div>
       </div>
+
+      {/* Mock Data Warning */}
+      <Card className="border-yellow-200 bg-yellow-50/50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Receipt className="h-5 w-5 text-yellow-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-yellow-900 mb-1">Données de démonstration</h4>
+              <p className="text-sm text-yellow-700">
+                Ce rapport utilise actuellement des données de test. Pour voir vos vraies données de TVA, 
+                il faudra connecter ce rapport à vos factures réelles. Les données ne sont disponibles 
+                que pour janvier et février 2024 dans cette version de démonstration.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       <Card>
