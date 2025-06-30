@@ -263,7 +263,7 @@ export function useSettings() {
     }
   };
 
-  // Save global settings - Updated to handle unified template fields
+  // Save global settings - Fixed upsert logic for unique constraint
   const saveGlobalSettings = async (settings: Partial<GlobalSettings>) => {
     if (!organization?.id) return;
 
@@ -284,9 +284,32 @@ export function useSettings() {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      // First try to update existing record
+      const { data: existingData, error: selectError } = await supabase
         .from('global_settings')
-        .upsert(updateData);
+        .select('id')
+        .eq('organization_id', organization.id)
+        .single();
+
+      if (selectError && selectError.code !== 'PGRST116') {
+        throw selectError;
+      }
+
+      let error;
+      if (existingData) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('global_settings')
+          .update(updateData)
+          .eq('organization_id', organization.id);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('global_settings')
+          .insert(updateData);
+        error = insertError;
+      }
 
       if (error) throw error;
       
