@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
 import { PDFDownloadLink } from '@react-pdf/renderer';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface QuoteItem {
   id: string;
@@ -54,6 +55,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { organization, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency } = useCurrency();
   
   // State for clients and products
   const [clients, setClients] = useState<Client[]>([]);
@@ -368,6 +370,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
   const filteredItems = quoteItems.filter(item => item.description.trim());
 
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: currency.code 
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -560,7 +569,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         <span className="font-medium">{product.name}</span>
                         {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
                       </div>
-                      <span className="text-sm text-gray-500">{product.price}€</span>
+                      <span className="text-sm text-gray-500">{formatCurrency(product.price)}</span>
                     </div>
                   ))}
                 </div>
@@ -636,7 +645,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         />
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {item.total.toFixed(2)} €
+                        {formatCurrency(item.total)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -665,26 +674,26 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Sous-total HT:</span>
-                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
+                    <span className="font-medium">{formatCurrency(subtotalHT + totalDiscount)}</span>
                   </div>
                   {totalDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Remise totale:</span>
-                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
+                      <span className="font-medium">-{formatCurrency(totalDiscount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Net HT:</span>
-                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
+                    <span className="font-medium">{formatCurrency(subtotalHT)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>TVA:</span>
-                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
+                    <span className="font-medium">{formatCurrency(totalVAT)}</span>
                   </div>
                   <div className="border-t pt-2">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total TTC:</span>
-                      <span className="text-purple-600">{totalTTC.toFixed(2)} €</span>
+                      <span className="text-purple-600">{formatCurrency(totalTTC)}</span>
                     </div>
                   </div>
                 </div>
@@ -757,7 +766,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                     client={selectedClient}
                     company={companyData}
                     settings={{ showVat: true }}
-                    currency={{ code: 'EUR', symbol: '€', name: 'Euro' }}
+                    currency={currency}
                   />
                 }
                 fileName={`${quoteNumber}.pdf`}
