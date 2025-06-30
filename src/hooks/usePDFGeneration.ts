@@ -42,15 +42,25 @@ export const usePDFGeneration = () => {
       address: organization?.address || '456 Avenue de la République, 69000 Lyon',
       email: organization?.email || 'contact@softfacture.fr',
       phone: organization?.phone || '04 72 00 00 00',
-      logo: organization?.logo_url || null // Correction: utiliser logo_url
+      logo: organization?.logo_url || null
     };
+
+    // Ajouter les informations de template unifié aux settings
+    const enhancedSettings = {
+      ...settings,
+      // S'assurer que les paramètres du template unifié sont inclus
+      use_unified_template: settings?.use_unified_template || false,
+      unified_template: settings?.unified_template || 'classic'
+    };
+
+    console.log('PDF Generation settings:', enhancedSettings);
 
     return {
       invoiceData,
       lineItems,
       client: mockClient,
       company: companyData,
-      settings
+      settings: enhancedSettings
     };
   };
 
