@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import { StockExitModal } from '@/components/modals/StockExitModal';
 import { StockHistoryModal } from '@/components/modals/StockHistoryModal';
 import { useProducts } from '@/hooks/useProducts';
 import { useStockMovements } from '@/hooks/useStockMovements';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const Stock = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,6 +29,7 @@ const Stock = () => {
 
   const { products, loading: productsLoading } = useProducts();
   const { movements, loading: movementsLoading } = useStockMovements();
+  const { currency } = useCurrency();
 
   // Filtrer uniquement les produits avec suivi de stock activé
   const stockTrackedProducts = products.filter(product => product.track_stock === true);
@@ -54,7 +55,10 @@ const Stock = () => {
   };
 
   const formatCurrency = (amount) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+    return new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount / 100) + ' ' + currency.symbol;
   };
 
   const formatDate = (dateString) => {
