@@ -11,7 +11,7 @@ import { ProductModal } from '@/components/modals/ProductModal';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 export function Products() {
-  const { products, loading } = useProducts();
+  const { products, loading, deleteProduct } = useProducts();
   const { currency } = useCurrency();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,6 +42,16 @@ export function Products() {
   const handleEditProduct = (product: any) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
+  };
+
+  const handleDeleteProduct = async (product: any) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le produit "${product.name}" ?`)) {
+      const result = await deleteProduct(product.id);
+      if (result.error) {
+        console.error('Error deleting product:', result.error);
+        alert('Erreur lors de la suppression du produit');
+      }
+    }
   };
 
   const handleCloseModal = () => {
@@ -218,6 +228,14 @@ export function Products() {
                             onClick={() => handleEditProduct(product)}
                           >
                             <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteProduct(product)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
