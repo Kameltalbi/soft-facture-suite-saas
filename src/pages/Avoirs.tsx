@@ -1,72 +1,27 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search, Filter, Eye, Edit, Trash2, Download, Send, FileText } from 'lucide-react';
+import { Plus, Search, Eye, Edit, Trash2, Download, Send, FileText } from 'lucide-react';
 import { CreateAvoirModal } from '@/components/modals/CreateAvoirModal';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { AvoirPDF } from '@/components/pdf/AvoirPDF';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useSettings } from '@/hooks/useSettings';
-
-interface Avoir {
-  id: string;
-  number: string;
-  type: 'facture_liee' | 'economique';
-  invoiceNumber?: string;
-  clientName: string;
-  amount: number;
-  date: string;
-  status: 'brouillon' | 'valide' | 'envoye';
-  notes?: string;
-}
-
-const mockAvoirs: Avoir[] = [
-  {
-    id: '1',
-    number: 'AV-2024-001',
-    type: 'facture_liee',
-    invoiceNumber: 'F-2024-045',
-    clientName: 'Entreprise ABC',
-    amount: -1250.50,
-    date: '2024-03-15',
-    status: 'valide',
-    notes: 'Retour produit défaillant'
-  },
-  {
-    id: '2',
-    number: 'AV-2024-002',
-    type: 'economique',
-    clientName: 'Société XYZ',
-    amount: -300.00,
-    date: '2024-03-14',
-    status: 'envoye',
-    notes: 'Geste commercial'
-  },
-  {
-    id: '3',
-    number: 'AV-2024-003',
-    type: 'facture_liee',
-    invoiceNumber: 'F-2024-038',
-    clientName: 'Cabinet Conseil',
-    amount: -850.75,
-    date: '2024-03-13',
-    status: 'brouillon',
-    notes: 'Erreur de facturation'
-  }
-];
+import { useCreditNotes } from '@/hooks/useCreditNotes';
+import { toast } from '@/hooks/use-toast';
 
 export default function Avoirs() {
   const { organization } = useAuth();
   const { currency } = useCurrency();
   const { globalSettings } = useSettings();
-  const [avoirs, setAvoirs] = useState<Avoir[]>(mockAvoirs);
+  const { creditNotes, loading, createCreditNote, fetchCreditNotes } = useCreditNotes();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -95,14 +50,15 @@ export default function Avoirs() {
     { value: 12, label: 'Décembre' },
   ];
 
-  const filteredAvoirs = avoirs.filter(avoir => {
+  const filteredAvoirs = creditNotes.filter(avoir => {
     const avoirDate = new Date(avoir.date);
     const matchesSearch = 
-      avoir.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      avoir.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (avoir.invoiceNumber && avoir.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+      avoir.credit_note_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (avoir.clients?.name && avoir.clients.name.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesType = typeFilter === 'all' || avoir.type === typeFilter;
+    const matchesType = typeFilter === 'all' || 
+      (typeFilter === 'facture_liee' && avoir.original_invoice_id) ||
+      (typeFilter === 'economique' && !avoir.original_invoice_id);
     const matchesStatus = statusFilter === 'all' || avoir.status === statusFilter;
     const matchesYear = avoirDate.getFullYear() === selectedYear;
     const matchesMonth = avoirDate.getMonth() + 1 === selectedMonth;
@@ -112,26 +68,28 @@ export default function Avoirs() {
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      brouillon: 'secondary',
-      valide: 'default',
-      envoye: 'destructive'
+      draft: 'secondary',
+      sent: 'default',
+      applied: 'destructive',
+      cancelled: 'outline'
     } as const;
 
     const labels = {
-      brouillon: 'Brouillon',
-      valide: 'Validé',
-      envoye: 'Envoyé'
+      draft: 'Brouillon',
+      sent: 'Envoyé',
+      applied: 'Appliqué',
+      cancelled: 'Annulé'
     };
 
     return (
-      <Badge variant={variants[status as keyof typeof variants]}>
-        {labels[status as keyof typeof labels]}
+      <Badge variant={variants[status as keyof typeof variants] || 'secondary'}>
+        {labels[status as keyof typeof labels] || status}
       </Badge>
     );
   };
 
-  const getTypeBadge = (type: string) => {
-    return type === 'facture_liee' ? (
+  const getTypeBadge = (hasInvoice: boolean) => {
+    return hasInvoice ? (
       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
         Facture liée
       </Badge>
@@ -142,21 +100,55 @@ export default function Avoirs() {
     );
   };
 
-  const handleCreateAvoir = (avoirData: any) => {
-    const newAvoir: Avoir = {
-      id: Date.now().toString(),
-      number: `AV-2024-${String(avoirs.length + 1).padStart(3, '0')}`,
-      type: avoirData.type,
-      invoiceNumber: avoirData.invoiceNumber,
-      clientName: avoirData.clientName,
-      amount: avoirData.amount,
-      date: avoirData.date,
-      status: 'brouillon',
-      notes: avoirData.notes
-    };
+  const handleCreateAvoir = async (avoirData: any) => {
+    try {
+      // Convertir les données du modal vers le format de la base de données
+      const creditNoteData = {
+        credit_note_number: avoirData.number,
+        client_id: avoirData.clientId, // Sera fourni par le modal
+        original_invoice_id: avoirData.invoiceId || null,
+        date: avoirData.date,
+        reason: avoirData.notes,
+        subtotal: Math.abs(avoirData.amount),
+        tax_amount: 0, // Calculé à partir des items
+        total_amount: Math.abs(avoirData.amount),
+        status: avoirData.status,
+        notes: avoirData.notes
+      };
 
-    setAvoirs([...avoirs, newAvoir]);
-    setIsCreateModalOpen(false);
+      const items = avoirData.items?.map((item: any) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unitPrice,
+        tax_rate: item.vatRate,
+        total_price: item.total,
+        product_id: null
+      })) || [];
+
+      const { error } = await createCreditNote(creditNoteData, items);
+      
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setIsCreateModalOpen(false);
+      toast({
+        title: "Avoir créé",
+        description: `L'avoir ${avoirData.number} a été créé avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'avoir:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la création de l'avoir.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -168,16 +160,16 @@ export default function Avoirs() {
 
   const stats = {
     total: filteredAvoirs.length,
-    brouillon: filteredAvoirs.filter(a => a.status === 'brouillon').length,
-    valide: filteredAvoirs.filter(a => a.status === 'valide').length,
-    envoye: filteredAvoirs.filter(a => a.status === 'envoye').length,
-    totalAmount: filteredAvoirs.reduce((sum, avoir) => sum + avoir.amount, 0)
+    brouillon: filteredAvoirs.filter(a => a.status === 'draft').length,
+    valide: filteredAvoirs.filter(a => a.status === 'sent').length,
+    envoye: filteredAvoirs.filter(a => a.status === 'applied').length,
+    totalAmount: filteredAvoirs.reduce((sum, avoir) => sum + (avoir.total_amount || 0), 0)
   };
 
-  const getPDFData = (avoir: Avoir) => {
+  const getPDFData = (avoir: any) => {
     const mockClient = {
-      name: avoir.clientName,
-      company: avoir.clientName,
+      name: avoir.clients?.name || 'Client inconnu',
+      company: avoir.clients?.company || avoir.clients?.name || 'Client inconnu',
       address: '123 Rue de l\'Exemple, 75001 Paris',
       email: 'contact@example.com'
     };
@@ -193,22 +185,44 @@ export default function Avoirs() {
     const settings = {
       showVat: true,
       showDiscount: false,
-      currency: 'EUR',
+      currency: currency.code,
       amountInWords: true,
       credit_template: globalSettings?.credit_template || 'classic',
       unified_template: globalSettings?.unified_template || 'classic',
       use_unified_template: globalSettings?.use_unified_template || false
     };
 
-    console.log('Avoirs PDF settings:', settings);
+    const avoirData = {
+      id: avoir.id,
+      number: avoir.credit_note_number,
+      type: avoir.original_invoice_id ? 'facture_liee' : 'economique',
+      invoiceNumber: avoir.original_invoice_id ? `F-${avoir.original_invoice_id}` : undefined,
+      clientName: avoir.clients?.name || 'Client inconnu',
+      amount: -(avoir.total_amount || 0),
+      date: avoir.date,
+      status: avoir.status || 'draft',
+      notes: avoir.notes,
+      items: avoir.credit_note_items || []
+    };
 
     return {
-      avoirData: avoir,
+      avoirData,
       client: mockClient,
       company: companyData,
       settings
     };
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Chargement des avoirs...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -254,7 +268,7 @@ export default function Avoirs() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Validés</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Envoyés</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{stats.valide}</div>
@@ -262,7 +276,7 @@ export default function Avoirs() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Envoyés</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Appliqués</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.envoye}</div>
@@ -274,7 +288,7 @@ export default function Avoirs() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {formatCurrency(stats.totalAmount)}
+              -{formatCurrency(stats.totalAmount)}
             </div>
           </CardContent>
         </Card>
@@ -288,7 +302,7 @@ export default function Avoirs() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Rechercher par numéro, client ou facture..."
+                  placeholder="Rechercher par numéro, client..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -350,9 +364,10 @@ export default function Avoirs() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="brouillon">Brouillon</SelectItem>
-                <SelectItem value="valide">Validé</SelectItem>
-                <SelectItem value="envoye">Envoyé</SelectItem>
+                <SelectItem value="draft">Brouillon</SelectItem>
+                <SelectItem value="sent">Envoyé</SelectItem>
+                <SelectItem value="applied">Appliqué</SelectItem>
+                <SelectItem value="cancelled">Annulé</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -384,25 +399,25 @@ export default function Avoirs() {
             <TableBody>
               {filteredAvoirs.map((avoir) => (
                 <TableRow key={avoir.id}>
-                  <TableCell className="font-medium">{avoir.number}</TableCell>
-                  <TableCell>{getTypeBadge(avoir.type)}</TableCell>
+                  <TableCell className="font-medium">{avoir.credit_note_number}</TableCell>
+                  <TableCell>{getTypeBadge(!!avoir.original_invoice_id)}</TableCell>
                   <TableCell>
-                    {avoir.invoiceNumber ? (
+                    {avoir.original_invoice_id ? (
                       <span className="text-blue-600 hover:underline cursor-pointer">
-                        {avoir.invoiceNumber}
+                        F-{avoir.original_invoice_id}
                       </span>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
-                  <TableCell>{avoir.clientName}</TableCell>
+                  <TableCell>{avoir.clients?.name || 'Client inconnu'}</TableCell>
                   <TableCell className="text-right font-medium text-red-600">
-                    {formatCurrency(avoir.amount)}
+                    -{formatCurrency(avoir.total_amount || 0)}
                   </TableCell>
                   <TableCell>
                     {new Date(avoir.date).toLocaleDateString('fr-FR')}
                   </TableCell>
-                  <TableCell>{getStatusBadge(avoir.status)}</TableCell>
+                  <TableCell>{getStatusBadge(avoir.status || 'draft')}</TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-2">
                       <Button variant="ghost" size="sm">
@@ -413,7 +428,7 @@ export default function Avoirs() {
                       </Button>
                       <PDFDownloadLink
                         document={<AvoirPDF {...getPDFData(avoir)} />}
-                        fileName={`${avoir.number}.pdf`}
+                        fileName={`${avoir.credit_note_number}.pdf`}
                       >
                         <Button variant="ghost" size="sm">
                           <Download className="h-4 w-4" />
