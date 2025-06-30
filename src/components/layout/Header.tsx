@@ -33,11 +33,16 @@ export function Header({ activeModule }: HeaderProps) {
     await signOut();
   };
 
-  const formatDateTime = (date: Date) => {
-    return date.toLocaleString('fr-FR', {
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('fr-FR', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -62,8 +67,9 @@ export function Header({ activeModule }: HeaderProps) {
 
       {/* Date et heure en temps réel - centrée */}
       <div className="flex-1 flex justify-center">
-        <div className="text-orange-600 font-medium text-lg">
-          {formatDateTime(currentDateTime)}
+        <div className="flex items-center gap-2 font-medium text-lg">
+          <span className="text-green-600">{formatDate(currentDateTime)}</span>
+          <span className="text-orange-600">{formatTime(currentDateTime)}</span>
         </div>
       </div>
 
