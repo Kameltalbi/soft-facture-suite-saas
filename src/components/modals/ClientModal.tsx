@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Save } from 'lucide-react';
-import { useClients } from '@/hooks/useClients';
 
 interface ClientModalProps {
   open: boolean;
@@ -16,7 +15,6 @@ interface ClientModalProps {
 }
 
 export function ClientModal({ open, onClose, client }: ClientModalProps) {
-  const { createClient } = useClients();
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -24,11 +22,11 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
     phone: '',
     address: '',
     city: '',
-    postal_code: '',
+    postalCode: '',
     country: 'France',
-    vat_number: '',
-    status: 'active' as 'active' | 'inactive',
-    payment_terms: 30
+    vatNumber: '',
+    paymentTerms: 30,
+    status: 'active' as 'active' | 'inactive'
   });
 
   useEffect(() => {
@@ -40,11 +38,11 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         phone: client.phone || '',
         address: client.address || '',
         city: client.city || '',
-        postal_code: client.postal_code || '',
+        postalCode: client.postalCode || '',
         country: client.country || 'France',
-        vat_number: client.vat_number || '',
-        status: client.status || 'active',
-        payment_terms: client.payment_terms || 30
+        vatNumber: client.vatNumber || '',
+        paymentTerms: client.paymentTerms || 30,
+        status: client.status || 'active'
       });
     } else {
       setFormData({
@@ -54,45 +52,19 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         phone: '',
         address: '',
         city: '',
-        postal_code: '',
+        postalCode: '',
         country: 'France',
-        vat_number: '',
-        status: 'active',
-        payment_terms: 30
+        vatNumber: '',
+        paymentTerms: 30,
+        status: 'active'
       });
     }
   }, [client, open]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    try {
-      const clientData = {
-        name: formData.name,
-        company: formData.company || null,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        address: formData.address || null,
-        city: formData.city || null,
-        postal_code: formData.postal_code || null,
-        country: formData.country,
-        vat_number: formData.vat_number || null,
-        status: formData.status,
-        payment_terms: formData.payment_terms
-      };
-
-      const result = await createClient(clientData);
-      
-      if (result.error) {
-        console.error('Erreur lors de la création du client:', result.error);
-        // Ici vous pourriez afficher un toast d'erreur
-      } else {
-        console.log('Client créé avec succès');
-        onClose();
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
+    console.log('Client data:', formData);
+    onClose();
   };
 
   const countries = [
@@ -190,11 +162,11 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="postal_code">Code postal</Label>
+                <Label htmlFor="postalCode">Code postal</Label>
                 <Input
-                  id="postal_code"
-                  value={formData.postal_code}
-                  onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
+                  id="postalCode"
+                  value={formData.postalCode}
+                  onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
                   placeholder="75001"
                 />
               </div>
@@ -231,11 +203,11 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="vat_number">Numéro de TVA intracommunautaire</Label>
+                <Label htmlFor="vatNumber">Numéro de TVA intracommunautaire</Label>
                 <Input
-                  id="vat_number"
-                  value={formData.vat_number}
-                  onChange={(e) => setFormData({...formData, vat_number: e.target.value})}
+                  id="vatNumber"
+                  value={formData.vatNumber}
+                  onChange={(e) => setFormData({...formData, vatNumber: e.target.value})}
                   placeholder="FR12345678901"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
@@ -244,10 +216,10 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
               </div>
 
               <div>
-                <Label htmlFor="payment_terms">Conditions de paiement</Label>
+                <Label htmlFor="paymentTerms">Conditions de paiement</Label>
                 <Select 
-                  value={formData.payment_terms.toString()} 
-                  onValueChange={(value) => setFormData({...formData, payment_terms: parseInt(value)})}
+                  value={formData.paymentTerms.toString()} 
+                  onValueChange={(value) => setFormData({...formData, paymentTerms: parseInt(value)})}
                 >
                   <SelectTrigger>
                     <SelectValue />

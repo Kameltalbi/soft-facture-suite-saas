@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Save, X, Trash2 } from 'lucide-react';
@@ -12,11 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Category {
   id?: string;
-  name: string;
+  nom: string;
   description: string;
-  color: string;
-  active: boolean;
-  organization_id?: string;
+  type: 'produit' | 'service';
+  visible_public: boolean;
+  tenant_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -25,38 +26,42 @@ interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   category?: Category;
-  onSave: (category: Omit<Category, 'id' | 'organization_id' | 'created_at' | 'updated_at'>) => void;
+  onSave: (category: Category) => void;
   onDelete?: (categoryId: string) => void;
 }
 
 export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: CategoryModalProps) {
   const { toast } = useToast();
-  const [formData, setFormData] = useState<Omit<Category, 'id' | 'organization_id' | 'created_at' | 'updated_at'>>({
-    name: '',
+  const [formData, setFormData] = useState<Category>({
+    nom: '',
     description: '',
-    color: '#3B82F6',
-    active: true
+    type: 'produit',
+    visible_public: false
   });
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Validation en temps réel
-  const isFormValid = formData.name.trim().length > 0;
+  const isFormValid = formData.nom.trim().length > 0;
 
   useEffect(() => {
     if (category) {
       setFormData({
-        name: category.name || '',
+        nom: category.nom || '',
         description: category.description || '',
-        color: category.color || '#3B82F6',
-        active: category.active ?? true
+        type: category.type || 'produit',
+        visible_public: category.visible_public || false,
+        id: category.id,
+        tenant_id: category.tenant_id,
+        created_at: category.created_at,
+        updated_at: category.updated_at
       });
     } else {
       setFormData({
-        name: '',
+        nom: '',
         description: '',
-        color: '#3B82F6',
-        active: true
+        type: 'produit',
+        visible_public: false
       });
     }
   }, [category, isOpen]);
@@ -76,11 +81,17 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
     setIsSubmitting(true);
     
     try {
-      onSave(formData);
+      // Simulation d'un appel API - à remplacer par l'intégration Supabase
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      onSave({
+        ...formData,
+        updated_at: new Date().toISOString()
+      });
       
       toast({
         title: category ? "Catégorie modifiée" : "Catégorie créée",
-        description: `La catégorie "${formData.name}" a été ${category ? 'modifiée' : 'créée'} avec succès.`,
+        description: `La catégorie "${formData.nom}" a été ${category ? 'modifiée' : 'créée'} avec succès.`,
       });
       
       onClose();
@@ -101,11 +112,14 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
     setIsSubmitting(true);
     
     try {
+      // Simulation d'un appel API - à remplacer par l'intégration Supabase
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       onDelete(category.id);
       
       toast({
         title: "Catégorie supprimée",
-        description: `La catégorie "${category.name}" a été supprimée avec succès.`,
+        description: `La catégorie "${category.nom}" a été supprimée avec succès.`,
       });
       
       setShowDeleteDialog(false);
@@ -134,16 +148,16 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nom de la catégorie */}
             <div>
-              <Label htmlFor="name">Nom de la catégorie *</Label>
+              <Label htmlFor="nom">Nom de la catégorie *</Label>
               <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Ex: Services, Informatique, Formation..."
+                id="nom"
+                value={formData.nom}
+                onChange={(e) => setFormData({...formData, nom: e.target.value})}
+                placeholder="Ex: Sanitaires, Matériaux, Prestations..."
                 required
-                className={!isFormValid && formData.name.length > 0 ? 'border-red-500' : ''}
+                className={!isFormValid && formData.nom.length > 0 ? 'border-red-500' : ''}
               />
-              {!isFormValid && formData.name.length === 0 && (
+              {!isFormValid && formData.nom.length === 0 && (
                 <p className="text-xs text-red-500 mt-1">Le nom est requis</p>
               )}
             </div>
@@ -155,45 +169,42 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Description de la catégorie..."
+                placeholder="Description ou remarque sur cette catégorie..."
                 rows={3}
               />
             </div>
 
-            {/* Couleur */}
+            {/* Type de catégorie */}
             <div>
-              <Label htmlFor="color">Couleur</Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  id="color"
-                  value={formData.color}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
-                  className="w-12 h-10 rounded border cursor-pointer"
-                />
-                <Input
-                  value={formData.color}
-                  onChange={(e) => setFormData({...formData, color: e.target.value})}
-                  placeholder="#3B82F6"
-                  className="font-mono"
-                />
-              </div>
+              <Label htmlFor="type">Type de catégorie</Label>
+              <Select 
+                value={formData.type} 
+                onValueChange={(value: 'produit' | 'service') => setFormData({...formData, type: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="produit">Produit</SelectItem>
+                  <SelectItem value="service">Service</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Statut actif */}
+            {/* Visibilité publique */}
             <div className="flex items-center justify-between p-3 border rounded-lg bg-neutral-50">
               <div>
-                <Label htmlFor="active" className="text-sm font-medium">
-                  Catégorie active
+                <Label htmlFor="visible_public" className="text-sm font-medium">
+                  Visibilité publique
                 </Label>
                 <p className="text-xs text-neutral-500">
-                  Les catégories inactives n'apparaissent pas dans les listes
+                  Afficher dans les listes publiques (si activé plus tard)
                 </p>
               </div>
               <Switch
-                id="active"
-                checked={formData.active}
-                onCheckedChange={(checked) => setFormData({...formData, active: checked})}
+                id="visible_public"
+                checked={formData.visible_public}
+                onCheckedChange={(checked) => setFormData({...formData, visible_public: checked})}
               />
             </div>
 
@@ -217,7 +228,7 @@ export function CategoryModal({ isOpen, onClose, category, onSave, onDelete }: C
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Êtes-vous sûr de vouloir supprimer la catégorie "{category.name}" ? 
+                          Êtes-vous sûr de vouloir supprimer la catégorie "{category.nom}" ? 
                           Cette action est irréversible et pourrait affecter les produits/services associés.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
