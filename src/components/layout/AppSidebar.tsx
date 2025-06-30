@@ -106,30 +106,30 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   const isCollapsed = state === 'collapsed';
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
-      <SidebarHeader className="border-b border-sidebar-border px-6 py-4 bg-sidebar">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border" style={{ backgroundColor: '#6c4cf1' }}>
+      <SidebarHeader className="border-b border-sidebar-border px-6 py-4" style={{ backgroundColor: '#6c4cf1' }}>
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg">
-                <span className="text-lg font-bold text-primary-foreground">SF</span>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg">
+                <span className="text-lg font-bold text-[#6c4cf1]">SF</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-sidebar-foreground">Soft Facture</span>
-                <span className="text-xs text-sidebar-foreground/70">Gestion moderne</span>
+                <span className="text-lg font-bold text-white">Soft Facture</span>
+                <span className="text-xs text-white/70">Gestion moderne</span>
               </div>
             </div>
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg">
-              <span className="text-lg font-bold text-primary-foreground">SF</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-lg">
+              <span className="text-lg font-bold text-[#6c4cf1]">SF</span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4 bg-sidebar">
+      <SidebarContent className="px-3 py-4" style={{ backgroundColor: '#6c4cf1' }}>
         <SidebarGroup>
-          <SidebarGroupLabel className="px-3 text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider mb-2">
+          <SidebarGroupLabel className="px-3 text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">
             {!isCollapsed && 'Navigation'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -146,12 +146,12 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
                       tooltip={isCollapsed ? item.label : undefined}
                       className={`h-12 px-4 font-medium transition-all duration-200 rounded-xl group ${
                         isActive 
-                          ? 'bg-primary text-primary-foreground shadow-primary transform scale-105' 
-                          : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-105'
+                          ? 'bg-white text-[#6c4cf1] shadow-lg transform scale-105' 
+                          : 'hover:bg-white/10 hover:text-white hover:scale-105 text-white'
                       }`}
                     >
                       <Icon className={`h-5 w-5 stroke-[1.5px] transition-transform duration-200 ${
-                        isActive ? 'text-primary-foreground scale-110' : 'text-sidebar-foreground group-hover:scale-110'
+                        isActive ? 'text-[#6c4cf1] scale-110' : 'text-white group-hover:scale-110'
                       }`} />
                       {!isCollapsed && (
                         <span className="transition-all duration-200">{item.label}</span>
@@ -165,14 +165,14 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border px-6 py-4 bg-sidebar">
+      <SidebarFooter className="border-t border-white/20 px-6 py-4" style={{ backgroundColor: '#6c4cf1' }}>
         {!isCollapsed && (
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-success animate-pulse"></div>
-              <p className="text-xs text-sidebar-foreground/70">Version 1.0.0</p>
+              <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
+              <p className="text-xs text-white/70">Version 1.0.0</p>
             </div>
-            <p className="text-xs text-sidebar-foreground/50">© 2024 Soft Facture</p>
+            <p className="text-xs text-white/50">© 2024 Soft Facture</p>
           </div>
         )}
       </SidebarFooter>
