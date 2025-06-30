@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User, Building } from 'lucide-react';
@@ -17,9 +18,30 @@ interface HeaderProps {
 
 export function Header({ activeModule }: HeaderProps) {
   const { user, profile, organization, signOut } = useAuth();
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  // Mettre à jour l'heure chaque seconde
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const formatDateTime = (date: Date) => {
+    return date.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
   };
 
   return (
@@ -37,40 +59,47 @@ export function Header({ activeModule }: HeaderProps) {
           </div>
         )}
       </div>
-      
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">
-              {profile?.first_name && profile?.last_name 
-                ? `${profile.first_name} ${profile.last_name}`
-                : user?.email
-              }
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled>
-            <User className="mr-2 h-4 w-4" />
-            <span>{user?.email}</span>
-          </DropdownMenuItem>
-          {profile?.role && (
-            <DropdownMenuItem disabled>
-              <span className="mr-2 text-xs bg-gray-100 px-2 py-1 rounded">
-                {profile.role}
+
+      <div className="flex items-center gap-4">
+        {/* Date et heure en temps réel */}
+        <div className="text-green-600 font-medium text-lg">
+          {formatDateTime(currentDateTime)}
+        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">
+                {profile?.first_name && profile?.last_name 
+                  ? `${profile.first_name} ${profile.last_name}`
+                  : user?.email
+                }
               </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>
+              <User className="mr-2 h-4 w-4" />
+              <span>{user?.email}</span>
             </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Déconnexion</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {profile?.role && (
+              <DropdownMenuItem disabled>
+                <span className="mr-2 text-xs bg-gray-100 px-2 py-1 rounded">
+                  {profile.role}
+                </span>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Déconnexion</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }
