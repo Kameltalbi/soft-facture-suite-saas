@@ -40,7 +40,7 @@ interface InvoiceActionsMenuProps {
     client: string;
     amount: number;
     paidAmount?: number;
-    status: 'draft' | 'sent' | 'paid' | 'overdue';
+    status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
   };
   pdfComponent: React.ReactElement;
   onView: () => void;

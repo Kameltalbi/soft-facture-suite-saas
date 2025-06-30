@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
-type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue';
+type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
 
 interface Invoice {
   id: string;
@@ -38,7 +37,8 @@ const statusLabels = {
   draft: { label: 'Brouillon', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
   paid: { label: 'Payé', variant: 'default' as const },
-  overdue: { label: 'En retard', variant: 'destructive' as const }
+  overdue: { label: 'En retard', variant: 'destructive' as const },
+  partially_paid: { label: 'Payé P.', variant: 'outline' as const }
 };
 
 export default function Invoices() {
@@ -401,7 +401,7 @@ export default function Invoices() {
       const newAmountPaid = (currentInvoice.amount_paid || 0) + paymentData.amount;
       
       // Déterminer le nouveau statut
-      let newStatus = 'sent';
+      let newStatus = 'partially_paid';
       if (newAmountPaid >= currentInvoice.total_amount) {
         newStatus = 'paid';
       }
@@ -569,7 +569,7 @@ export default function Invoices() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -596,7 +596,18 @@ export default function Invoices() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">En attente</p>
+                <p className="text-sm text-neutral-600">Payées P.</p>
+                <p className="text-2xl font-bold text-orange-500">{filteredInvoices.filter(i => i.status === 'partially_paid').length}</p>
+              </div>
+              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Envoyées</p>
                 <p className="text-2xl font-bold text-secondary">{filteredInvoices.filter(i => i.status === 'sent').length}</p>
               </div>
               <div className="w-3 h-3 bg-secondary rounded-full"></div>
@@ -664,6 +675,7 @@ export default function Invoices() {
                         number: invoice.invoice_number,
                         client: invoice.clients?.name || '',
                         amount: invoice.total_amount,
+                        paidAmount: invoice.amount_paid || 0,
                         status: invoice.status as InvoiceStatus
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
