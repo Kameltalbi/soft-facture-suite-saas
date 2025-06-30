@@ -260,10 +260,7 @@ export default function Avoirs() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {stats.totalAmount.toLocaleString('fr-FR', { 
-                style: 'currency', 
-                currency: currency.code 
-              })}
+              {stats.totalAmount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} {currency.symbol}
             </div>
           </CardContent>
         </Card>
@@ -386,10 +383,7 @@ export default function Avoirs() {
                   </TableCell>
                   <TableCell>{avoir.clientName}</TableCell>
                   <TableCell className="text-right font-medium text-red-600">
-                    {avoir.amount.toLocaleString('fr-FR', { 
-                      style: 'currency', 
-                      currency: currency.code 
-                    })}
+                    {avoir.amount.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} {currency.symbol}
                   </TableCell>
                   <TableCell>
                     {new Date(avoir.date).toLocaleDateString('fr-FR')}
