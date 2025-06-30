@@ -18,6 +18,8 @@ import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActi
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useSettings } from '@/hooks/useSettings';
+import { useAuth } from '@/hooks/useAuth';
 
 const BonsCommandePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,6 +28,8 @@ const BonsCommandePage = () => {
 
   const { purchaseOrders, loading, createPurchaseOrder } = usePurchaseOrders();
   const { currency } = useCurrency();
+  const { globalSettings } = useSettings();
+  const { organization } = useAuth();
 
   const handleCreateBonCommande = () => {
     setSelectedBonCommande(null);
@@ -136,6 +140,33 @@ const BonsCommandePage = () => {
     remise: po.discount || 0
   }));
 
+  // Fonction pour obtenir les données PDF avec les paramètres de template
+  const getBonCommandePDFData = (bonCommande: BonCommandeFournisseur) => {
+    const companyData = {
+      name: organization?.name || 'Soft Facture',
+      address: organization?.address || '456 Avenue de la République, 69000 Lyon',
+      email: organization?.email || 'contact@softfacture.fr',
+      phone: organization?.phone || '04 72 00 00 00',
+      logo: organization?.logo_url
+    };
+
+    const settings = {
+      showVat: true,
+      showDiscount: false,
+      currency: currency.code,
+      amountInWords: true,
+      purchase_order_template: globalSettings?.quote_template || 'classic', // Utilise le même template que les devis
+      unified_template: globalSettings?.unified_template || 'classic',
+      use_unified_template: globalSettings?.use_unified_template || false
+    };
+
+    return {
+      bonCommande,
+      company: companyData,
+      settings
+    };
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -240,6 +271,7 @@ const BonsCommandePage = () => {
                         onStatusChange={(status) => handleStatusChange(bonCommande, status)}
                         onDelete={() => handleDeleteBonCommande(bonCommande)}
                         onEmailSent={handleEmailSent}
+                        pdfData={getBonCommandePDFData(bonCommande)}
                       />
                     </TableCell>
                   </TableRow>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -195,7 +194,7 @@ export default function Avoirs() {
     const avoirData = {
       id: avoir.id,
       number: avoir.credit_note_number,
-      type: avoir.original_invoice_id ? 'facture_liee' : 'economique',
+      type: (avoir.original_invoice_id ? 'facture_liee' : 'economique') as 'facture_liee' | 'economique',
       invoiceNumber: avoir.original_invoice_id ? `F-${avoir.original_invoice_id}` : undefined,
       clientName: avoir.clients?.name || 'Client inconnu',
       amount: -(avoir.total_amount || 0),
