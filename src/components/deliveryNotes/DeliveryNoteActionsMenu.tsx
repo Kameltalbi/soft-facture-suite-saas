@@ -221,7 +221,7 @@ export function DeliveryNoteActionsMenu({
           client: deliveryNote.clients?.name || 'N/A',
           type: 'Bon de livraison'
         }}
-        onSend={handleEmailSented}
+        onSend={handleEmailSent}
       />
     </>
   );
