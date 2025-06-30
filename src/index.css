@@ -40,13 +40,13 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 30 58 138; /* #1E3A8A */
+    --sidebar-background: 108 76 241; /* #6C4CF1 */
     --sidebar-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-primary: 108 76 241; /* #6C4CF1 */
+    --sidebar-primary: 30 58 138; /* #1E3A8A */
     --sidebar-primary-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-accent: 37 99 235; /* #2563EB */
+    --sidebar-accent: 119 93 248; /* #775DF8 */
     --sidebar-accent-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-border: 30 64 175; /* #1E40AF */
+    --sidebar-border: 108 76 241; /* #6C4CF1 */
     --sidebar-ring: 108 76 241; /* #6C4CF1 */
   }
 
@@ -79,13 +79,13 @@
     --input: 55 65 81; /* #374151 */
     --ring: 108 76 241; /* #6C4CF1 */
 
-    --sidebar-background: 17 24 39; /* #111827 */
-    --sidebar-foreground: 249 250 251; /* #F9FAFB */
-    --sidebar-primary: 108 76 241; /* #6C4CF1 */
+    --sidebar-background: 108 76 241; /* #6C4CF1 */
+    --sidebar-foreground: 255 255 255; /* #FFFFFF */
+    --sidebar-primary: 30 58 138; /* #1E3A8A */
     --sidebar-primary-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-accent: 55 65 81; /* #374151 */
-    --sidebar-accent-foreground: 249 250 251; /* #F9FAFB */
-    --sidebar-border: 55 65 81; /* #374151 */
+    --sidebar-accent: 119 93 248; /* #775DF8 */
+    --sidebar-accent-foreground: 255 255 255; /* #FFFFFF */
+    --sidebar-border: 108 76 241; /* #6C4CF1 */
     --sidebar-ring: 108 76 241; /* #6C4CF1 */
   }
 }
