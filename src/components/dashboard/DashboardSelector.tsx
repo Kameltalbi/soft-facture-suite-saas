@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Header } from '@/components/layout/Header';
 import { Dashboard } from '@/components/modules/Dashboard';
-import Products from '@/components/modules/Products';
+import { Products } from '@/components/modules/Products';
 import Categories from '@/components/modules/Categories';
 import Clients from '@/components/modules/Clients';
 import Invoices from '@/pages/Invoices';
