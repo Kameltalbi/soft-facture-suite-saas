@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -387,11 +388,29 @@ export default function Invoices() {
 
   const handlePaymentRecorded = async (paymentData: any) => {
     try {
+      // Récupérer la facture actuelle pour connaître son montant total
+      const { data: currentInvoice, error: fetchError } = await supabase
+        .from('invoices')
+        .select('total_amount, amount_paid')
+        .eq('id', paymentData.invoiceId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Calculer le nouveau montant payé
+      const newAmountPaid = (currentInvoice.amount_paid || 0) + paymentData.amount;
+      
+      // Déterminer le nouveau statut
+      let newStatus = 'sent';
+      if (newAmountPaid >= currentInvoice.total_amount) {
+        newStatus = 'paid';
+      }
+
       const { error } = await supabase
         .from('invoices')
         .update({ 
-          amount_paid: paymentData.amount,
-          status: paymentData.amount >= paymentData.total ? 'paid' : 'sent',
+          amount_paid: newAmountPaid,
+          status: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', paymentData.invoiceId);
@@ -401,7 +420,7 @@ export default function Invoices() {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast({
         title: "Succès",
-        description: "Le paiement a été enregistré",
+        description: newStatus === 'paid' ? "Le paiement a été enregistré - Facture marquée comme payée" : "Le paiement partiel a été enregistré",
       });
     } catch (error) {
       console.error('Erreur lors de l\'enregistrement du paiement:', error);

@@ -73,7 +73,12 @@ export function InvoiceActionsMenu({
   const canModify = invoice.status === 'draft';
 
   const handlePaymentSave = (paymentData: any) => {
-    onPaymentRecorded(paymentData);
+    // Passer les données avec le montant total de la facture pour la validation
+    const paymentDataWithTotal = {
+      ...paymentData,
+      totalAmount: invoice.amount
+    };
+    onPaymentRecorded(paymentDataWithTotal);
     setShowPaymentModal(false);
   };
 
