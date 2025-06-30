@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, CalendarIcon, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,9 @@ import { cn } from '@/lib/utils';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
 import { useBonCommandePDF } from '@/hooks/useBonCommandePDF';
 import { useFournisseurs } from '@/hooks/useFournisseurs';
+import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { toast } from 'sonner';
 
 interface BonCommandeModalProps {
   isOpen: boolean;
@@ -45,6 +49,8 @@ interface BonCommandeModalProps {
 export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCommandeModalProps) => {
   const { exportToPDF } = useBonCommandePDF();
   const { fournisseurs, loading: fournisseursLoading } = useFournisseurs();
+  const { createPurchaseOrder } = usePurchaseOrders();
+  const { currency } = useCurrency();
   
   const [formData, setFormData] = useState<{
     numero: string;
@@ -137,20 +143,69 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
     };
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const totaux = calculerTotaux();
     const fournisseurSelectionne = fournisseurs.find(f => f.id === formData.fournisseurId);
     
-    const bonCommandeData = {
-      ...formData,
-      fournisseurNom: fournisseurSelectionne?.nom || '',
-      dateCommande: selectedDate?.toISOString().split('T')[0] || '',
-      montantHT: totaux.totalHTApresRemise,
-      montantTTC: totaux.totalTTC,
-      lignes,
-    };
+    if (!bonCommande) {
+      // Créer un nouveau bon de commande
+      const purchaseOrderData = {
+        purchase_order_number: formData.numero,
+        supplier_id: formData.fournisseurId,
+        date: selectedDate?.toISOString().split('T')[0] || '',
+        expected_delivery_date: null,
+        status: (() => {
+          const statusMap = {
+            'brouillon': 'draft',
+            'en_attente': 'pending',
+            'validee': 'confirmed',
+            'livree': 'delivered',
+            'annulee': 'cancelled'
+          };
+          return statusMap[formData.statut] || 'draft';
+        })(),
+        subtotal: totaux.totalHTApresRemise,
+        tax_amount: totaux.totalTVA,
+        total_amount: totaux.totalTTC,
+        discount: formData.remise,
+        delivery_address: null,
+        notes: formData.remarques || null
+      };
 
-    onSave(bonCommandeData);
+      const purchaseOrderItems = lignes.map(ligne => ({
+        description: ligne.designation,
+        quantity: ligne.quantite,
+        unit_price: ligne.prixUnitaireHT,
+        tax_rate: ligne.tva,
+        total_price: ligne.totalHT,
+        received_quantity: null,
+        product_id: null
+      }));
+
+      const { data, error } = await createPurchaseOrder(purchaseOrderData, purchaseOrderItems);
+      
+      if (error) {
+        toast.error('Erreur lors de la création du bon de commande: ' + error);
+        return;
+      }
+
+      toast.success('Bon de commande créé avec succès');
+      onSave(data);
+      onClose();
+    } else {
+      // Mode édition - pour l'instant, juste fermer la modal
+      const bonCommandeData = {
+        ...formData,
+        fournisseurNom: fournisseurSelectionne?.nom || '',
+        dateCommande: selectedDate?.toISOString().split('T')[0] || '',
+        montantHT: totaux.totalHTApresRemise,
+        montantTTC: totaux.totalTTC,
+        lignes,
+      };
+
+      onSave(bonCommandeData);
+      onClose();
+    }
   };
 
   const handleExportPDF = () => {
@@ -325,7 +380,7 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
                       />
                     </TableCell>
                     <TableCell>
-                      {ligne.totalHT.toFixed(2)} €
+                      {ligne.totalHT.toFixed(2)} {currency.symbol}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -369,23 +424,23 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Total HT:</span>
-                  <span>{totaux.totalHT.toFixed(2)} €</span>
+                  <span>{totaux.totalHT.toFixed(2)} {currency.symbol}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Remise ({formData.remise}%):</span>
-                  <span>-{totaux.remiseAmount.toFixed(2)} €</span>
+                  <span>-{totaux.remiseAmount.toFixed(2)} {currency.symbol}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total HT après remise:</span>
-                  <span>{totaux.totalHTApresRemise.toFixed(2)} €</span>
+                  <span>{totaux.totalHTApresRemise.toFixed(2)} {currency.symbol}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total TVA:</span>
-                  <span>{totaux.totalTVA.toFixed(2)} €</span>
+                  <span>{totaux.totalTVA.toFixed(2)} {currency.symbol}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-1">
                   <span>Total TTC:</span>
-                  <span>{totaux.totalTTC.toFixed(2)} €</span>
+                  <span>{totaux.totalTTC.toFixed(2)} {currency.symbol}</span>
                 </div>
               </div>
             </div>

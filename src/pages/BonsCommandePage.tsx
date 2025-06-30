@@ -17,6 +17,7 @@ import { BonCommandeModal } from '@/components/modals/BonCommandeModal';
 import { BonCommandeActionsMenu } from '@/components/bonCommande/BonCommandeActionsMenu';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { BonCommandeFournisseur, LigneBonCommande } from '@/types/bonCommande';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const BonsCommandePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +25,7 @@ const BonsCommandePage = () => {
   const [selectedBonCommande, setSelectedBonCommande] = useState<BonCommandeFournisseur | null>(null);
 
   const { purchaseOrders, loading, createPurchaseOrder } = usePurchaseOrders();
+  const { currency } = useCurrency();
 
   const handleCreateBonCommande = () => {
     setSelectedBonCommande(null);
@@ -93,7 +95,7 @@ const BonsCommandePage = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €`;
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
   };
 
   const filteredBonsCommande = purchaseOrders.filter(bonCommande =>
