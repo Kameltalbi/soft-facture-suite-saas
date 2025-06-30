@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useInvoiceNumber } from '@/hooks/useInvoiceNumber';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface InvoiceItem {
   id: string;
@@ -33,6 +35,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
   const { nextInvoiceNumber, generateNextInvoiceNumber, isLoading: numberLoading } = useInvoiceNumber();
+  const { currency } = useCurrency();
   
   // Form state
   const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || '');
@@ -142,6 +145,13 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     };
     onSave(invoiceData);
     onClose();
+  };
+
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: currency.code 
+    });
   };
 
   return (
@@ -337,7 +347,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         <span className="font-medium">{product.name}</span>
                         {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
                       </div>
-                      <span className="text-sm text-gray-500">{product.price}€</span>
+                      <span className="text-sm text-gray-500">{formatCurrency(product.price)}</span>
                     </div>
                   ))}
                 </div>
@@ -406,7 +416,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         />
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {item.total.toFixed(2)} €
+                        {formatCurrency(item.total)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -435,26 +445,26 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Sous-total HT:</span>
-                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
+                    <span className="font-medium">{formatCurrency(subtotalHT + totalDiscount)}</span>
                   </div>
                   {totalDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Remise totale:</span>
-                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
+                      <span className="font-medium">-{formatCurrency(totalDiscount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span>Net HT:</span>
-                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
+                    <span className="font-medium">{formatCurrency(subtotalHT)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>TVA:</span>
-                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
+                    <span className="font-medium">{formatCurrency(totalVAT)}</span>
                   </div>
                   <div className="border-t pt-2">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total TTC:</span>
-                      <span className="text-blue-600">{totalTTC.toFixed(2)} €</span>
+                      <span className="text-blue-600">{formatCurrency(totalTTC)}</span>
                     </div>
                   </div>
                 </div>
