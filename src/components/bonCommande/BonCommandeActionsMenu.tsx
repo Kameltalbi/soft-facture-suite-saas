@@ -39,6 +39,8 @@ import { BonCommandePDF } from '@/components/pdf/BonCommandePDF';
 import { EmailModal } from '@/components/modals/EmailModal';
 import { BonCommandeFournisseur } from '@/types/bonCommande';
 import { useAuth } from '@/hooks/useAuth';
+import { useSettings } from '@/hooks/useSettings';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface BonCommandeActionsMenuProps {
   bonCommande: BonCommandeFournisseur;
@@ -70,6 +72,8 @@ export function BonCommandeActionsMenu({
   onEmailSent
 }: BonCommandeActionsMenuProps) {
   const { user, organization } = useAuth();
+  const { globalSettings } = useSettings();
+  const { currency } = useCurrency();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
@@ -99,6 +103,17 @@ export function BonCommandeActionsMenu({
     phone: organization?.phone || user?.user_metadata?.company_phone,
   };
 
+  // Prepare settings for PDF
+  const settings = {
+    showVat: true,
+    showDiscount: false,
+    currency: currency.code,
+    amountInWords: true,
+    purchase_order_template: globalSettings?.quote_template || 'classic',
+    unified_template: globalSettings?.unified_template || 'classic',    
+    use_unified_template: globalSettings?.use_unified_template || false
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -118,6 +133,7 @@ export function BonCommandeActionsMenu({
               <BonCommandePDF 
                 bonCommande={bonCommande}
                 company={company}
+                settings={settings}
               />
             }
             fileName={`${bonCommande.numero}.pdf`}

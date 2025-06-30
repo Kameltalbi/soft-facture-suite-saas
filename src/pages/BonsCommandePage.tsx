@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -271,7 +270,6 @@ const BonsCommandePage = () => {
                         onStatusChange={(status) => handleStatusChange(bonCommande, status)}
                         onDelete={() => handleDeleteBonCommande(bonCommande)}
                         onEmailSent={handleEmailSent}
-                        pdfData={getBonCommandePDFData(bonCommande)}
                       />
                     </TableCell>
                   </TableRow>
