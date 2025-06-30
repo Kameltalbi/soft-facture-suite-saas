@@ -64,6 +64,8 @@ export function useSettings() {
           quote_template: data.quote_template || 'classic',
           delivery_note_template: data.delivery_note_template || 'classic',
           credit_template: data.credit_template || 'classic',
+          unified_template: data.unified_template || 'classic',
+          use_unified_template: data.use_unified_template || false,
           tenant_id: data.organization_id
         };
         setGlobalSettings(formattedSettings);
@@ -276,6 +278,8 @@ export function useSettings() {
           quote_template: settings.quote_template,
           delivery_note_template: settings.delivery_note_template,
           credit_template: settings.credit_template,
+          unified_template: settings.unified_template,
+          use_unified_template: settings.use_unified_template,
           organization_id: organization.id
         });
 

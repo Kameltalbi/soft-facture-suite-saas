@@ -368,6 +368,8 @@ export default function Settings() {
               quote_template: globalSettings?.quote_template || 'classic',
               delivery_note_template: globalSettings?.delivery_note_template || 'classic',
               credit_template: globalSettings?.credit_template || 'classic',
+              unified_template: globalSettings?.unified_template || 'classic',
+              use_unified_template: globalSettings?.use_unified_template || false,
             }}
             onSave={handleSavePdfTemplates}
           />
