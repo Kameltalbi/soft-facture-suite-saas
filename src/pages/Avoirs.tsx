@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,10 +18,20 @@ import { useCreditNotes } from '@/hooks/useCreditNotes';
 import { toast } from '@/hooks/use-toast';
 
 export default function Avoirs() {
+  console.log('🔍 Avoirs - Composant monté');
+  
   const { organization } = useAuth();
   const { currency } = useCurrency();
   const { globalSettings } = useSettings();
   const { creditNotes, loading, createCreditNote, fetchCreditNotes } = useCreditNotes();
+  
+  console.log('🔍 Avoirs - États initiaux:', {
+    organization: organization?.id,
+    currency: currency?.code,
+    creditNotesCount: creditNotes?.length,
+    loading
+  });
+
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -49,10 +60,19 @@ export default function Avoirs() {
     { value: 12, label: 'Décembre' },
   ];
 
-  const filteredAvoirs = creditNotes.filter(avoir => {
+  // Force refresh on mount
+  useEffect(() => {
+    console.log('🔍 Avoirs - useEffect appelé, organization:', organization?.id);
+    if (organization?.id) {
+      console.log('🔍 Avoirs - Tentative de rechargement des données');
+      fetchCreditNotes();
+    }
+  }, [organization?.id, fetchCreditNotes]);
+
+  const filteredAvoirs = creditNotes?.filter(avoir => {
     const avoirDate = new Date(avoir.date);
     const matchesSearch = 
-      avoir.credit_note_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      avoir.credit_note_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (avoir.clients?.name && avoir.clients.name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesType = typeFilter === 'all' || 
@@ -63,6 +83,13 @@ export default function Avoirs() {
     const matchesMonth = avoirDate.getMonth() + 1 === selectedMonth;
     
     return matchesSearch && matchesType && matchesStatus && matchesYear && matchesMonth;
+  }) || [];
+
+  console.log('🔍 Avoirs - Données filtrées:', {
+    totalCreditNotes: creditNotes?.length,
+    filteredCount: filteredAvoirs.length,
+    selectedYear,
+    selectedMonth
   });
 
   const getStatusBadge = (status: string) => {
@@ -100,16 +127,18 @@ export default function Avoirs() {
   };
 
   const handleCreateAvoir = async (avoirData: any) => {
+    console.log('🔍 Avoirs - Création d\'avoir:', avoirData);
+    
     try {
       // Convertir les données du modal vers le format de la base de données
       const creditNoteData = {
         credit_note_number: avoirData.number,
-        client_id: avoirData.clientId, // Sera fourni par le modal
+        client_id: avoirData.clientId,
         original_invoice_id: avoirData.invoiceId || null,
         date: avoirData.date,
         reason: avoirData.notes,
         subtotal: Math.abs(avoirData.amount),
-        tax_amount: 0, // Calculé à partir des items
+        tax_amount: 0,
         total_amount: Math.abs(avoirData.amount),
         status: avoirData.status,
         notes: avoirData.notes
@@ -124,9 +153,12 @@ export default function Avoirs() {
         product_id: null
       })) || [];
 
+      console.log('🔍 Avoirs - Données à envoyer:', { creditNoteData, items });
+
       const { error } = await createCreditNote(creditNoteData, items);
       
       if (error) {
+        console.error('❌ Avoirs - Erreur création:', error);
         toast({
           title: "Erreur",
           description: error,
@@ -140,8 +172,10 @@ export default function Avoirs() {
         title: "Avoir créé",
         description: `L'avoir ${avoirData.number} a été créé avec succès.`,
       });
+      
+      console.log('✅ Avoirs - Avoir créé avec succès');
     } catch (error) {
-      console.error('Erreur lors de la création de l\'avoir:', error);
+      console.error('❌ Avoirs - Erreur lors de la création:', error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la création de l'avoir.",
@@ -151,6 +185,7 @@ export default function Avoirs() {
   };
 
   const formatCurrency = (amount: number) => {
+    if (!currency?.code) return `${amount} €`;
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
       currency: currency.code 
@@ -184,7 +219,7 @@ export default function Avoirs() {
     const settings = {
       showVat: true,
       showDiscount: false,
-      currency: currency.code,
+      currency: currency?.code || 'EUR',
       amountInWords: true,
       credit_template: globalSettings?.credit_template || 'classic',
       unified_template: globalSettings?.unified_template || 'classic',
@@ -212,7 +247,11 @@ export default function Avoirs() {
     };
   };
 
+  console.log('🔍 Avoirs - Rendu, loading:', loading, 'creditNotes:', creditNotes?.length);
+
+  // État de chargement
   if (loading) {
+    console.log('🔍 Avoirs - Affichage loader');
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
@@ -222,6 +261,20 @@ export default function Avoirs() {
       </div>
     );
   }
+
+  // Vérification de l'organisation
+  if (!organization?.id) {
+    console.log('❌ Avoirs - Pas d\'organisation');
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-sm text-gray-600">Organisation non trouvée</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('✅ Avoirs - Rendu du contenu principal');
 
   return (
     <div className="p-6 space-y-6">
@@ -449,13 +502,17 @@ export default function Avoirs() {
       </Card>
 
       {/* Empty state */}
-      {filteredAvoirs.length === 0 && (
+      {filteredAvoirs.length === 0 && !loading && (
         <div className="text-center py-12">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun avoir trouvé</h3>
           <p className="text-gray-600 mb-4">
             Aucun avoir ne correspond à vos critères pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}.
           </p>
+          <Button onClick={() => setIsCreateModalOpen(true)} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Créer le premier avoir
+          </Button>
         </div>
       )}
     </div>
