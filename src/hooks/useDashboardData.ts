@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -158,12 +157,17 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       };
     }
 
-    const startDate = new Date(selectedYear, selectedMonth - 1, 1);
-    const endDate = new Date(selectedYear, selectedMonth, 0);
+    // Pour les KPI, utiliser toutes les factures de l'année sélectionnée
+    const startDate = new Date(selectedYear, 0, 1); // 1er janvier de l'année
+    const endDate = new Date(selectedYear, 11, 31); // 31 décembre de l'année
 
-    console.log('📅 KPI - Date range:', { startDate: startDate.toISOString().split('T')[0], endDate: endDate.toISOString().split('T')[0] });
+    console.log('📅 KPI - Date range for year:', { 
+      year: selectedYear,
+      startDate: startDate.toISOString().split('T')[0], 
+      endDate: endDate.toISOString().split('T')[0] 
+    });
 
-    // Factures
+    // Factures de l'année complète
     const { data: invoices, error: invoicesError } = await supabase
       .from('invoices')
       .select('*')
@@ -174,10 +178,10 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     if (invoicesError) {
       console.error('❌ KPI - Error fetching invoices:', invoicesError);
     } else {
-      console.log('📄 KPI - Invoices found:', invoices?.length || 0);
+      console.log('📄 KPI - Invoices found for year:', invoices?.length || 0);
     }
 
-    // Avoirs
+    // Avoirs de l'année
     const { data: credits, error: creditsError } = await supabase
       .from('credit_notes')
       .select('total_amount')
@@ -189,7 +193,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       console.error('❌ KPI - Error fetching credits:', creditsError);
     }
 
-    // Devis
+    // Devis de l'année
     const { data: quotes, error: quotesError } = await supabase
       .from('quotes')
       .select('*')
@@ -223,7 +227,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       console.error('❌ KPI - Error fetching low stock products:', lowStockError);
     }
 
-    // Calculs des KPI
+    // Calculs des KPI sur toute l'année
     const totalInvoices = invoices?.length || 0;
     const paidInvoices = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
     const pendingInvoices = invoices?.filter(inv => inv.status === 'sent').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
@@ -232,7 +236,8 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
     const totalVat = invoices?.reduce((sum, inv) => sum + (inv.tax_amount || 0), 0) || 0;
 
-    console.log('📊 KPI - Calculated values:', {
+    console.log('📊 KPI - Calculated values for year:', {
+      year: selectedYear,
       totalInvoices,
       paidInvoices,
       pendingInvoices,
