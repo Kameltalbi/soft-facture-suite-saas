@@ -40,25 +40,25 @@ export function FeaturesSection() {
     <section id="fonctionnalites" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
             Tout ce dont vous avez besoin pour bien gérer
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-text-secondary">
             Des outils simples, complets et adaptés à votre quotidien
           </p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow duration-300 border-gray-100">
+            <Card key={index} className="hover:shadow-lg transition-shadow duration-300 border-accent-200">
               <CardHeader className="text-center pb-4">
-                <div className="mx-auto w-16 h-16 bg-[#6A9C89] rounded-full flex items-center justify-center mb-4">
+                <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
                   <feature.icon className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-xl text-gray-900">{feature.title}</CardTitle>
+                <CardTitle className="text-xl text-text-primary">{feature.title}</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-gray-600">{feature.description}</p>
+                <p className="text-text-secondary">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

@@ -28,7 +28,7 @@ export function TestimonialsSection() {
     <section id="temoignages" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
             Ils utilisent Soft Facture au quotidien
           </h2>
         </div>
@@ -38,19 +38,19 @@ export function TestimonialsSection() {
             <Card key={index} className="bg-white shadow-lg rounded-xl hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="mb-6">
-                  <p className="text-gray-700 italic leading-relaxed">
+                  <p className="text-text-secondary italic leading-relaxed">
                     "{testimonial.quote}"
                   </p>
                 </div>
                 <div className="flex items-center">
                   <Avatar className="w-12 h-12 mr-4">
-                    <AvatarFallback className="bg-[#6A9C89] text-white font-semibold">
+                    <AvatarFallback className="bg-primary text-white font-semibold">
                       {testimonial.avatar}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-600">{testimonial.role}</p>
+                    <p className="font-semibold text-text-primary">{testimonial.name}</p>
+                    <p className="text-sm text-text-secondary">{testimonial.role}</p>
                   </div>
                 </div>
               </CardContent>
