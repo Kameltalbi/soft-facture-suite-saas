@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LineItem {
   id: string;
@@ -35,60 +37,8 @@ interface CreateAvoirModalProps {
   onCancel: () => void;
 }
 
-const mockInvoices: Invoice[] = [
-  {
-    id: '1',
-    number: 'F-2024-045',
-    clientName: 'Entreprise ABC',
-    date: '2024-03-10',
-    total: 2500.50,
-    items: [
-      {
-        id: '1',
-        description: 'Produit A',
-        quantity: 2,
-        unitPrice: 500.00,
-        vatRate: 20,
-        total: 1000.00
-      },
-      {
-        id: '2',
-        description: 'Service B',
-        quantity: 1,
-        unitPrice: 1500.50,
-        vatRate: 20,
-        total: 1500.50
-      }
-    ]
-  },
-  {
-    id: '2',
-    number: 'F-2024-046',
-    clientName: 'Société XYZ',
-    date: '2024-03-11',
-    total: 1800.00,
-    items: [
-      {
-        id: '3',
-        description: 'Consultation',
-        quantity: 4,
-        unitPrice: 450.00,
-        vatRate: 20,
-        total: 1800.00
-      }
-    ]
-  }
-];
-
-const mockClients = [
-  'Entreprise ABC',
-  'Société XYZ',
-  'Cabinet Conseil',
-  'SARL Innovation',
-  'Groupe Solutions'
-];
-
 export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
+  const { profile } = useAuth();
   const [type, setType] = useState<'facture_liee' | 'economique'>('facture_liee');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [selectedClient, setSelectedClient] = useState('');
@@ -97,9 +47,96 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
   const [notes, setNotes] = useState('');
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [customItems, setCustomItems] = useState<LineItem[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile?.organization_id) {
+      fetchInvoicesAndClients();
+    }
+  }, [profile?.organization_id]);
+
+  const fetchInvoicesAndClients = async () => {
+    if (!profile?.organization_id) return;
+
+    setLoading(true);
+    try {
+      // Récupérer les factures avec leurs items et clients
+      const { data: invoicesData, error: invoicesError } = await supabase
+        .from('invoices')
+        .select(`
+          id,
+          invoice_number,
+          date,
+          total_amount,
+          clients(name),
+          invoice_items(
+            id,
+            description,
+            quantity,
+            unit_price,
+            tax_rate,
+            total_price
+          )
+        `)
+        .eq('organization_id', profile.organization_id)
+        .eq('status', 'paid')
+        .order('date', { ascending: false });
+
+      if (invoicesError) {
+        console.error('Erreur lors du chargement des factures:', invoicesError);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les factures.",
+          variant: "destructive",
+        });
+      } else if (invoicesData) {
+        const formattedInvoices: Invoice[] = invoicesData.map(invoice => ({
+          id: invoice.id,
+          number: invoice.invoice_number,
+          clientName: invoice.clients?.name || 'Client inconnu',
+          date: invoice.date,
+          total: invoice.total_amount || 0,
+          items: invoice.invoice_items?.map(item => ({
+            id: item.id,
+            description: item.description,
+            quantity: item.quantity || 0,
+            unitPrice: item.unit_price || 0,
+            vatRate: item.tax_rate || 0,
+            total: item.total_price || 0
+          })) || []
+        }));
+        setInvoices(formattedInvoices);
+      }
+
+      // Récupérer les clients
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select('name')
+        .eq('organization_id', profile.organization_id)
+        .eq('status', 'active')
+        .order('name');
+
+      if (clientsError) {
+        console.error('Erreur lors du chargement des clients:', clientsError);
+      } else if (clientsData) {
+        setClients(clientsData.map(client => client.name));
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du chargement des données.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInvoiceSelection = (invoiceId: string) => {
-    const invoice = mockInvoices.find(inv => inv.id === invoiceId);
+    const invoice = invoices.find(inv => inv.id === invoiceId);
     if (invoice) {
       setSelectedInvoice(invoice);
       setSelectedClient(invoice.clientName);
@@ -205,6 +242,17 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Type Selection */}
@@ -245,18 +293,25 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
         <TabsContent value="facture_liee" className="space-y-4">
           <div className="space-y-2">
             <Label>Facture à créditer</Label>
-            <Select onValueChange={handleInvoiceSelection}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une facture" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockInvoices.map((invoice) => (
-                  <SelectItem key={invoice.id} value={invoice.id}>
-                    {invoice.number} - {invoice.clientName} - {invoice.total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {invoices.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                <p>Aucune facture payée trouvée</p>
+                <p className="text-sm">Seules les factures payées peuvent faire l'objet d'un avoir</p>
+              </div>
+            ) : (
+              <Select onValueChange={handleInvoiceSelection}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une facture" />
+                </SelectTrigger>
+                <SelectContent>
+                  {invoices.map((invoice) => (
+                    <SelectItem key={invoice.id} value={invoice.id}>
+                      {invoice.number} - {invoice.clientName} - {invoice.total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {selectedInvoice && (
@@ -330,18 +385,25 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
         <TabsContent value="economique" className="space-y-4">
           <div className="space-y-2">
             <Label>Client</Label>
-            <Select onValueChange={setSelectedClient}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un client" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockClients.map((client) => (
-                  <SelectItem key={client} value={client}>
-                    {client}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {clients.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                <p>Aucun client trouvé</p>
+                <p className="text-sm">Veuillez d'abord créer des clients</p>
+              </div>
+            ) : (
+              <Select onValueChange={setSelectedClient}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client} value={client}>
+                      {client}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <Card>
