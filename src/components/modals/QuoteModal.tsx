@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -479,7 +480,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
               </div>
             </CardHeader>
             <CardContent>
-              {productSearch && (
+              {/* Liste de produits filtrés - Ne s'affiche que s'il y a une recherche et des résultats */}
+              {productSearch && filteredProducts.length > 0 && (
                 <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
                   {filteredProducts.map((product) => (
                     <div
@@ -506,6 +508,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       <span className="text-sm text-gray-500">{product.price}€</span>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Message si recherche sans résultat */}
+              {productSearch && filteredProducts.length === 0 && (
+                <div className="mb-4 p-3 text-center text-gray-500 bg-gray-50 rounded-lg">
+                  Aucun produit trouvé pour "{productSearch}"
                 </div>
               )}
               
