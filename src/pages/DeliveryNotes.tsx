@@ -1,11 +1,8 @@
-
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Package, Truck, CheckCircle, Clock } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -14,198 +11,104 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { DeliveryNoteModal } from '@/components/modals/DeliveryNoteModal';
-import { DeliveryNotePDF } from '@/components/pdf/deliveryNotes/DeliveryNotePDF';
 import { DeliveryNoteActionsMenu } from '@/components/deliveryNotes/DeliveryNoteActionsMenu';
 import { useDeliveryNotes } from '@/hooks/useDeliveryNotes';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useCurrency } from '@/contexts/CurrencyContext';
-import { toast } from 'sonner';
 
-const statusLabels = {
-  pending: { label: 'En attente', variant: 'secondary' as const },
-  sent: { label: 'Envoyé', variant: 'default' as const },
-  delivered: { label: 'Livré', variant: 'default' as const },
-  signed: { label: 'Signé', variant: 'default' as const }
-};
+interface DeliveryNote {
+  id: string;
+  organization_id: string;
+  client_id: string;
+  delivery_number: string;
+  date: string;
+  expected_delivery_date: string | null;
+  delivery_address: string | null;
+  status: 'pending' | 'delivered' | 'partial';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  client: { name: string } | null;
+}
 
-export default function DeliveryNotes() {
-  const { organization } = useAuth();
-  const { currency } = useCurrency();
-  const { deliveryNotes, loading, createDeliveryNote, updateDeliveryNote, deleteDeliveryNote } = useDeliveryNotes();
-  
+interface DeliveryNoteModalProps {
+  open: boolean;
+  onClose: () => void;
+  deliveryNote: DeliveryNote | null;
+  onSave: (data: any) => void;
+}
+
+interface DeliveryNoteActionsMenuProps {
+  deliveryNote: DeliveryNote;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const DeliveryNotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
-  const [editingDelivery, setEditingDelivery] = useState<any>(null);
-  
-  // Date filters
-  const currentDate = new Date();
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
-  
-  // Generate available years (5 years back to 2 years forward)
-  const availableYears = Array.from({ length: 8 }, (_, i) => currentDate.getFullYear() - 5 + i);
-  
-  const months = [
-    { value: 1, label: 'Janvier' },
-    { value: 2, label: 'Février' },
-    { value: 3, label: 'Mars' },
-    { value: 4, label: 'Avril' },
-    { value: 5, label: 'Mai' },
-    { value: 6, label: 'Juin' },
-    { value: 7, label: 'Juillet' },
-    { value: 8, label: 'Août' },
-    { value: 9, label: 'Septembre' },
-    { value: 10, label: 'Octobre' },
-    { value: 11, label: 'Novembre' },
-    { value: 12, label: 'Décembre' },
-  ];
+  const [showModal, setShowModal] = useState(false);
+  const [editingDeliveryNote, setEditingDeliveryNote] = useState(null);
+  const { deliveryNotes, loading, createDeliveryNote, updateDeliveryNote, deleteDeliveryNote } = useDeliveryNotes();
 
-  // Fetch global settings for PDF generation
-  const { data: globalSettings } = useQuery({
-    queryKey: ['globalSettings', organization?.id],
-    queryFn: async () => {
-      if (!organization?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('global_settings')
-        .select('*')
-        .eq('organization_id', organization.id)
-        .maybeSingle();
+  const filteredDeliveryNotes = deliveryNotes.filter(note =>
+    note.delivery_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    note.client?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-      if (error) {
-        console.error('Erreur lors de la récupération des paramètres globaux:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!organization?.id
-  });
-
-  const filteredDeliveryNotes = deliveryNotes.filter(delivery => {
-    const deliveryDate = new Date(delivery.date);
-    const clientName = delivery.clients?.company || delivery.clients?.name || '';
-    const matchesSearch = clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      delivery.delivery_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesYear = deliveryDate.getFullYear() === selectedYear;
-    const matchesMonth = deliveryDate.getMonth() + 1 === selectedMonth;
-    
-    return matchesSearch && matchesYear && matchesMonth;
-  });
-
-  const handleNewDelivery = () => {
-    setEditingDelivery(null);
-    setShowDeliveryModal(true);
+  const handleAddDeliveryNote = () => {
+    setEditingDeliveryNote(null);
+    setShowModal(true);
   };
 
-  const handleViewDelivery = (delivery: any) => {
-    console.log('Viewing delivery note:', delivery.delivery_number);
+  const handleEditDeliveryNote = (note) => {
+    setEditingDeliveryNote(note);
+    setShowModal(true);
   };
 
-  const handleEditDelivery = (delivery: any) => {
-    setEditingDelivery(delivery);
-    setShowDeliveryModal(true);
-  };
-
-  const handleDuplicateDelivery = (delivery: any) => {
-    console.log('Duplicating delivery note:', delivery.delivery_number);
-  };
-
-  const handleMarkAsDelivered = async (delivery: any) => {
-    const result = await updateDeliveryNote(delivery.id, { status: 'delivered' });
-    if (result.error) {
-      toast.error('Erreur lors de la mise à jour du statut');
+  const handleSaveDeliveryNote = async (data) => {
+    if (editingDeliveryNote) {
+      await updateDeliveryNote(editingDeliveryNote.id, data);
     } else {
-      toast.success('Bon de livraison marqué comme livré');
+      await createDeliveryNote(data);
+    }
+    setShowModal(false);
+  };
+
+  const handleDeleteDeliveryNote = async (id) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce bon de livraison ?')) {
+      await deleteDeliveryNote(id);
     }
   };
 
-  const handleConvertToInvoice = (delivery: any) => {
-    console.log('Converting to invoice:', delivery.delivery_number);
-  };
-
-  const handleDeleteDelivery = async (delivery: any) => {
-    const result = await deleteDeliveryNote(delivery.id);
-    if (result.error) {
-      toast.error('Erreur lors de la suppression');
-    } else {
-      toast.success('Bon de livraison supprimé');
-    }
-  };
-
-  const handleEmailSent = (emailData: any) => {
-    console.log('Sending email:', emailData);
-  };
-
-  const handleSaveDelivery = async (data: any) => {
-    if (editingDelivery) {
-      const result = await updateDeliveryNote(editingDelivery.id, data);
-      if (result.error) {
-        toast.error('Erreur lors de la mise à jour');
-      } else {
-        toast.success('Bon de livraison mis à jour');
-        setShowDeliveryModal(false);
-      }
-    } else {
-      const result = await createDeliveryNote(data);
-      if (result.error) {
-        toast.error('Erreur lors de la création');
-      } else {
-        toast.success('Bon de livraison créé');
-        setShowDeliveryModal(false);
-      }
-    }
-  };
-
-  const getPDFData = (delivery: any) => {
-    const mockLineItems = delivery.delivery_note_items?.map((item: any) => ({
-      id: item.id,
-      description: item.description,
-      quantity: item.quantity,
-      deliveredQuantity: item.delivered_quantity
-    })) || [];
-
-    const company = {
-      name: organization?.name || 'Mon Entreprise',
-      address: organization?.address || 'Adresse de l\'entreprise',
-      email: organization?.email || 'contact@monentreprise.fr',
-      phone: organization?.phone || 'Téléphone',
-      logo_url: organization?.logo_url
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      pending: { label: 'En attente', variant: 'secondary', icon: Clock },
+      delivered: { label: 'Livré', variant: 'default', icon: CheckCircle },
+      partial: { label: 'Partiel', variant: 'outline', icon: Package }
     };
 
-    const client = {
-      name: delivery.clients?.name || 'Client',
-      company: delivery.clients?.company || delivery.clients?.name || 'Client',
-      address: delivery.clients?.address || 'Adresse du client',
-      email: delivery.clients?.email || 'client@email.com'
-    };
+    const config = statusConfig[status] || statusConfig.pending;
+    const IconComponent = config.icon;
 
-    return {
-      deliveryData: {
-        number: delivery.delivery_number,
-        date: delivery.date,
-        subject: `Bon de livraison pour ${client.company}`,
-        notes: delivery.notes || (delivery.expected_delivery_date ? `Livraison prévue le ${new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR')}` : 'En cours de livraison')
-      },
-      lineItems: mockLineItems,
-      client,
-      company,
-      settings: {
-        showVat: true,
-        footer_content: globalSettings?.footer_content || '',
-        footer_display: globalSettings?.footer_display || 'all'
-      },
-      currency: currency
-    };
+    return (
+      <Badge variant={config.variant} className="flex items-center gap-1">
+        <IconComponent size={12} />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const stats = {
+    totalNotes: deliveryNotes.length,
+    pendingNotes: deliveryNotes.filter(n => n.status === 'pending').length,
+    deliveredNotes: deliveryNotes.filter(n => n.status === 'delivered').length,
+    partialNotes: deliveryNotes.filter(n => n.status === 'partial').length
   };
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
-        <div className="flex justify-center items-center h-64">
+      <div className="p-6">
+        <div className="flex items-center justify-center h-64">
           <div className="text-lg">Chargement des bons de livraison...</div>
         </div>
       </div>
@@ -213,174 +116,144 @@ export default function DeliveryNotes() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-[#F7F9FA] min-h-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Bons de livraison</h1>
-          <p className="text-neutral-600">Gérez vos bons de livraison</p>
+          <h1 className="text-3xl font-bold tracking-tight">Bons de livraison</h1>
+          <p className="text-muted-foreground">
+            Gérez vos bons de livraison et suivez les expéditions
+          </p>
         </div>
-        <Button onClick={handleNewDelivery} className="bg-success hover:bg-success/90">
-          <Plus size={16} className="mr-2" />
-          Nouveau Bon de livraison
-        </Button>
+
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-80">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
+            <Input
+              placeholder="Rechercher un bon de livraison..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white border-neutral-200"
+            />
+          </div>
+
+          <Button 
+            onClick={handleAddDeliveryNote}
+            className="bg-[#6A9C89] hover:bg-[#5a8473]"
+          >
+            <Plus size={16} className="mr-2" />
+            Nouveau bon de livraison
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-              <Input
-                placeholder="Rechercher par client ou numéro..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-neutral-200"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Année :</label>
-              <Select
-                value={selectedYear.toString()}
-                onValueChange={(value) => setSelectedYear(parseInt(value))}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Mois :</label>
-              <Select
-                value={selectedMonth.toString()}
-                onValueChange={(value) => setSelectedMonth(parseInt(value))}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month) => (
-                    <SelectItem key={month.value} value={month.value.toString()}>
-                      {month.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats */}
+      {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Total bons</p>
-                <p className="text-2xl font-bold text-neutral-900">{filteredDeliveryNotes.length}</p>
+                <p className="text-sm text-neutral-600">Total</p>
+                <p className="text-2xl font-bold text-neutral-900">{stats.totalNotes}</p>
               </div>
-              <div className="w-3 h-3 bg-success rounded-full"></div>
+              <Package className="h-8 w-8 text-[#6A9C89]" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Signés</p>
-                <p className="text-2xl font-bold text-success">{filteredDeliveryNotes.filter(d => d.status === 'signed').length}</p>
+                <p className="text-sm text-neutral-600">En attente</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.pendingNotes}</p>
               </div>
-              <div className="w-3 h-3 bg-success rounded-full"></div>
+              <Clock className="h-8 w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-600">Livrés</p>
-                <p className="text-2xl font-bold text-primary">{filteredDeliveryNotes.filter(d => d.status === 'delivered').length}</p>
+                <p className="text-2xl font-bold text-green-600">{stats.deliveredNotes}</p>
               </div>
-              <div className="w-3 h-3 bg-primary rounded-full"></div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">En cours</p>
-                <p className="text-2xl font-bold text-secondary">{filteredDeliveryNotes.filter(d => d.status === 'sent' || d.status === 'pending').length}</p>
+                <p className="text-sm text-neutral-600">Partiels</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.partialNotes}</p>
               </div>
-              <div className="w-3 h-3 bg-secondary rounded-full"></div>
+              <Truck className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Table */}
+      {/* Tableau des bons de livraison */}
       <Card>
-        <CardHeader>
-          <CardTitle>Liste des bons de livraison</CardTitle>
-          <CardDescription>
-            Consultez et gérez tous vos bons de livraison pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Numéro</TableHead>
-                <TableHead>Date</TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Date livraison prévue</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead>Date prévue</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDeliveryNotes.map((delivery) => (
-                <TableRow key={delivery.id} className="hover:bg-neutral-50">
-                  <TableCell className="font-mono">{delivery.delivery_number}</TableCell>
-                  <TableCell>{new Date(delivery.date).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>{delivery.clients?.company || delivery.clients?.name || 'Client'}</TableCell>
+              {filteredDeliveryNotes.map((note) => (
+                <TableRow key={note.id} className="hover:bg-neutral-50">
                   <TableCell>
-                    {delivery.expected_delivery_date ? 
-                      new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR') : 
-                      <span className="text-neutral-400">-</span>
-                    }
+                    <div className="font-medium text-neutral-900">{note.delivery_number}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusLabels[delivery.status as keyof typeof statusLabels]?.variant || 'secondary'}>
-                      {statusLabels[delivery.status as keyof typeof statusLabels]?.label || delivery.status}
-                    </Badge>
+                    <span className="text-sm">{note.client?.name || 'N/A'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{new Date(note.date).toLocaleDateString('fr-FR')}</span>
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(note.status)}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {note.expected_delivery_date
+                        ? new Date(note.expected_delivery_date).toLocaleDateString('fr-FR')
+                        : 'N/A'
+                      }
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <DeliveryNoteActionsMenu
-                      deliveryNote={delivery}
-                      pdfComponent={<DeliveryNotePDF {...getPDFData(delivery)} />}
-                      onView={() => handleViewDelivery(delivery)}
-                      onEdit={() => handleEditDelivery(delivery)}
-                      onDuplicate={() => handleDuplicateDelivery(delivery)}
-                      onMarkAsDelivered={() => handleMarkAsDelivered(delivery)}
-                      onConvertToInvoice={() => handleConvertToInvoice(delivery)}
-                      onDelete={() => handleDeleteDelivery(delivery)}
-                      onEmailSent={handleEmailSent}
+                      deliveryNote={note}
+                      onEdit={() => handleEditDeliveryNote(note)}
+                      onDelete={() => handleDeleteDeliveryNote(note.id)}
                     />
                   </TableCell>
                 </TableRow>
               ))}
+              {filteredDeliveryNotes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
+                    {deliveryNotes.length === 0
+                      ? 'Aucun bon de livraison trouvé. Créez votre premier bon de livraison !'
+                      : 'Aucun bon de livraison ne correspond à votre recherche'
+                    }
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -388,11 +261,13 @@ export default function DeliveryNotes() {
 
       {/* Modal */}
       <DeliveryNoteModal
-        open={showDeliveryModal}
-        onClose={() => setShowDeliveryModal(false)}
-        deliveryNote={editingDelivery}
-        onSave={handleSaveDelivery}
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        deliveryNote={editingDeliveryNote}
+        onSave={handleSaveDeliveryNote}
       />
     </div>
   );
-}
+};
+
+export default DeliveryNotes;

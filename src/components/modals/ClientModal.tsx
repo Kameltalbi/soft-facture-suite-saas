@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Save } from 'lucide-react';
+import { useClients } from '@/hooks/useClients';
+import { toast } from 'sonner';
 
 interface ClientModalProps {
   open: boolean;
@@ -15,6 +17,9 @@ interface ClientModalProps {
 }
 
 export function ClientModal({ open, onClose, client }: ClientModalProps) {
+  const { createClient } = useClients();
+  const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: '',
     company: '',
@@ -22,10 +27,10 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
     phone: '',
     address: '',
     city: '',
-    postalCode: '',
+    postal_code: '',
     country: 'France',
-    vatNumber: '',
-    paymentTerms: 30,
+    vat_number: '',
+    payment_terms: 30,
     status: 'active' as 'active' | 'inactive'
   });
 
@@ -38,10 +43,10 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         phone: client.phone || '',
         address: client.address || '',
         city: client.city || '',
-        postalCode: client.postalCode || '',
+        postal_code: client.postal_code || '',
         country: client.country || 'France',
-        vatNumber: client.vatNumber || '',
-        paymentTerms: client.paymentTerms || 30,
+        vat_number: client.vat_number || '',
+        payment_terms: client.payment_terms || 30,
         status: client.status || 'active'
       });
     } else {
@@ -52,19 +57,46 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         phone: '',
         address: '',
         city: '',
-        postalCode: '',
+        postal_code: '',
         country: 'France',
-        vatNumber: '',
-        paymentTerms: 30,
+        vat_number: '',
+        payment_terms: 30,
         status: 'active'
       });
     }
   }, [client, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Client data:', formData);
-    onClose();
+    
+    if (!formData.name.trim()) {
+      toast.error('Le nom du client est requis');
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      toast.error('L\'email du client est requis');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('Données du client à créer:', formData);
+      
+      const result = await createClient(formData);
+      
+      if (result.error) {
+        toast.error(`Erreur: ${result.error}`);
+      } else {
+        toast.success(client ? 'Client modifié avec succès' : 'Client créé avec succès');
+        onClose();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du client:', error);
+      toast.error('Une erreur est survenue lors de la sauvegarde');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const countries = [
@@ -162,11 +194,11 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="postalCode">Code postal</Label>
+                <Label htmlFor="postal_code">Code postal</Label>
                 <Input
-                  id="postalCode"
-                  value={formData.postalCode}
-                  onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                  id="postal_code"
+                  value={formData.postal_code}
+                  onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
                   placeholder="75001"
                 />
               </div>
@@ -203,11 +235,11 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="vatNumber">Numéro de TVA intracommunautaire</Label>
+                <Label htmlFor="vat_number">Numéro de TVA intracommunautaire</Label>
                 <Input
-                  id="vatNumber"
-                  value={formData.vatNumber}
-                  onChange={(e) => setFormData({...formData, vatNumber: e.target.value})}
+                  id="vat_number"
+                  value={formData.vat_number}
+                  onChange={(e) => setFormData({...formData, vat_number: e.target.value})}
                   placeholder="FR12345678901"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
@@ -216,10 +248,10 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
               </div>
 
               <div>
-                <Label htmlFor="paymentTerms">Conditions de paiement</Label>
+                <Label htmlFor="payment_terms">Conditions de paiement</Label>
                 <Select 
-                  value={formData.paymentTerms.toString()} 
-                  onValueChange={(value) => setFormData({...formData, paymentTerms: parseInt(value)})}
+                  value={formData.payment_terms.toString()} 
+                  onValueChange={(value) => setFormData({...formData, payment_terms: parseInt(value)})}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -253,12 +285,12 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
               Annuler
             </Button>
-            <Button type="submit" className="bg-primary hover:bg-primary/90">
+            <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={loading}>
               <Save size={16} className="mr-2" />
-              {client ? 'Modifier' : 'Créer'}
+              {loading ? 'Sauvegarde...' : (client ? 'Modifier' : 'Créer')}
             </Button>
           </div>
         </form>

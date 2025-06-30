@@ -27,7 +27,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const { clients, loading, createClient } = useClients();
+  const { clients, loading } = useClients();
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,11 +45,6 @@ const Clients = () => {
     setShowModal(true);
   };
 
-  const handleSaveClient = async (data) => {
-    await createClient(data);
-    setShowModal(false);
-  };
-
   const handleDeleteClient = (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
       console.log('Deleting client:', id);
@@ -65,7 +60,7 @@ const Clients = () => {
     companiesCount: clients.filter(c => c.company).length,
     individualsCount: clients.filter(c => !c.company).length,
     newThisMonth: clients.filter(c => {
-      const createdDate = new Date(c.created_at || c.created_at);
+      const createdDate = new Date(c.created_at);
       const now = new Date();
       return createdDate.getMonth() === now.getMonth() && 
              createdDate.getFullYear() === now.getFullYear();
