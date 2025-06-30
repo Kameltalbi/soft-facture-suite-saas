@@ -60,12 +60,14 @@ export function Header({ activeModule }: HeaderProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Date et heure en temps réel */}
+      {/* Date et heure en temps réel - centrée */}
+      <div className="flex-1 flex justify-center">
         <div className="text-orange-600 font-medium text-lg">
           {formatDateTime(currentDateTime)}
         </div>
-        
+      </div>
+
+      <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
