@@ -458,9 +458,7 @@ export type Database = {
           organization_id: string
           primary_currency: string | null
           quote_template: string | null
-          unified_template: string | null
           updated_at: string
-          use_unified_template: boolean | null
         }
         Insert: {
           created_at?: string
@@ -473,9 +471,7 @@ export type Database = {
           organization_id: string
           primary_currency?: string | null
           quote_template?: string | null
-          unified_template?: string | null
           updated_at?: string
-          use_unified_template?: boolean | null
         }
         Update: {
           created_at?: string
@@ -488,9 +484,7 @@ export type Database = {
           organization_id?: string
           primary_currency?: string | null
           quote_template?: string | null
-          unified_template?: string | null
           updated_at?: string
-          use_unified_template?: boolean | null
         }
         Relationships: [
           {

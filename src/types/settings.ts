@@ -68,7 +68,5 @@ export interface GlobalSettings {
   quote_template?: string;
   delivery_note_template?: string;
   credit_template?: string;
-  unified_template?: string; // Nouveau champ pour le template principal
-  use_unified_template?: boolean; // Active/désactive le template unifié
   tenant_id: string;
 }

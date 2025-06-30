@@ -12,7 +12,6 @@ import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
-import Avoirs from "./pages/Avoirs";
 import InvoiceReportPage from "./pages/reports/InvoiceReportPage";
 import ProductRevenueReportPage from "./pages/reports/ProductRevenueReportPage";
 import MonthlyRevenueReportPage from "./pages/reports/MonthlyRevenueReportPage";
@@ -42,11 +41,6 @@ const App = () => (
               <Route path="/app" element={
                 <ProtectedRoute>
                   <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/avoirs" element={
-                <ProtectedRoute>
-                  <Avoirs />
                 </ProtectedRoute>
               } />
               <Route path="/reports" element={

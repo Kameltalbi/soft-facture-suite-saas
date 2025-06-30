@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,15 +27,9 @@ interface Invoice {
   id: string;
   number: string;
   clientName: string;
-  clientId: string;
   date: string;
   total: number;
   items: LineItem[];
-}
-
-interface Client {
-  id: string;
-  name: string;
 }
 
 interface CreateAvoirModalProps {
@@ -49,14 +43,13 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
   const [type, setType] = useState<'facture_liee' | 'economique'>('facture_liee');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [selectedClient, setSelectedClient] = useState('');
-  const [selectedClientId, setSelectedClientId] = useState('');
   const [number, setNumber] = useState(`AV-2024-${String(Date.now()).slice(-3)}`);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
   const [customItems, setCustomItems] = useState<LineItem[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,8 +71,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
           invoice_number,
           date,
           total_amount,
-          client_id,
-          clients(id, name),
+          clients(name),
           invoice_items(
             id,
             description,
@@ -105,7 +97,6 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
           id: invoice.id,
           number: invoice.invoice_number,
           clientName: invoice.clients?.name || 'Client inconnu',
-          clientId: invoice.client_id,
           date: invoice.date,
           total: invoice.total_amount || 0,
           items: invoice.invoice_items?.map(item => ({
@@ -123,7 +114,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
       // Récupérer les clients
       const { data: clientsData, error: clientsError } = await supabase
         .from('clients')
-        .select('id, name')
+        .select('name')
         .eq('organization_id', profile.organization_id)
         .eq('status', 'active')
         .order('name');
@@ -131,7 +122,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
       if (clientsError) {
         console.error('Erreur lors du chargement des clients:', clientsError);
       } else if (clientsData) {
-        setClients(clientsData);
+        setClients(clientsData.map(client => client.name));
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -150,16 +141,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
     if (invoice) {
       setSelectedInvoice(invoice);
       setSelectedClient(invoice.clientName);
-      setSelectedClientId(invoice.clientId);
       setLineItems([...invoice.items]);
-    }
-  };
-
-  const handleClientSelection = (clientId: string) => {
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-      setSelectedClient(client.name);
-      setSelectedClientId(clientId);
     }
   };
 
@@ -213,7 +195,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
     return items.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const handleSubmit = (status: 'draft' | 'sent') => {
+  const handleSubmit = (status: 'brouillon' | 'valide') => {
     if (type === 'facture_liee' && !selectedInvoice) {
       toast({
         title: "Erreur",
@@ -223,7 +205,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
       return;
     }
 
-    if (type === 'economique' && !selectedClientId) {
+    if (type === 'economique' && !selectedClient) {
       toast({
         title: "Erreur",
         description: "Veuillez sélectionner un client.",
@@ -248,15 +230,17 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
       date,
       notes,
       clientName: selectedClient,
-      clientId: selectedClientId,
       invoiceNumber: selectedInvoice?.number,
-      invoiceId: selectedInvoice?.id,
-      amount: total,
+      amount: -Math.abs(total), // Toujours négatif pour un avoir
       status,
       items: type === 'facture_liee' ? lineItems : customItems
     };
 
     onSave(avoirData);
+    toast({
+      title: "Avoir créé",
+      description: `L'avoir ${number} a été ${status === 'brouillon' ? 'sauvegardé' : 'validé'} avec succès.`,
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -415,14 +399,14 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
                 <p className="text-sm">Veuillez d'abord créer des clients</p>
               </div>
             ) : (
-              <Select onValueChange={handleClientSelection}>
+              <Select onValueChange={setSelectedClient}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un client" />
                 </SelectTrigger>
                 <SelectContent>
                   {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
+                    <SelectItem key={client} value={client}>
+                      {client}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -553,10 +537,10 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
         <Button variant="outline" onClick={onCancel}>
           Annuler
         </Button>
-        <Button variant="outline" onClick={() => handleSubmit('draft')}>
+        <Button variant="outline" onClick={() => handleSubmit('brouillon')}>
           Enregistrer brouillon
         </Button>
-        <Button onClick={() => handleSubmit('sent')}>
+        <Button onClick={() => handleSubmit('valide')}>
           Valider l'avoir
         </Button>
       </div>

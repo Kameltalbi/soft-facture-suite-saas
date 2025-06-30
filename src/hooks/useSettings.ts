@@ -64,8 +64,6 @@ export function useSettings() {
           quote_template: data.quote_template || 'classic',
           delivery_note_template: data.delivery_note_template || 'classic',
           credit_template: data.credit_template || 'classic',
-          unified_template: data.unified_template || 'classic',
-          use_unified_template: data.use_unified_template || false,
           tenant_id: data.organization_id
         };
         setGlobalSettings(formattedSettings);
@@ -263,53 +261,23 @@ export function useSettings() {
     }
   };
 
-  // Save global settings - Fixed upsert logic for unique constraint
+  // Save global settings
   const saveGlobalSettings = async (settings: Partial<GlobalSettings>) => {
     if (!organization?.id) return;
 
     try {
-      console.log('Saving global settings:', settings);
-      
-      const updateData = {
-        footer_content: settings.footer_content,
-        footer_display: settings.footer_display,
-        primary_currency: settings.primary_currency,
-        invoice_template: settings.invoice_template,
-        quote_template: settings.quote_template,
-        delivery_note_template: settings.delivery_note_template,
-        credit_template: settings.credit_template,
-        unified_template: settings.unified_template,
-        use_unified_template: settings.use_unified_template,
-        organization_id: organization.id,
-        updated_at: new Date().toISOString()
-      };
-
-      // First try to update existing record
-      const { data: existingData, error: selectError } = await supabase
+      const { error } = await supabase
         .from('global_settings')
-        .select('id')
-        .eq('organization_id', organization.id)
-        .single();
-
-      if (selectError && selectError.code !== 'PGRST116') {
-        throw selectError;
-      }
-
-      let error;
-      if (existingData) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from('global_settings')
-          .update(updateData)
-          .eq('organization_id', organization.id);
-        error = updateError;
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from('global_settings')
-          .insert(updateData);
-        error = insertError;
-      }
+        .upsert({
+          footer_content: settings.footer_content,
+          footer_display: settings.footer_display,
+          primary_currency: settings.primary_currency,
+          invoice_template: settings.invoice_template,
+          quote_template: settings.quote_template,
+          delivery_note_template: settings.delivery_note_template,
+          credit_template: settings.credit_template,
+          organization_id: organization.id
+        });
 
       if (error) throw error;
       

@@ -10,39 +10,19 @@ interface TemplatedInvoicePDFProps {
   settings: any;
   template?: string;
   documentType?: string;
-  unifiedTemplate?: string;
-  useUnifiedTemplate?: boolean;
 }
 
 export const TemplatedInvoicePDF = ({ 
   template = 'classic',
   documentType = 'FACTURE',
-  unifiedTemplate = 'classic',
-  useUnifiedTemplate = false,
   ...props 
 }: TemplatedInvoicePDFProps) => {
   const templateProps = { 
     ...props, 
-    documentType
+    documentType // Assurer que documentType est bien passé
   };
   
-  // Détermine quel template utiliser selon les paramètres
-  let selectedTemplate = template;
-  
-  // Si le template unifié est activé, utiliser le template unifié pour tous les documents
-  if (useUnifiedTemplate) {
-    selectedTemplate = unifiedTemplate;
-  }
-  
-  console.log('Template selection:', {
-    originalTemplate: template,
-    unifiedTemplate,
-    useUnifiedTemplate,
-    selectedTemplate,
-    documentType
-  });
-  
-  switch (selectedTemplate) {
+  switch (template) {
     case 'modern':
       return <ModernTemplate {...templateProps} />;
     case 'minimal':
