@@ -62,7 +62,7 @@ export function Header({ activeModule }: HeaderProps) {
 
       <div className="flex items-center gap-4">
         {/* Date et heure en temps réel */}
-        <div className="text-green-600 font-medium text-lg">
+        <div className="text-orange-600 font-medium text-lg">
           {formatDateTime(currentDateTime)}
         </div>
         
