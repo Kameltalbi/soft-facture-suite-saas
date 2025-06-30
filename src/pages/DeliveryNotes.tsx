@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,11 +25,11 @@ interface DeliveryNote {
   date: string;
   expected_delivery_date: string | null;
   delivery_address: string | null;
-  status: 'pending' | 'delivered' | 'partial';
+  status: 'pending' | 'sent' | 'delivered' | 'signed';
   notes: string | null;
   created_at: string;
   updated_at: string;
-  client: { name: string } | null;
+  clients: { name: string } | null;
 }
 
 interface DeliveryNoteModalProps {
@@ -52,7 +53,7 @@ const DeliveryNotes = () => {
 
   const filteredDeliveryNotes = deliveryNotes.filter(note =>
     note.delivery_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    note.client?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    note.clients?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddDeliveryNote = () => {
@@ -83,8 +84,9 @@ const DeliveryNotes = () => {
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: { label: 'En attente', variant: 'secondary', icon: Clock },
+      sent: { label: 'Envoyé', variant: 'outline', icon: Package },
       delivered: { label: 'Livré', variant: 'default', icon: CheckCircle },
-      partial: { label: 'Partiel', variant: 'outline', icon: Package }
+      signed: { label: 'Signé', variant: 'default', icon: CheckCircle }
     };
 
     const config = statusConfig[status] || statusConfig.pending;
@@ -102,7 +104,7 @@ const DeliveryNotes = () => {
     totalNotes: deliveryNotes.length,
     pendingNotes: deliveryNotes.filter(n => n.status === 'pending').length,
     deliveredNotes: deliveryNotes.filter(n => n.status === 'delivered').length,
-    partialNotes: deliveryNotes.filter(n => n.status === 'partial').length
+    sentNotes: deliveryNotes.filter(n => n.status === 'sent').length
   };
 
   if (loading) {
@@ -177,10 +179,10 @@ const DeliveryNotes = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Livrés</p>
-                <p className="text-2xl font-bold text-green-600">{stats.deliveredNotes}</p>
+                <p className="text-sm text-neutral-600">Envoyés</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.sentNotes}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <Truck className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -189,10 +191,10 @@ const DeliveryNotes = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Partiels</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.partialNotes}</p>
+                <p className="text-sm text-neutral-600">Livrés</p>
+                <p className="text-2xl font-bold text-green-600">{stats.deliveredNotes}</p>
               </div>
-              <Truck className="h-8 w-8 text-blue-600" />
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -219,7 +221,7 @@ const DeliveryNotes = () => {
                     <div className="font-medium text-neutral-900">{note.delivery_number}</div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm">{note.client?.name || 'N/A'}</span>
+                    <span className="text-sm">{note.clients?.name || 'N/A'}</span>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">{new Date(note.date).toLocaleDateString('fr-FR')}</span>
