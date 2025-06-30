@@ -339,9 +339,9 @@ export const useDashboardData = (selectedYear: number) => {
       .slice(0, 20);
 
     // 6. Répartition CA par client (Top 10 pour le camembert)
-    const clientDistribution = top20Clients.slice(0, 10).map((client, index) => ({
-      name: client.name,
-      value: client.revenue,
+    const clientDistribution = top20Clients.slice(0, 10).map(([name, value], index) => ({
+      name,
+      value,
       color: `#${Math.floor(Math.random()*16777215).toString(16)}`
     }));
 
