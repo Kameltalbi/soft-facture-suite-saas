@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { DashboardKpis } from '@/components/dashboard/DashboardKpis';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters';
@@ -19,8 +18,8 @@ export function Dashboard() {
           {/* Header Section with Year Selector */}
           <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">Dashboard</h1>
-              <p className="text-lg text-gray-600">Vue d'ensemble de votre activité commerciale annuelle</p>
+              <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">Dashboard Annuel</h1>
+              <p className="text-lg text-gray-600">Vue d'ensemble professionnelle de votre activité commerciale</p>
             </div>
             
             <div className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -48,13 +47,13 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* KPI Cards */}
+          {/* 6 Cartes Synthétiques */}
           <DashboardKpis 
             data={kpiData} 
             loading={loading}
           />
 
-          {/* Charts Section */}
+          {/* 6 Graphiques Analytiques */}
           <DashboardCharts 
             data={chartData}
             selectedYear={filters.selectedYear}

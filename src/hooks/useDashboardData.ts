@@ -4,43 +4,41 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 interface DashboardKpiData {
-  totalInvoices: number;
-  paidInvoices: number;
-  pendingInvoices: number;
-  overdueInvoices: number;
-  totalCredits: number;
   totalRevenue: number;
+  totalEncaisse: number;
   totalVat: number;
-  quotesThisYear: number;
-  pendingOrders: number;
-  lowStockProducts: number;
-  topProduct: { name: string; revenue: number };
-  categorySales: Array<{ name: string; value: number; color: string }>;
+  totalInvoices: number;
+  totalQuotes: number;
+  activeClients: number;
   currency: { code: string; symbol: string; name: string };
 }
 
 interface DashboardChartData {
+  caByCategory: Array<{
+    category: string;
+    amount: number;
+  }>;
+  caByProduct: Array<{
+    name: string;
+    revenue: number;
+  }>;
   monthlyComparison: Array<{
     month: string;
     currentYear: number;
     previousYear: number;
   }>;
-  topProducts: Array<{
+  invoicesPerMonth: Array<{
+    month: string;
+    count: number;
+  }>;
+  top20Clients: Array<{
     name: string;
     revenue: number;
   }>;
-  categorySales: Array<{
-    category: string;
-    amount: number;
-  }>;
-  invoiceStatus: Array<{
+  clientDistribution: Array<{
     name: string;
     value: number;
     color: string;
-  }>;
-  clientRevenue: Array<{
-    name: string;
-    revenue: number;
   }>;
 }
 
@@ -48,26 +46,21 @@ export const useDashboardData = (selectedYear: number) => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [kpiData, setKpiData] = useState<DashboardKpiData>({
-    totalInvoices: 0,
-    paidInvoices: 0,
-    pendingInvoices: 0,
-    overdueInvoices: 0,
-    totalCredits: 0,
     totalRevenue: 0,
+    totalEncaisse: 0,
     totalVat: 0,
-    quotesThisYear: 0,
-    pendingOrders: 0,
-    lowStockProducts: 0,
-    topProduct: { name: 'Aucun produit', revenue: 0 },
-    categorySales: [],
+    totalInvoices: 0,
+    totalQuotes: 0,
+    activeClients: 0,
     currency: { code: 'EUR', symbol: '€', name: 'Euro' }
   });
   const [chartData, setChartData] = useState<DashboardChartData>({
+    caByCategory: [],
+    caByProduct: [],
     monthlyComparison: [],
-    topProducts: [],
-    categorySales: [],
-    invoiceStatus: [],
-    clientRevenue: []
+    invoicesPerMonth: [],
+    top20Clients: [],
+    clientDistribution: []
   });
 
   useEffect(() => {
@@ -113,11 +106,9 @@ export const useDashboardData = (selectedYear: number) => {
     setLoading(true);
     
     try {
-      // Récupérer la devise de l'organisation
       const currency = await fetchOrganizationCurrency();
       console.log('💰 Dashboard - Currency:', currency);
 
-      // Récupérer les données KPI pour l'année complète
       const kpis = await fetchKpiData();
       console.log('📈 Dashboard - KPIs for year:', selectedYear, kpis);
       
@@ -126,7 +117,6 @@ export const useDashboardData = (selectedYear: number) => {
         currency
       });
 
-      // Récupérer les données pour les graphiques
       const charts = await fetchChartData();
       console.log('📊 Dashboard - Charts for year:', selectedYear, charts);
       setChartData(charts);
@@ -142,24 +132,17 @@ export const useDashboardData = (selectedYear: number) => {
     if (!orgId) {
       console.log('❌ KPI - No organization ID');
       return {
-        totalInvoices: 0,
-        paidInvoices: 0,
-        pendingInvoices: 0,
-        overdueInvoices: 0,
-        totalCredits: 0,
         totalRevenue: 0,
+        totalEncaisse: 0,
         totalVat: 0,
-        quotesThisYear: 0,
-        pendingOrders: 0,
-        lowStockProducts: 0,
-        topProduct: { name: 'Aucun produit', revenue: 0 },
-        categorySales: []
+        totalInvoices: 0,
+        totalQuotes: 0,
+        activeClients: 0
       };
     }
 
-    // Toujours utiliser l'année complète pour toutes les organisations
-    const startDate = new Date(selectedYear, 0, 1); // 1er janvier de l'année
-    const endDate = new Date(selectedYear, 11, 31); // 31 décembre de l'année
+    const startDate = new Date(selectedYear, 0, 1);
+    const endDate = new Date(selectedYear, 11, 31);
 
     console.log('📅 KPI - Date range for FULL YEAR:', { 
       year: selectedYear,
@@ -170,7 +153,7 @@ export const useDashboardData = (selectedYear: number) => {
     // Factures de l'année complète
     const { data: invoices, error: invoicesError } = await supabase
       .from('invoices')
-      .select('*')
+      .select('*, clients(*)')
       .eq('organization_id', orgId)
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
@@ -179,18 +162,6 @@ export const useDashboardData = (selectedYear: number) => {
       console.error('❌ KPI - Error fetching invoices:', invoicesError);
     } else {
       console.log('📄 KPI - Invoices found for FULL YEAR:', invoices?.length || 0);
-    }
-
-    // Avoirs de l'année
-    const { data: credits, error: creditsError } = await supabase
-      .from('credit_notes')
-      .select('total_amount')
-      .eq('organization_id', orgId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0]);
-
-    if (creditsError) {
-      console.error('❌ KPI - Error fetching credits:', creditsError);
     }
 
     // Devis de l'année
@@ -205,71 +176,39 @@ export const useDashboardData = (selectedYear: number) => {
       console.error('❌ KPI - Error fetching quotes:', quotesError);
     }
 
-    // Bons de commande
-    const { data: purchaseOrders, error: purchaseOrdersError } = await supabase
-      .from('purchase_orders')
-      .select('*')
-      .eq('organization_id', orgId)
-      .eq('status', 'pending');
-
-    if (purchaseOrdersError) {
-      console.error('❌ KPI - Error fetching purchase orders:', purchaseOrdersError);
-    }
-
-    // Produits avec stock faible
-    const { data: lowStockProducts, error: lowStockError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('organization_id', orgId)
-      .lt('stock_quantity', 10);
-
-    if (lowStockError) {
-      console.error('❌ KPI - Error fetching low stock products:', lowStockError);
-    }
-
-    // Calculs des KPI sur toute l'année
+    // Calculs des KPI
     const totalInvoices = invoices?.length || 0;
-    const paidInvoices = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
-    const pendingInvoices = invoices?.filter(inv => inv.status === 'sent').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
-    const overdueInvoices = invoices?.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
-    const totalCredits = credits?.reduce((sum, credit) => sum + (credit.total_amount || 0), 0) || 0;
     const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
+    const totalEncaisse = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
     const totalVat = invoices?.reduce((sum, inv) => sum + (inv.tax_amount || 0), 0) || 0;
+    const totalQuotes = quotes?.length || 0;
+    
+    // Clients actifs (ayant généré du CA)
+    const activeClientsSet = new Set();
+    invoices?.forEach(invoice => {
+      if (invoice.total_amount && invoice.total_amount > 0) {
+        activeClientsSet.add(invoice.client_id);
+      }
+    });
+    const activeClients = activeClientsSet.size;
 
     console.log('📊 KPI - Calculated values for FULL YEAR:', {
       year: selectedYear,
       totalInvoices,
-      paidInvoices,
-      pendingInvoices,
-      overdueInvoices,
-      totalCredits,
       totalRevenue,
-      totalVat
+      totalEncaisse,
+      totalVat,
+      totalQuotes,
+      activeClients
     });
 
-    // Top produit (approximatif - nécessiterait une jointure plus complexe)
-    const topProduct = { name: 'Données indisponibles', revenue: 0 };
-
-    // Ventes par catégorie (approximatif)
-    const categorySales = [
-      { name: 'Services', value: Math.round(totalRevenue * 0.6), color: '#648B78' },
-      { name: 'Produits', value: Math.round(totalRevenue * 0.3), color: '#F59E0B' },
-      { name: 'Formation', value: Math.round(totalRevenue * 0.1), color: '#EF4444' }
-    ].filter(cat => cat.value > 0);
-
     return {
-      totalInvoices,
-      paidInvoices,
-      pendingInvoices,
-      overdueInvoices,
-      totalCredits,
       totalRevenue,
+      totalEncaisse,
       totalVat,
-      quotesThisYear: quotes?.length || 0,
-      pendingOrders: purchaseOrders?.length || 0,
-      lowStockProducts: lowStockProducts?.length || 0,
-      topProduct,
-      categorySales
+      totalInvoices,
+      totalQuotes,
+      activeClients
     };
   };
 
@@ -278,17 +217,69 @@ export const useDashboardData = (selectedYear: number) => {
     if (!orgId) {
       console.log('❌ Charts - No organization ID');
       return {
+        caByCategory: [],
+        caByProduct: [],
         monthlyComparison: [],
-        topProducts: [],
-        categorySales: [],
-        invoiceStatus: [],
-        clientRevenue: []
+        invoicesPerMonth: [],
+        top20Clients: [],
+        clientDistribution: []
       };
     }
 
     console.log('📊 Charts - Fetching data for org:', orgId, 'Year:', selectedYear);
 
-    // Données mensuelles pour l'année en cours et précédente
+    const startDate = new Date(selectedYear, 0, 1);
+    const endDate = new Date(selectedYear, 11, 31);
+
+    // Récupérer toutes les factures avec les items et produits
+    const { data: invoicesWithItems, error: invoicesError } = await supabase
+      .from('invoices')
+      .select(`
+        *,
+        clients(*),
+        invoice_items(*, products(*))
+      `)
+      .eq('organization_id', orgId)
+      .gte('date', startDate.toISOString().split('T')[0])
+      .lte('date', endDate.toISOString().split('T')[0]);
+
+    if (invoicesError) {
+      console.error('❌ Charts - Error fetching invoices:', invoicesError);
+      return {
+        caByCategory: [],
+        caByProduct: [],
+        monthlyComparison: [],
+        invoicesPerMonth: [],
+        top20Clients: [],
+        clientDistribution: []
+      };
+    }
+
+    // 1. CA par catégorie
+    const categoryMap = new Map<string, number>();
+    invoicesWithItems?.forEach(invoice => {
+      invoice.invoice_items?.forEach(item => {
+        const category = item.products?.category || 'Non catégorisé';
+        const current = categoryMap.get(category) || 0;
+        categoryMap.set(category, current + (item.total_price || 0));
+      });
+    });
+    const caByCategory = Array.from(categoryMap.entries()).map(([category, amount]) => ({ category, amount }));
+
+    // 2. CA par produit
+    const productMap = new Map<string, number>();
+    invoicesWithItems?.forEach(invoice => {
+      invoice.invoice_items?.forEach(item => {
+        const productName = item.products?.name || item.description;
+        const current = productMap.get(productName) || 0;
+        productMap.set(productName, current + (item.total_price || 0));
+      });
+    });
+    const caByProduct = Array.from(productMap.entries())
+      .map(([name, revenue]) => ({ name, revenue }))
+      .sort((a, b) => b.revenue - a.revenue);
+
+    // 3. Comparaison mensuelle avec année précédente
     const monthlyComparison = [];
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -322,72 +313,54 @@ export const useDashboardData = (selectedYear: number) => {
       });
     }
 
-    // Récupérer les données pour les autres graphiques (année complète)
-    const startDate = new Date(selectedYear, 0, 1);
-    const endDate = new Date(selectedYear, 11, 31);
+    // 4. Nombre de factures par mois
+    const invoicesPerMonthMap = new Map<string, number>();
+    invoicesWithItems?.forEach(invoice => {
+      const month = new Date(invoice.date).getMonth();
+      const monthName = months[month];
+      const current = invoicesPerMonthMap.get(monthName) || 0;
+      invoicesPerMonthMap.set(monthName, current + 1);
+    });
+    const invoicesPerMonth = months.map(month => ({
+      month,
+      count: invoicesPerMonthMap.get(month) || 0
+    }));
 
-    const { data: invoices, error: invoicesError } = await supabase
-      .from('invoices')
-      .select('*, clients(*)')
-      .eq('organization_id', orgId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0]);
-
-    if (invoicesError) {
-      console.error('❌ Charts - Error fetching invoices:', invoicesError);
-    } else {
-      console.log('📊 Charts - Total invoices found for full year:', invoices?.length || 0);
-    }
-
-    // Statuts des factures
-    const invoiceStatus = [
-      { 
-        name: 'Payées', 
-        value: invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-        color: '#648B78' 
-      },
-      { 
-        name: 'Payées P.', 
-        value: invoices?.filter(inv => inv.status === 'partially_paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-        color: '#F59E0B' 
-      },
-      { 
-        name: 'En attente', 
-        value: invoices?.filter(inv => inv.status === 'sent').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-        color: '#3B82F6' 
-      },
-      { 
-        name: 'En retard', 
-        value: invoices?.filter(inv => inv.status === 'overdue').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0,
-        color: '#EF4444' 
-      }
-    ].filter(status => status.value > 0);
-
-    // CA par client (top 5)
+    // 5. Top 20 clients par CA
     const clientRevenueMap = new Map<string, number>();
-    invoices?.forEach(invoice => {
+    invoicesWithItems?.forEach(invoice => {
       const clientName = invoice.clients?.name || 'Client inconnu';
       const current = clientRevenueMap.get(clientName) || 0;
       clientRevenueMap.set(clientName, current + (invoice.total_amount || 0));
     });
-
-    const clientRevenue = Array.from(clientRevenueMap.entries())
+    const top20Clients = Array.from(clientRevenueMap.entries())
       .map(([name, revenue]) => ({ name, revenue }))
       .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5);
+      .slice(0, 20);
+
+    // 6. Répartition CA par client (Top 10 pour le camembert)
+    const clientDistribution = top20Clients.slice(0, 10).map(([name, value], index) => ({
+      name,
+      value,
+      color: `#${Math.floor(Math.random()*16777215).toString(16)}`
+    }));
 
     console.log('📊 Charts - Final data for full year:', {
+      caByCategory: caByCategory.length,
+      caByProduct: caByProduct.length,
       monthlyComparison: monthlyComparison.length,
-      invoiceStatus: invoiceStatus.length,
-      clientRevenue: clientRevenue.length
+      invoicesPerMonth: invoicesPerMonth.length,
+      top20Clients: top20Clients.length,
+      clientDistribution: clientDistribution.length
     });
 
     return {
+      caByCategory,
+      caByProduct,
       monthlyComparison,
-      topProducts: [], // Nécessiterait une jointure avec les items
-      categorySales: [], // Nécessiterait une jointure avec les produits
-      invoiceStatus,
-      clientRevenue
+      invoicesPerMonth,
+      top20Clients,
+      clientDistribution
     };
   };
 

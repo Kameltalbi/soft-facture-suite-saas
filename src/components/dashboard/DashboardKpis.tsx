@@ -2,33 +2,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
-  FileText, 
+  TrendingUp, 
   CheckCircle, 
-  Clock, 
-  AlertTriangle, 
-  CreditCard, 
-  TrendingUp,
-  Calculator,
-  FileCheck,
-  Package,
-  AlertCircle,
-  Trophy,
-  PieChart
+  Calculator, 
+  FileText, 
+  FileCheck, 
+  Users
 } from 'lucide-react';
 
 interface DashboardKpiData {
-  totalInvoices: number;
-  paidInvoices: number;
-  pendingInvoices: number;
-  overdueInvoices: number;
-  totalCredits: number;
   totalRevenue: number;
+  totalEncaisse: number;
   totalVat: number;
-  quotesThisYear: number;
-  pendingOrders: number;
-  lowStockProducts: number;
-  topProduct: { name: string; revenue: number };
-  categorySales: Array<{ name: string; value: number; color: string }>;
+  totalInvoices: number;
+  totalQuotes: number;
+  activeClients: number;
   currency: { code: string; symbol: string; name: string };
 }
 
@@ -44,8 +32,8 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {Array.from({ length: 12 }).map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-24" />
@@ -63,93 +51,57 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
 
   const kpis = [
     {
-      title: "Total Factures",
-      value: data.totalInvoices.toString(),
-      description: "Factures créées cette année",
-      icon: FileText,
-      color: "text-blue-600"
-    },
-    {
-      title: "Factures Payées",
-      value: formatCurrency(data.paidInvoices),
-      description: "Montant encaissé",
-      icon: CheckCircle,
-      color: "text-green-600"
-    },
-    {
-      title: "En Attente",
-      value: formatCurrency(data.pendingInvoices),
-      description: "Factures en attente",
-      icon: Clock,
-      color: "text-orange-600"
-    },
-    {
-      title: "En Retard",
-      value: formatCurrency(data.overdueInvoices),
-      description: "Factures en retard",
-      icon: AlertTriangle,
-      color: "text-red-600"
-    },
-    {
-      title: "Avoirs",
-      value: formatCurrency(data.totalCredits),
-      description: "Montant des avoirs",
-      icon: CreditCard,
-      color: "text-purple-600"
-    },
-    {
-      title: "Chiffre d'Affaires",
+      title: "Chiffre d'affaires total",
       value: formatCurrency(data.totalRevenue),
-      description: "CA total de l'année",
+      description: "CA cumulé de l'année (HT)",
       icon: TrendingUp,
-      color: "text-green-600"
+      color: "text-green-600",
+      bgColor: "bg-green-50"
     },
     {
-      title: "TVA Collectée",
+      title: "Montant encaissé",
+      value: formatCurrency(data.totalEncaisse),
+      description: "Paiements reçus",
+      icon: CheckCircle,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      title: "TVA collectée",
       value: formatCurrency(data.totalVat),
-      description: "Montant de TVA",
+      description: "Montant total de TVA",
       icon: Calculator,
-      color: "text-blue-600"
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
     },
     {
-      title: "Devis",
-      value: data.quotesThisYear.toString(),
-      description: "Devis cette année",
+      title: "Nombre de factures",
+      value: data.totalInvoices.toString(),
+      description: "Total des factures émises",
+      icon: FileText,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      title: "Nombre de devis",
+      value: data.totalQuotes.toString(),
+      description: "Total des devis émis",
       icon: FileCheck,
-      color: "text-indigo-600"
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50"
     },
     {
-      title: "Commandes",
-      value: data.pendingOrders.toString(),
-      description: "Commandes en attente",
-      icon: Package,
-      color: "text-amber-600"
-    },
-    {
-      title: "Stock Faible",
-      value: data.lowStockProducts.toString(),
-      description: "Produits < 10 unités",
-      icon: AlertCircle,
-      color: "text-red-600"
-    },
-    {
-      title: "Top Produit",
-      value: data.topProduct.name,
-      description: formatCurrency(data.topProduct.revenue),
-      icon: Trophy,
-      color: "text-yellow-600"
-    },
-    {
-      title: "Catégories",
-      value: data.categorySales.length.toString(),
-      description: "Catégories actives",
-      icon: PieChart,
-      color: "text-pink-600"
+      title: "Clients actifs",
+      value: data.activeClients.toString(),
+      description: "Clients ayant généré du CA",
+      icon: Users,
+      color: "text-red-600",
+      bgColor: "bg-red-50"
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {kpis.map((kpi, index) => {
         const Icon = kpi.icon;
         return (
@@ -158,7 +110,9 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
               <CardTitle className="text-sm font-medium text-gray-600">
                 {kpi.title}
               </CardTitle>
-              <Icon className={`h-4 w-4 ${kpi.color}`} />
+              <div className={`p-2 rounded-lg ${kpi.bgColor}`}>
+                <Icon className={`h-4 w-4 ${kpi.color}`} />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 mb-1">
