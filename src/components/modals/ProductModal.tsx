@@ -33,16 +33,22 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     track_stock: true
   });
 
+  // État séparé pour gérer l'affichage du prix comme string
+  const [priceDisplay, setPriceDisplay] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
+      const displayPrice = (product.price || 0) / 100;
+      // Afficher sans décimales si c'est un nombre entier
+      const priceStr = displayPrice % 1 === 0 ? displayPrice.toString() : displayPrice.toString();
+      
       setFormData({
         name: product.name || '',
         description: product.description || '',
-        // Convertir de centimes vers unité principale pour l'affichage
-        price: (product.price || 0) / 100,
+        price: displayPrice,
         unit: product.unit || 'unité',
         category: product.category || '',
         stock_quantity: product.stock_quantity || 0,
@@ -50,6 +56,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         active: product.active ?? true,
         track_stock: product.track_stock ?? true
       });
+      setPriceDisplay(priceStr);
     } else {
       setFormData({
         name: '',
@@ -62,9 +69,18 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         active: true,
         track_stock: true
       });
+      setPriceDisplay('0');
     }
     setError(null);
   }, [product, open]);
+
+  const handlePriceChange = (value: string) => {
+    setPriceDisplay(value);
+    
+    // Convertir en nombre pour le formData
+    const numericValue = parseFloat(value) || 0;
+    setFormData({...formData, price: numericValue});
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,11 +214,11 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
                 <Label htmlFor="price">Prix unitaire *</Label>
                 <Input
                   id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                  type="text"
+                  value={priceDisplay}
+                  onChange={(e) => handlePriceChange(e.target.value)}
+                  placeholder="0"
+                  pattern="[0-9]*[.,]?[0-9]*"
                   required
                 />
               </div>
