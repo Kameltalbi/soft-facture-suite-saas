@@ -9,10 +9,9 @@ export interface DashboardFilters {
 export const useDashboardFilters = () => {
   const currentDate = new Date();
   
-  // Utiliser 2024 par défaut au lieu de l'année courante pour correspondre aux données existantes
   const [filters, setFilters] = useState<DashboardFilters>({
-    selectedYear: 2024, // Changé de currentDate.getFullYear() à 2024
-    selectedMonth: 6, // Juin pour correspondre aux factures existantes
+    selectedYear: currentDate.getFullYear(), // 2025
+    selectedMonth: currentDate.getMonth() + 1, // +1 car getMonth() retourne 0-11, donc juin = 6
   });
 
   const updateYear = (year: number) => {
