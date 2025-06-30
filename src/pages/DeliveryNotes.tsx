@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,7 @@ interface DeliveryNote {
   created_at: string;
   updated_at: string;
   clients: { name: string } | null;
+  delivery_note_items?: any[];
 }
 
 interface DeliveryNoteModalProps {
@@ -62,7 +62,16 @@ const DeliveryNotes = () => {
   };
 
   const handleEditDeliveryNote = (note) => {
-    setEditingDeliveryNote(note);
+    // Transform the delivery note to match the expected modal interface
+    const transformedNote = {
+      ...note,
+      number: note.delivery_number,
+      client: note.clients,
+      expectedDeliveryDate: note.expected_delivery_date,
+      deliveryAddress: note.delivery_address,
+      items: note.delivery_note_items || []
+    };
+    setEditingDeliveryNote(transformedNote);
     setShowModal(true);
   };
 
