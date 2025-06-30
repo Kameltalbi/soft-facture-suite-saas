@@ -183,16 +183,13 @@ export default function DeliveryNotes() {
       email: delivery.clients?.email || 'client@email.com'
     };
 
-    // Transform the delivery note data to match what the PDF component expects
-    const deliveryData = {
-      number: delivery.delivery_number,
-      date: delivery.date,
-      subject: `Bon de livraison pour ${client.company}`,
-      notes: delivery.notes || (delivery.expected_delivery_date ? `Livraison prévue le ${new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR')}` : 'En cours de livraison')
-    };
-
     return {
-      deliveryData,
+      deliveryData: {
+        number: delivery.delivery_number,
+        date: delivery.date,
+        subject: `Bon de livraison pour ${client.company}`,
+        notes: delivery.notes || (delivery.expected_delivery_date ? `Livraison prévue le ${new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR')}` : 'En cours de livraison')
+      },
       lineItems: mockLineItems,
       client,
       company,
@@ -353,47 +350,37 @@ export default function DeliveryNotes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDeliveryNotes.map((delivery) => {
-                // Transform delivery to match expected interface for the ActionsMenu
-                const transformedDelivery = {
-                  ...delivery,
-                  number: delivery.delivery_number,
-                  client: delivery.clients?.company || delivery.clients?.name || 'Client',
-                  amount: 0 // Delivery notes don't have amounts, but the interface expects it
-                };
-
-                return (
-                  <TableRow key={delivery.id} className="hover:bg-neutral-50">
-                    <TableCell className="font-mono">{delivery.delivery_number}</TableCell>
-                    <TableCell>{new Date(delivery.date).toLocaleDateString('fr-FR')}</TableCell>
-                    <TableCell>{delivery.clients?.company || delivery.clients?.name || 'Client'}</TableCell>
-                    <TableCell>
-                      {delivery.expected_delivery_date ? 
-                        new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR') : 
-                        <span className="text-neutral-400">-</span>
-                      }
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusLabels[delivery.status as keyof typeof statusLabels]?.variant || 'secondary'}>
-                        {statusLabels[delivery.status as keyof typeof statusLabels]?.label || delivery.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DeliveryNoteActionsMenu
-                        deliveryNote={transformedDelivery}
-                        pdfComponent={<DeliveryNotePDF {...getPDFData(delivery)} />}
-                        onView={() => handleViewDelivery(delivery)}
-                        onEdit={() => handleEditDelivery(delivery)}
-                        onDuplicate={() => handleDuplicateDelivery(delivery)}
-                        onMarkAsDelivered={() => handleMarkAsDelivered(delivery)}
-                        onConvertToInvoice={() => handleConvertToInvoice(delivery)}
-                        onDelete={() => handleDeleteDelivery(delivery)}
-                        onEmailSent={handleEmailSent}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {filteredDeliveryNotes.map((delivery) => (
+                <TableRow key={delivery.id} className="hover:bg-neutral-50">
+                  <TableCell className="font-mono">{delivery.delivery_number}</TableCell>
+                  <TableCell>{new Date(delivery.date).toLocaleDateString('fr-FR')}</TableCell>
+                  <TableCell>{delivery.clients?.company || delivery.clients?.name || 'Client'}</TableCell>
+                  <TableCell>
+                    {delivery.expected_delivery_date ? 
+                      new Date(delivery.expected_delivery_date).toLocaleDateString('fr-FR') : 
+                      <span className="text-neutral-400">-</span>
+                    }
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusLabels[delivery.status as keyof typeof statusLabels]?.variant || 'secondary'}>
+                      {statusLabels[delivery.status as keyof typeof statusLabels]?.label || delivery.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DeliveryNoteActionsMenu
+                      deliveryNote={delivery}
+                      pdfComponent={<DeliveryNotePDF {...getPDFData(delivery)} />}
+                      onView={() => handleViewDelivery(delivery)}
+                      onEdit={() => handleEditDelivery(delivery)}
+                      onDuplicate={() => handleDuplicateDelivery(delivery)}
+                      onMarkAsDelivered={() => handleMarkAsDelivered(delivery)}
+                      onConvertToInvoice={() => handleConvertToInvoice(delivery)}
+                      onDelete={() => handleDeleteDelivery(delivery)}
+                      onEmailSent={handleEmailSent}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

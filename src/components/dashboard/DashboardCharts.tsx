@@ -44,7 +44,7 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="card-modern">
+          <Card key={i}>
             <CardHeader>
               <Skeleton className="h-6 w-48" />
             </CardHeader>
@@ -60,17 +60,17 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Comparaison mensuelle */}
-      <Card className="lg:col-span-2 card-modern hover:shadow-strong transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold text-text-primary">Évolution du Chiffre d'Affaires</CardTitle>
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle>Évolution du Chiffre d'Affaires</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.monthlyComparison}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="month" stroke="#6B7280" className="text-sm" />
-                <YAxis stroke="#6B7280" tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} className="text-sm" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" stroke="#666" />
+                <YAxis stroke="#666" tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
                 <Tooltip 
                   formatter={(value: number, name: string) => [
                     formatCurrency(value),
@@ -78,14 +78,13 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
                   ]}
                   contentStyle={{
                     backgroundColor: 'white',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                    color: '#1F2937'
+                    border: '1px solid #e0e0e0',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                   }}
                 />
-                <Bar dataKey="currentYear" fill="#6C4CF1" name={selectedYear.toString()} radius={[6, 6, 0, 0]} />
-                <Bar dataKey="previousYear" fill="#C7D2FE" name={(selectedYear - 1).toString()} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="currentYear" fill="#6A9C89" name={selectedYear.toString()} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="previousYear" fill="#A8D5BA" name={(selectedYear - 1).toString()} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -93,9 +92,9 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
       </Card>
 
       {/* Statut des factures */}
-      <Card className="card-modern hover:shadow-strong transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold text-text-primary">Statut des Factures</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>Statut des Factures</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-64">
@@ -114,30 +113,21 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  formatter={(value: number) => formatCurrency(value)}
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                    color: '#1F2937'
-                  }}
-                />
+                <Tooltip formatter={(value: number) => formatCurrency(value)} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-2">
             {data.invoiceStatus.map((status, index) => (
-              <div key={index} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent/50 transition-colors">
-                <div className="flex items-center gap-3">
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
                   <div 
-                    className="w-4 h-4 rounded-full shadow-sm" 
+                    className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: status.color }}
                   />
-                  <span className="text-sm font-medium text-text-primary">{status.name}</span>
+                  <span className="text-sm text-gray-600">{status.name}</span>
                 </div>
-                <span className="text-sm font-bold text-text-primary">{formatCurrency(status.value)}</span>
+                <span className="text-sm font-medium">{formatCurrency(status.value)}</span>
               </div>
             ))}
           </div>
@@ -145,21 +135,21 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
       </Card>
 
       {/* Top 5 clients */}
-      <Card className="card-modern hover:shadow-strong transition-all duration-300">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-bold text-text-primary">Top 5 Clients</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>Top 5 Clients</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {data.clientRevenue.map((client, index) => (
-              <div key={index} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-accent/50 transition-all duration-200 hover:scale-105">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white text-sm font-bold shadow-primary">
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-[#6A9C89] rounded-full flex items-center justify-center text-white text-sm font-medium">
                     {index + 1}
                   </div>
-                  <span className="text-sm font-semibold text-text-primary">{client.name}</span>
+                  <span className="text-sm font-medium">{client.name}</span>
                 </div>
-                <span className="text-sm font-bold text-primary">
+                <span className="text-sm font-medium text-green-600">
                   {formatCurrency(client.revenue)}
                 </span>
               </div>

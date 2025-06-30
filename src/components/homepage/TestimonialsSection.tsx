@@ -4,22 +4,22 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const testimonials = [
   {
-    quote: "Soft Facture nous a permis de digitaliser complètement notre processus de facturation. L'interface est intuitive et nous fait gagner un temps précieux au quotidien.",
-    name: "Hamadi Zouari",
-    role: "Gérant STS Networks",
-    avatar: "HZ"
+    quote: "Soft Facture m'a fait gagner un temps précieux. Mes factures sont maintenant professionnelles et je peux me concentrer sur mon métier d'artisan.",
+    name: "Marie Dubois",
+    role: "Artisan Menuisière",
+    avatar: "MD"
   },
   {
-    quote: "Excellente solution pour notre entreprise. La gestion des devis et leur conversion en factures est très fluide. Je recommande vivement !",
-    name: "Wahid Ben Taher",
-    role: "Gérant MDA Networks",
-    avatar: "WB"
+    quote: "Interface simple et intuitive. Perfect pour mon activité de coaching. Les devis se transforment en factures en un clic !",
+    name: "Thomas Martin",
+    role: "Coach Professionnel",
+    avatar: "TM"
   },
   {
-    quote: "Un outil professionnel qui nous aide à mieux suivre nos ventes et nos clients. L'équipe de support est très réactive et à l'écoute.",
-    name: "Hakima Boubakri",
-    role: "Responsable commerciale Grain de Sens",
-    avatar: "HB"
+    quote: "Excellente solution pour ma boutique. La gestion du stock Pro est un vrai plus pour suivre mes ventes et réapprovisionnements.",
+    name: "Sophie Laurent",
+    role: "Gérante Boutique",
+    avatar: "SL"
   }
 ];
 
@@ -28,7 +28,7 @@ export function TestimonialsSection() {
     <section id="temoignages" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Ils utilisent Soft Facture au quotidien
           </h2>
         </div>
@@ -38,19 +38,19 @@ export function TestimonialsSection() {
             <Card key={index} className="bg-white shadow-lg rounded-xl hover:shadow-xl transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="mb-6">
-                  <p className="text-text-secondary italic leading-relaxed">
+                  <p className="text-gray-700 italic leading-relaxed">
                     "{testimonial.quote}"
                   </p>
                 </div>
                 <div className="flex items-center">
                   <Avatar className="w-12 h-12 mr-4">
-                    <AvatarFallback className="bg-primary text-white font-semibold">
+                    <AvatarFallback className="bg-[#6A9C89] text-white font-semibold">
                       {testimonial.avatar}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold text-text-primary">{testimonial.name}</p>
-                    <p className="text-sm text-text-secondary">{testimonial.role}</p>
+                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                    <p className="text-sm text-gray-600">{testimonial.role}</p>
                   </div>
                 </div>
               </CardContent>

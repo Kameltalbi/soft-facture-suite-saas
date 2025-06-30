@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +40,7 @@ interface DeliveryNote {
   date: string;
   client: string;
   amount: number;
-  status: 'pending' | 'sent' | 'delivered' | 'signed';
+  status: 'draft' | 'sent' | 'delivered' | 'signed';
   deliveryDate?: string;
 }
 
@@ -58,7 +57,7 @@ interface DeliveryNoteActionsMenuProps {
 }
 
 const statusLabels = {
-  pending: { label: 'En attente', variant: 'secondary' as const },
+  draft: { label: 'Brouillon', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
   delivered: { label: 'Livré', variant: 'default' as const },
   signed: { label: 'Signé', variant: 'default' as const }
@@ -79,7 +78,7 @@ export function DeliveryNoteActionsMenu({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const canEdit = deliveryNote.status === 'pending';
+  const canEdit = deliveryNote.status === 'draft';
   const canMarkAsDelivered = deliveryNote.status === 'sent';
   const canConvertToInvoice = deliveryNote.status === 'delivered' || deliveryNote.status === 'signed';
 
@@ -92,6 +91,18 @@ export function DeliveryNoteActionsMenu({
     onEmailSent(emailData);
     setShowEmailModal(false);
   };
+
+  // Prepare company data from organization and user
+  const company = {
+    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
+    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
+    address: organization?.address || user?.user_metadata?.company_address,
+    email: organization?.email || user?.email,
+    phone: organization?.phone || user?.user_metadata?.company_phone,
+  };
+
+  // Create enhanced PDF component with company data
+  const enhancedPdfComponent = React.cloneElement(pdfComponent, { company });
 
   return (
     <>
@@ -108,7 +119,7 @@ export function DeliveryNoteActionsMenu({
           </DropdownMenuItem>
 
           <PDFDownloadLink
-            document={pdfComponent}
+            document={enhancedPdfComponent}
             fileName={`${deliveryNote.number}.pdf`}
           >
             {({ loading }) => (

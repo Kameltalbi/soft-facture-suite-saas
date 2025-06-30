@@ -1,92 +1,94 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700;900&display=swap');
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
   :root {
-    --background: 249 250 251; /* #F9FAFB */
-    --foreground: 31 41 55; /* #1F2937 */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 255 255 255; /* #FFFFFF */
-    --card-foreground: 31 41 55; /* #1F2937 */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 255 255 255; /* #FFFFFF */
-    --popover-foreground: 31 41 55; /* #1F2937 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 108 76 241; /* #6C4CF1 */
-    --primary-foreground: 255 255 255; /* #FFFFFF */
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 30 58 138; /* #1E3A8A */
-    --secondary-foreground: 255 255 255; /* #FFFFFF */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 243 244 246; /* #F3F4F6 */
-    --muted-foreground: 107 114 128; /* #6B7280 */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 199 210 254; /* #C7D2FE */
-    --accent-foreground: 31 41 55; /* #1F2937 */
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --destructive: 239 68 68; /* #EF4444 */
-    --destructive-foreground: 255 255 255; /* #FFFFFF */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 229 231 235; /* #E5E7EB */
-    --input: 209 213 219; /* #D1D5DB */
-    --ring: 108 76 241; /* #6C4CF1 */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 108 76 241; /* #6C4CF1 */
-    --sidebar-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-primary: 30 58 138; /* #1E3A8A */
-    --sidebar-primary-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-accent: 119 93 248; /* #775DF8 */
-    --sidebar-accent-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-border: 108 76 241; /* #6C4CF1 */
-    --sidebar-ring: 108 76 241; /* #6C4CF1 */
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 17 24 39; /* #111827 */
-    --foreground: 249 250 251; /* #F9FAFB */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 31 41 55; /* #1F2937 */
-    --card-foreground: 249 250 251; /* #F9FAFB */
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 31 41 55; /* #1F2937 */
-    --popover-foreground: 249 250 251; /* #F9FAFB */
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 108 76 241; /* #6C4CF1 */
-    --primary-foreground: 255 255 255; /* #FFFFFF */
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 30 58 138; /* #1E3A8A */
-    --secondary-foreground: 255 255 255; /* #FFFFFF */
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 55 65 81; /* #374151 */
-    --muted-foreground: 156 163 175; /* #9CA3AF */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 55 65 81; /* #374151 */
-    --accent-foreground: 249 250 251; /* #F9FAFB */
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 239 68 68; /* #EF4444 */
-    --destructive-foreground: 255 255 255; /* #FFFFFF */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 55 65 81; /* #374151 */
-    --input: 55 65 81; /* #374151 */
-    --ring: 108 76 241; /* #6C4CF1 */
-
-    --sidebar-background: 108 76 241; /* #6C4CF1 */
-    --sidebar-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-primary: 30 58 138; /* #1E3A8A */
-    --sidebar-primary-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-accent: 119 93 248; /* #775DF8 */
-    --sidebar-accent-foreground: 255 255 255; /* #FFFFFF */
-    --sidebar-border: 108 76 241; /* #6C4CF1 */
-    --sidebar-ring: 108 76 241; /* #6C4CF1 */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -96,119 +98,6 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground;
   }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-text-primary font-semibold;
-  }
-
-  p {
-    @apply text-text-primary leading-relaxed;
-  }
-
-  .text-muted {
-    @apply text-text-secondary;
-  }
-
-  .gradient-primary {
-    background: linear-gradient(135deg, #6C4CF1 0%, #1E3A8A 100%);
-  }
-
-  .gradient-accent {
-    background: linear-gradient(135deg, #C7D2FE 0%, #E0E7FF 100%);
-  }
-}
-
-@layer components {
-  /* Button Styles */
-  .btn-primary {
-    @apply bg-primary hover:bg-primary-hover text-primary-foreground font-medium px-6 py-3 rounded-2xl shadow-primary transition-all duration-200 transform hover:scale-105 active:scale-95;
-  }
-
-  .btn-secondary {
-    @apply bg-secondary hover:bg-secondary-hover text-secondary-foreground font-medium px-6 py-3 rounded-2xl shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95;
-  }
-
-  .btn-ghost {
-    @apply bg-transparent hover:bg-accent text-text-primary font-medium px-6 py-3 rounded-2xl transition-all duration-200;
-  }
-
-  /* Card Styles */
-  .card-modern {
-    @apply bg-card border border-border rounded-2xl shadow-soft p-6 transition-all duration-200 hover:shadow-medium;
-  }
-
-  .card-stats {
-    @apply bg-gradient-to-br from-white to-accent-50 border border-accent-200 rounded-2xl shadow-soft p-6 transition-all duration-200 hover:shadow-primary hover:scale-105;
-  }
-
-  /* Input Styles */
-  .input-modern {
-    @apply bg-background border border-input rounded-xl px-4 py-3 text-text-primary placeholder:text-text-secondary focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200;
-  }
-
-  /* Sidebar Styles */
-  .sidebar-item {
-    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sidebar-foreground hover:bg-sidebar-accent transition-all duration-200 group;
-  }
-
-  .sidebar-item-active {
-    @apply bg-primary text-primary-foreground shadow-lg;
-  }
-
-  /* Animation Classes */
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-  }
-
-  .animate-pulse-soft {
-    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  @keyframes pulse-soft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-  }
-}
-
-/* Scrollbar Styles */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #F3F4F6;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #C7D2FE;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #6C4CF1;
-}
-
-/* Focus Styles */
-.focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
-}
-
-/* Transition Utilities */
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.transition-bounce {
-  transition: all 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }

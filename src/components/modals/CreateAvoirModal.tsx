@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface LineItem {
   id: string;
@@ -89,7 +89,6 @@ const mockClients = [
 ];
 
 export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
-  const { currency } = useCurrency();
   const [type, setType] = useState<'facture_liee' | 'economique'>('facture_liee');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [selectedClient, setSelectedClient] = useState('');
@@ -253,7 +252,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
               <SelectContent>
                 {mockInvoices.map((invoice) => (
                   <SelectItem key={invoice.id} value={invoice.id}>
-                    {invoice.number} - {invoice.clientName} - {invoice.total.toLocaleString('fr-FR', { style: 'currency', currency: currency.code })}
+                    {invoice.number} - {invoice.clientName} - {invoice.total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -302,10 +301,10 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
                               />
                             </TableCell>
                             <TableCell>
-                              {item.unitPrice.toLocaleString('fr-FR', { style: 'currency', currency: currency.code })}
+                              {item.unitPrice.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                             </TableCell>
                             <TableCell className="text-right">
-                              {item.total.toLocaleString('fr-FR', { style: 'currency', currency: currency.code })}
+                              {item.total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                             </TableCell>
                             <TableCell>
                               <Button
@@ -412,7 +411,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
                           </Select>
                         </TableCell>
                         <TableCell className="text-right">
-                          {item.total.toLocaleString('fr-FR', { style: 'currency', currency: currency.code })}
+                          {item.total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
                         </TableCell>
                         <TableCell>
                           <Button
@@ -457,7 +456,7 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
           <div className="flex justify-between items-center text-lg font-semibold">
             <span>Total de l'avoir:</span>
             <span className="text-red-600">
-              -{Math.abs(calculateTotal()).toLocaleString('fr-FR', { style: 'currency', currency: currency.code })}
+              -{Math.abs(calculateTotal()).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
             </span>
           </div>
         </CardContent>

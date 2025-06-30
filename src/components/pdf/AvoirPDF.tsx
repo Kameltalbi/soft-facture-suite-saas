@@ -71,20 +71,12 @@ const styles = StyleSheet.create({
   companyInfo: {
     alignItems: 'flex-end',
     maxWidth: 200,
-    textAlign: 'right',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#DC2626', // Rouge pour les avoirs
     marginBottom: 10,
-    textAlign: 'right',
-  },
-  companyText: {
-    fontSize: 10,
-    color: '#2E2E2E',
-    marginBottom: 3,
-    textAlign: 'right',
   },
   documentInfo: {
     flexDirection: 'row',
@@ -259,10 +251,10 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
           </View>
           <View style={styles.companyInfo}>
             <Text style={styles.title}>AVOIR</Text>
-            <Text style={styles.companyText}>{companyData.name}</Text>
-            {companyData.address && <Text style={styles.companyText}>{companyData.address}</Text>}
-            {companyData.email && <Text style={styles.companyText}>{companyData.email}</Text>}
-            {companyData.phone && <Text style={styles.companyText}>{companyData.phone}</Text>}
+            <Text style={styles.text}>{companyData.name}</Text>
+            {companyData.address && <Text style={styles.text}>{companyData.address}</Text>}
+            {companyData.email && <Text style={styles.text}>{companyData.email}</Text>}
+            {companyData.phone && <Text style={styles.text}>{companyData.phone}</Text>}
           </View>
         </View>
 

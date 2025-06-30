@@ -91,17 +91,17 @@ export function useDeliveryNotes() {
         return;
       }
 
-      // Transform data to match DeliveryNote interface
-      const transformedData: DeliveryNote[] = (data || []).map(item => ({
+      // Type assertion to ensure proper typing
+      const typedData = (data || []).map(item => ({
         ...item,
         status: item.status as 'pending' | 'sent' | 'delivered' | 'signed',
-        delivery_note_items: item.delivery_note_items?.map((deliveryItem: any) => ({
-          ...deliveryItem,
-          status: deliveryItem.status as 'pending' | 'delivered' | 'partial'
-        })) || []
-      }));
+        delivery_note_items: (item.delivery_note_items || []).map((noteItem: any) => ({
+          ...noteItem,
+          status: noteItem.status as 'pending' | 'delivered' | 'partial'
+        }))
+      })) as DeliveryNote[];
 
-      setDeliveryNotes(transformedData);
+      setDeliveryNotes(typedData);
     } catch (err) {
       console.error('Error in fetchDeliveryNotes:', err);
       setError('Une erreur est survenue lors du chargement des bons de livraison');

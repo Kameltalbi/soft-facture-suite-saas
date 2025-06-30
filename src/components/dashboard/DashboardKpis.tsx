@@ -46,10 +46,10 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Array.from({ length: 12 }).map((_, i) => (
-          <Card key={i} className="card-modern">
+          <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-5 w-5 rounded-full" />
+              <Skeleton className="h-4 w-4" />
             </CardHeader>
             <CardContent>
               <Skeleton className="h-8 w-20 mb-1" />
@@ -67,108 +67,84 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       value: data.totalInvoices.toString(),
       description: "Factures créées ce mois",
       icon: FileText,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
-      trend: "+12%"
+      color: "text-blue-600"
     },
     {
       title: "Factures Payées",
       value: formatCurrency(data.paidInvoices),
       description: "Montant encaissé",
       icon: CheckCircle,
-      color: "text-success",
-      bgColor: "bg-success/10",
-      trend: "+8%"
+      color: "text-green-600"
     },
     {
       title: "En Attente",
       value: formatCurrency(data.pendingInvoices),
       description: "Factures en attente",
       icon: Clock,
-      color: "text-warning",
-      bgColor: "bg-warning/10",
-      trend: "-3%"
+      color: "text-orange-600"
     },
     {
       title: "En Retard",
       value: formatCurrency(data.overdueInvoices),
       description: "Factures en retard",
       icon: AlertTriangle,
-      color: "text-destructive",
-      bgColor: "bg-destructive/10",
-      trend: "+5%"
+      color: "text-red-600"
     },
     {
       title: "Avoirs",
       value: formatCurrency(data.totalCredits),
       description: "Montant des avoirs",
       icon: CreditCard,
-      color: "text-secondary",
-      bgColor: "bg-secondary/10",
-      trend: "-2%"
+      color: "text-purple-600"
     },
     {
       title: "Chiffre d'Affaires",
       value: formatCurrency(data.totalRevenue),
       description: "CA total du mois",
       icon: TrendingUp,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
-      trend: "+15%"
+      color: "text-green-600"
     },
     {
       title: "TVA Collectée",
       value: formatCurrency(data.totalVat),
       description: "Montant de TVA",
       icon: Calculator,
-      color: "text-secondary",
-      bgColor: "bg-secondary/10",
-      trend: "+10%"
+      color: "text-blue-600"
     },
     {
       title: "Devis",
       value: data.quotesThisMonth.toString(),
       description: "Devis ce mois",
       icon: FileCheck,
-      color: "text-accent-600",
-      bgColor: "bg-accent/20",
-      trend: "+22%"
+      color: "text-indigo-600"
     },
     {
       title: "Commandes",
       value: data.pendingOrders.toString(),
       description: "Commandes en attente",
       icon: Package,
-      color: "text-warning",
-      bgColor: "bg-warning/10",
-      trend: "+7%"
+      color: "text-amber-600"
     },
     {
       title: "Stock Faible",
       value: data.lowStockProducts.toString(),
       description: "Produits < 10 unités",
       icon: AlertCircle,
-      color: "text-destructive",
-      bgColor: "bg-destructive/10",
-      trend: "-1%"
+      color: "text-red-600"
     },
     {
       title: "Top Produit",
       value: data.topProduct.name,
       description: formatCurrency(data.topProduct.revenue),
       icon: Trophy,
-      color: "text-warning",
-      bgColor: "bg-warning/10",
-      trend: "+18%"
+      color: "text-yellow-600"
     },
     {
       title: "Catégories",
       value: data.categorySales.length.toString(),
       description: "Catégories actives",
       icon: PieChart,
-      color: "text-accent-600",
-      bgColor: "bg-accent/20",
-      trend: "+4%"
+      color: "text-pink-600"
     }
   ];
 
@@ -177,29 +153,18 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       {kpis.map((kpi, index) => {
         const Icon = kpi.icon;
         return (
-          <Card key={index} className="card-stats group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-strong">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <CardTitle className="text-sm font-semibold text-text-secondary group-hover:text-text-primary transition-colors">
+          <Card key={index} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
                 {kpi.title}
               </CardTitle>
-              <div className={`p-2 rounded-xl ${kpi.bgColor} transition-all duration-300 group-hover:scale-110`}>
-                <Icon className={`h-5 w-5 ${kpi.color}`} />
-              </div>
+              <Icon className={`h-4 w-4 ${kpi.color}`} />
             </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold text-text-primary group-hover:text-primary transition-colors">
-                  {kpi.value}
-                </div>
-                <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  kpi.trend.startsWith('+') 
-                    ? 'text-success bg-success/10' 
-                    : 'text-destructive bg-destructive/10'
-                }`}>
-                  {kpi.trend}
-                </div>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                {kpi.value}
               </div>
-              <p className="text-xs text-text-secondary group-hover:text-text-primary transition-colors">
+              <p className="text-xs text-gray-500">
                 {kpi.description}
               </p>
             </CardContent>
