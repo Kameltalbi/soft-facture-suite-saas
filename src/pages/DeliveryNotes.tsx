@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,11 +33,17 @@ interface DeliveryNote {
   delivery_note_items?: any[];
 }
 
-interface DeliveryNoteModalProps {
-  open: boolean;
-  onClose: () => void;
-  deliveryNote: DeliveryNote | null;
-  onSave: (data: any) => void;
+interface DeliveryNoteModalData {
+  id?: string;
+  number: string;
+  date: string;
+  client: { name: string } | null;
+  expectedDeliveryDate: string | null;
+  deliveryAddress: string | null;
+  status: 'pending' | 'sent' | 'delivered' | 'signed';
+  notes: string | null;
+  items: any[];
+  amount?: number;
 }
 
 interface DeliveryNoteActionsMenuProps {
@@ -48,7 +55,7 @@ interface DeliveryNoteActionsMenuProps {
 const DeliveryNotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [editingDeliveryNote, setEditingDeliveryNote] = useState(null);
+  const [editingDeliveryNote, setEditingDeliveryNote] = useState<DeliveryNoteModalData | null>(null);
   const { deliveryNotes, loading, createDeliveryNote, updateDeliveryNote, deleteDeliveryNote } = useDeliveryNotes();
 
   const filteredDeliveryNotes = deliveryNotes.filter(note =>
@@ -61,22 +68,26 @@ const DeliveryNotes = () => {
     setShowModal(true);
   };
 
-  const handleEditDeliveryNote = (note) => {
+  const handleEditDeliveryNote = (note: DeliveryNote) => {
     // Transform the delivery note to match the expected modal interface
-    const transformedNote = {
-      ...note,
+    const transformedNote: DeliveryNoteModalData = {
+      id: note.id,
       number: note.delivery_number,
+      date: note.date,
       client: note.clients,
       expectedDeliveryDate: note.expected_delivery_date,
       deliveryAddress: note.delivery_address,
-      items: note.delivery_note_items || []
+      status: note.status,
+      notes: note.notes,
+      items: note.delivery_note_items || [],
+      amount: 0 // Default amount since it's not in the original data
     };
     setEditingDeliveryNote(transformedNote);
     setShowModal(true);
   };
 
   const handleSaveDeliveryNote = async (data) => {
-    if (editingDeliveryNote) {
+    if (editingDeliveryNote?.id) {
       await updateDeliveryNote(editingDeliveryNote.id, data);
     } else {
       await createDeliveryNote(data);
