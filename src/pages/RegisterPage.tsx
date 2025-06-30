@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -312,13 +313,13 @@ const RegisterPage = () => {
                   <div className="text-sm text-gray-600 mb-3">
                     Format conseillé : horizontal, minimum 600 x 200 px, PNG ou SVG
                     <br />
-                    <span className="text-green-600 font-medium">✨ Redimensionnement automatique</span>
+                    <span className="text-primary-600 font-medium">✨ Redimensionnement automatique</span>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <label className="logo-container flex items-center justify-center w-48 h-22 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#6A9C89] transition-colors bg-gray-50 p-2">
+                    <label className="logo-container flex items-center justify-center w-48 h-22 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary transition-colors bg-gray-50 p-2">
                       {processingLogo ? (
                         <div className="text-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6A9C89] mx-auto mb-2"></div>
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
                           <span className="text-xs text-gray-500">Optimisation...</span>
                         </div>
                       ) : logoPreview ? (
@@ -345,7 +346,7 @@ const RegisterPage = () => {
                     <div className="text-xs text-gray-500">
                       <div>• PNG, JPG, SVG acceptés</div>
                       <div>• Taille max : 5MB</div>
-                      <div className="text-green-600">• Redimensionnement auto</div>
+                      <div className="text-primary-600">• Redimensionnement auto</div>
                     </div>
                   </div>
                 </div>
@@ -367,7 +368,7 @@ const RegisterPage = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-[#6A9C89] hover:bg-[#5c8876] text-white font-semibold py-3"
+                className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3"
               >
                 Créer mon compte
               </Button>
@@ -375,7 +376,7 @@ const RegisterPage = () => {
               <div className="text-center">
                 <p className="text-sm text-gray-600">
                   Vous avez déjà un compte ?{' '}
-                  <Link to="/login" className="text-[#6A9C89] hover:underline font-medium">
+                  <Link to="/login" className="text-primary hover:underline font-medium">
                     Connexion
                   </Link>
                 </p>
