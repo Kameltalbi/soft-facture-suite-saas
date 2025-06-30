@@ -34,6 +34,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -61,10 +62,19 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         track_stock: true
       });
     }
+    setError(null);
   }, [product, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    // Validation: vérifier que la catégorie est sélectionnée
+    if (!formData.category) {
+      setError('Veuillez sélectionner une catégorie');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -73,6 +83,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         const result = await updateProduct(product.id, formData);
         if (result.error) {
           console.error('Error updating product:', result.error);
+          setError(result.error);
         } else {
           console.log('Product updated successfully');
           onClose();
@@ -82,6 +93,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         const result = await createProduct(formData);
         if (result.error) {
           console.error('Error creating product:', result.error);
+          setError(result.error);
         } else {
           console.log('Product created successfully');
           onClose();
@@ -89,6 +101,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
       }
     } catch (error) {
       console.error('Error saving product:', error);
+      setError('Une erreur est survenue lors de la sauvegarde');
     } finally {
       setIsSubmitting(false);
     }
@@ -115,6 +128,12 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Basic Information */}
             <div className="space-y-4">
@@ -140,13 +159,13 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
               </div>
 
               <div>
-                <Label htmlFor="category">Catégorie</Label>
+                <Label htmlFor="category">Catégorie *</Label>
                 <Select 
                   value={formData.category} 
                   onValueChange={(value) => setFormData({...formData, category: value})}
                   disabled={categoriesLoading}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={!formData.category ? "border-red-300" : ""}>
                     <SelectValue placeholder={categoriesLoading ? "Chargement..." : "Sélectionner une catégorie"} />
                   </SelectTrigger>
                   <SelectContent>
