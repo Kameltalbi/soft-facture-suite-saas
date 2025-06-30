@@ -18,6 +18,7 @@ import MonthlyRevenueReportPage from "./pages/reports/MonthlyRevenueReportPage";
 import YearComparisonReportPage from "./pages/reports/YearComparisonReportPage";
 import ProductRankingReportPage from "./pages/reports/ProductRankingReportPage";
 import ClientRevenueReportPage from "./pages/reports/ClientRevenueReportPage";
+import VatReportPage from "./pages/reports/VatReportPage";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,11 @@ const App = () => (
               <Route path="/reports/client-revenue" element={
                 <ProtectedRoute>
                   <ClientRevenueReportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/vat-report" element={
+                <ProtectedRoute>
+                  <VatReportPage />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
