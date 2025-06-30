@@ -24,7 +24,7 @@ interface DashboardKpiData {
   totalCredits: number;
   totalRevenue: number;
   totalVat: number;
-  quotesThisMonth: number;
+  quotesThisYear: number;
   pendingOrders: number;
   lowStockProducts: number;
   topProduct: { name: string; revenue: number };
@@ -65,7 +65,7 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
     {
       title: "Total Factures",
       value: data.totalInvoices.toString(),
-      description: "Factures créées ce mois",
+      description: "Factures créées cette année",
       icon: FileText,
       color: "text-blue-600"
     },
@@ -100,7 +100,7 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
     {
       title: "Chiffre d'Affaires",
       value: formatCurrency(data.totalRevenue),
-      description: "CA total du mois",
+      description: "CA total de l'année",
       icon: TrendingUp,
       color: "text-green-600"
     },
@@ -113,8 +113,8 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
     },
     {
       title: "Devis",
-      value: data.quotesThisMonth.toString(),
-      description: "Devis ce mois",
+      value: data.quotesThisYear.toString(),
+      description: "Devis cette année",
       icon: FileCheck,
       color: "text-indigo-600"
     },

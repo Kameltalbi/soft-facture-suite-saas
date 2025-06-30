@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,7 +11,7 @@ interface DashboardKpiData {
   totalCredits: number;
   totalRevenue: number;
   totalVat: number;
-  quotesThisMonth: number;
+  quotesThisYear: number;
   pendingOrders: number;
   lowStockProducts: number;
   topProduct: { name: string; revenue: number };
@@ -43,7 +44,7 @@ interface DashboardChartData {
   }>;
 }
 
-export const useDashboardData = (selectedYear: number, selectedMonth: number) => {
+export const useDashboardData = (selectedYear: number) => {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [kpiData, setKpiData] = useState<DashboardKpiData>({
@@ -54,7 +55,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     totalCredits: 0,
     totalRevenue: 0,
     totalVat: 0,
-    quotesThisMonth: 0,
+    quotesThisYear: 0,
     pendingOrders: 0,
     lowStockProducts: 0,
     topProduct: { name: 'Aucun produit', revenue: 0 },
@@ -71,10 +72,10 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
 
   useEffect(() => {
     if (profile?.organization_id) {
-      console.log('🔍 Dashboard - Fetching data for organization:', profile.organization_id);
+      console.log('🔍 Dashboard - Fetching yearly data for organization:', profile.organization_id, 'Year:', selectedYear);
       fetchDashboardData();
     }
-  }, [profile?.organization_id, selectedYear, selectedMonth]);
+  }, [profile?.organization_id, selectedYear]);
 
   const fetchOrganizationCurrency = async () => {
     if (!profile?.organization_id) return { code: 'EUR', symbol: '€', name: 'Euro' };
@@ -88,7 +89,6 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
         .single();
 
       if (error || !data) {
-        // Si pas de devise principale trouvée, retourner EUR par défaut
         return { code: 'EUR', symbol: '€', name: 'Euro' };
       }
 
@@ -109,7 +109,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       return;
     }
 
-    console.log('📊 Dashboard - Starting data fetch for org:', profile.organization_id);
+    console.log('📊 Dashboard - Starting yearly data fetch for org:', profile.organization_id, 'Year:', selectedYear);
     setLoading(true);
     
     try {
@@ -117,9 +117,9 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       const currency = await fetchOrganizationCurrency();
       console.log('💰 Dashboard - Currency:', currency);
 
-      // Récupérer les données KPI
+      // Récupérer les données KPI pour l'année complète
       const kpis = await fetchKpiData();
-      console.log('📈 Dashboard - KPIs:', kpis);
+      console.log('📈 Dashboard - KPIs for year:', selectedYear, kpis);
       
       setKpiData({
         ...kpis,
@@ -128,7 +128,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
 
       // Récupérer les données pour les graphiques
       const charts = await fetchChartData();
-      console.log('📊 Dashboard - Charts:', charts);
+      console.log('📊 Dashboard - Charts for year:', selectedYear, charts);
       setChartData(charts);
     } catch (error) {
       console.error('❌ Dashboard - Erreur lors de la récupération des données:', error);
@@ -149,7 +149,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
         totalCredits: 0,
         totalRevenue: 0,
         totalVat: 0,
-        quotesThisMonth: 0,
+        quotesThisYear: 0,
         pendingOrders: 0,
         lowStockProducts: 0,
         topProduct: { name: 'Aucun produit', revenue: 0 },
@@ -157,11 +157,11 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       };
     }
 
-    // Pour les KPI, utiliser toutes les factures de l'année sélectionnée
+    // Toujours utiliser l'année complète pour toutes les organisations
     const startDate = new Date(selectedYear, 0, 1); // 1er janvier de l'année
     const endDate = new Date(selectedYear, 11, 31); // 31 décembre de l'année
 
-    console.log('📅 KPI - Date range for year:', { 
+    console.log('📅 KPI - Date range for FULL YEAR:', { 
       year: selectedYear,
       startDate: startDate.toISOString().split('T')[0], 
       endDate: endDate.toISOString().split('T')[0] 
@@ -178,7 +178,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     if (invoicesError) {
       console.error('❌ KPI - Error fetching invoices:', invoicesError);
     } else {
-      console.log('📄 KPI - Invoices found for year:', invoices?.length || 0);
+      console.log('📄 KPI - Invoices found for FULL YEAR:', invoices?.length || 0);
     }
 
     // Avoirs de l'année
@@ -236,7 +236,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
     const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
     const totalVat = invoices?.reduce((sum, inv) => sum + (inv.tax_amount || 0), 0) || 0;
 
-    console.log('📊 KPI - Calculated values for year:', {
+    console.log('📊 KPI - Calculated values for FULL YEAR:', {
       year: selectedYear,
       totalInvoices,
       paidInvoices,
@@ -265,7 +265,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       totalCredits,
       totalRevenue,
       totalVat,
-      quotesThisMonth: quotes?.length || 0,
+      quotesThisYear: quotes?.length || 0,
       pendingOrders: purchaseOrders?.length || 0,
       lowStockProducts: lowStockProducts?.length || 0,
       topProduct,
@@ -286,7 +286,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       };
     }
 
-    console.log('📊 Charts - Fetching data for org:', orgId);
+    console.log('📊 Charts - Fetching data for org:', orgId, 'Year:', selectedYear);
 
     // Données mensuelles pour l'année en cours et précédente
     const monthlyComparison = [];
@@ -322,16 +322,21 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       });
     }
 
-    // Récupérer les données pour les autres graphiques
+    // Récupérer les données pour les autres graphiques (année complète)
+    const startDate = new Date(selectedYear, 0, 1);
+    const endDate = new Date(selectedYear, 11, 31);
+
     const { data: invoices, error: invoicesError } = await supabase
       .from('invoices')
       .select('*, clients(*)')
-      .eq('organization_id', orgId);
+      .eq('organization_id', orgId)
+      .gte('date', startDate.toISOString().split('T')[0])
+      .lte('date', endDate.toISOString().split('T')[0]);
 
     if (invoicesError) {
       console.error('❌ Charts - Error fetching invoices:', invoicesError);
     } else {
-      console.log('📊 Charts - Total invoices found:', invoices?.length || 0);
+      console.log('📊 Charts - Total invoices found for full year:', invoices?.length || 0);
     }
 
     // Statuts des factures
@@ -371,7 +376,7 @@ export const useDashboardData = (selectedYear: number, selectedMonth: number) =>
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
-    console.log('📊 Charts - Final data:', {
+    console.log('📊 Charts - Final data for full year:', {
       monthlyComparison: monthlyComparison.length,
       invoiceStatus: invoiceStatus.length,
       clientRevenue: clientRevenue.length

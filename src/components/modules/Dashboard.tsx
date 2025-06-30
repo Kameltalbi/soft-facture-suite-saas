@@ -8,8 +8,8 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 
 export function Dashboard() {
-  const { filters, updateYear, updateMonth, availableYears, months } = useDashboardFilters();
-  const { kpiData, chartData, loading } = useDashboardData(filters.selectedYear, filters.selectedMonth);
+  const { filters, updateYear, availableYears } = useDashboardFilters();
+  const { kpiData, chartData, loading } = useDashboardData(filters.selectedYear);
 
   return (
     <CurrencyProvider>
@@ -18,17 +18,14 @@ export function Dashboard() {
           {/* Header Section */}
           <div className="mb-10">
             <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">Dashboard</h1>
-            <p className="text-lg text-gray-600">Vue d'ensemble de votre activité commerciale</p>
+            <p className="text-lg text-gray-600">Vue d'ensemble de votre activité commerciale annuelle</p>
           </div>
 
           {/* Filters */}
           <DashboardFilters
             selectedYear={filters.selectedYear}
-            selectedMonth={filters.selectedMonth}
             availableYears={availableYears}
-            months={months}
             onYearChange={updateYear}
-            onMonthChange={updateMonth}
           />
 
           {/* KPI Cards */}
