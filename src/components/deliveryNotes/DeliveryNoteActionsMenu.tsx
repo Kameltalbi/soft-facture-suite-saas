@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,31 +34,16 @@ import {
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { EmailModal } from '@/components/modals/EmailModal';
 import { useAuth } from '@/hooks/useAuth';
-
-interface DeliveryNote {
-  id: string;
-  number: string;
-  date: string;
-  client: string;
-  amount: number;
-  status: 'draft' | 'sent' | 'delivered' | 'signed';
-  deliveryDate?: string;
-}
+import { DeliveryNoteFromDB } from '@/types/deliveryNote';
 
 interface DeliveryNoteActionsMenuProps {
-  deliveryNote: DeliveryNote;
-  pdfComponent: React.ReactElement;
-  onView: () => void;
+  deliveryNote: DeliveryNoteFromDB;
   onEdit: () => void;
-  onDuplicate: () => void;
-  onMarkAsDelivered: () => void;
-  onConvertToInvoice: () => void;
   onDelete: () => void;
-  onEmailSent: (emailData: any) => void;
 }
 
 const statusLabels = {
-  draft: { label: 'Brouillon', variant: 'secondary' as const },
+  pending: { label: 'En attente', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
   delivered: { label: 'Livré', variant: 'default' as const },
   signed: { label: 'Signé', variant: 'default' as const }
@@ -65,20 +51,14 @@ const statusLabels = {
 
 export function DeliveryNoteActionsMenu({
   deliveryNote,
-  pdfComponent,
-  onView,
   onEdit,
-  onDuplicate,
-  onMarkAsDelivered,
-  onConvertToInvoice,
-  onDelete,
-  onEmailSent
+  onDelete
 }: DeliveryNoteActionsMenuProps) {
   const { user, organization } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const canEdit = deliveryNote.status === 'draft';
+  const canEdit = deliveryNote.status === 'pending';
   const canMarkAsDelivered = deliveryNote.status === 'sent';
   const canConvertToInvoice = deliveryNote.status === 'delivered' || deliveryNote.status === 'signed';
 
@@ -88,21 +68,25 @@ export function DeliveryNoteActionsMenu({
   };
 
   const handleEmailSent = (emailData: any) => {
-    onEmailSent(emailData);
+    console.log('Email sent:', emailData);
     setShowEmailModal(false);
   };
 
-  // Prepare company data from organization and user
-  const company = {
-    name: organization?.name || user?.user_metadata?.company_name || 'Mon Entreprise',
-    logo: organization?.logo_url || user?.user_metadata?.avatar_url,
-    address: organization?.address || user?.user_metadata?.company_address,
-    email: organization?.email || user?.email,
-    phone: organization?.phone || user?.user_metadata?.company_phone,
+  const handleView = () => {
+    console.log('View delivery note:', deliveryNote.id);
   };
 
-  // Create enhanced PDF component with company data
-  const enhancedPdfComponent = React.cloneElement(pdfComponent, { company });
+  const handleDuplicate = () => {
+    console.log('Duplicate delivery note:', deliveryNote.id);
+  };
+
+  const handleMarkAsDelivered = () => {
+    console.log('Mark as delivered:', deliveryNote.id);
+  };
+
+  const handleConvertToInvoice = () => {
+    console.log('Convert to invoice:', deliveryNote.id);
+  };
 
   return (
     <>
@@ -113,22 +97,15 @@ export function DeliveryNoteActionsMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onClick={onView}>
+          <DropdownMenuItem onClick={handleView}>
             <Eye size={16} className="mr-2" />
             Voir le bon de livraison
           </DropdownMenuItem>
 
-          <PDFDownloadLink
-            document={enhancedPdfComponent}
-            fileName={`${deliveryNote.number}.pdf`}
-          >
-            {({ loading }) => (
-              <DropdownMenuItem disabled={loading}>
-                <Printer size={16} className="mr-2" />
-                {loading ? 'Génération...' : 'Télécharger PDF'}
-              </DropdownMenuItem>
-            )}
-          </PDFDownloadLink>
+          <DropdownMenuItem>
+            <Printer size={16} className="mr-2" />
+            Télécharger PDF
+          </DropdownMenuItem>
 
           <DropdownMenuItem onClick={() => setShowEmailModal(true)}>
             <Mail size={16} className="mr-2" />
@@ -142,20 +119,20 @@ export function DeliveryNoteActionsMenu({
             Modifier
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={onDuplicate}>
+          <DropdownMenuItem onClick={handleDuplicate}>
             <Copy size={16} className="mr-2" />
             Dupliquer
           </DropdownMenuItem>
 
           {canMarkAsDelivered && (
-            <DropdownMenuItem onClick={onMarkAsDelivered} className="text-primary">
+            <DropdownMenuItem onClick={handleMarkAsDelivered} className="text-primary">
               <Package size={16} className="mr-2" />
               Marquer comme livré
             </DropdownMenuItem>
           )}
 
           {canConvertToInvoice && (
-            <DropdownMenuItem onClick={onConvertToInvoice} className="text-primary">
+            <DropdownMenuItem onClick={handleConvertToInvoice} className="text-primary">
               <ArrowRight size={16} className="mr-2" />
               Convertir en facture
             </DropdownMenuItem>
@@ -179,7 +156,7 @@ export function DeliveryNoteActionsMenu({
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer le bon de livraison</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer le bon de livraison {deliveryNote.number} ?
+              Êtes-vous sûr de vouloir supprimer le bon de livraison {deliveryNote.delivery_number} ?
               Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -201,8 +178,8 @@ export function DeliveryNoteActionsMenu({
         onClose={() => setShowEmailModal(false)}
         document={{
           id: deliveryNote.id,
-          number: deliveryNote.number,
-          client: deliveryNote.client,
+          number: deliveryNote.delivery_number,
+          client: deliveryNote.clients?.name || 'N/A',
           type: 'Bon de livraison'
         }}
         onSend={handleEmailSent}
