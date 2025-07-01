@@ -9,6 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
+import DemoPage from "./pages/DemoPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
@@ -32,6 +33,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/home" element={<HomePage />} />
+              <Route path="/demo" element={<DemoPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>

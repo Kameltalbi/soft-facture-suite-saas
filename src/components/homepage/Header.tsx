@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -31,6 +32,12 @@ export function Header() {
           <a href="#testimonials" className="text-gray-600 hover:text-[#6A9C89] font-medium">
             Témoignages
           </a>
+          <button 
+            onClick={() => navigate('/demo')}
+            className="text-gray-600 hover:text-[#6A9C89] font-medium"
+          >
+            Démo
+          </button>
         </nav>
         
         <div className="flex items-center space-x-4">
@@ -52,6 +59,7 @@ export function Header() {
               </Button>
               <Button 
                 className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={() => navigate('/demo')}
               >
                 Réserver votre démo gratuite
               </Button>
