@@ -35,8 +35,9 @@ export function HeroSection() {
                 variant="outline" 
                 size="lg"
                 className="border-[#6A9C89] text-[#6A9C89] hover:bg-[#6A9C89] hover:text-white px-8 py-3 text-lg"
+                onClick={() => navigate('/checkout')}
               >
-                Voir les fonctionnalités
+                Créer mon compte
               </Button>
             </div>
           </div>
