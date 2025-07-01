@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,7 +58,7 @@ export function PricingSection() {
                 <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT HT/an</p>
               </div>
               
-              <div className="space-y-2 h-80 overflow-y-auto">
+              <div className="space-y-2">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm text-gray-700">{feature.name}</span>
@@ -97,7 +98,7 @@ export function PricingSection() {
                 <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT HT/an</p>
               </div>
               
-              <div className="space-y-2 h-80 overflow-y-auto">
+              <div className="space-y-2">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm text-gray-700">{feature.name}</span>
