@@ -15,8 +15,9 @@ export function FinalCtaSection() {
           <Button 
             size="lg"
             className="bg-white text-[#6A9C89] hover:bg-gray-100 px-12 py-4 text-lg font-semibold"
+            onClick={() => window.location.href = '/checkout'}
           >
-            Essayer Soft Facture gratuitement
+            Commencer avec Soft Facture
           </Button>
         </div>
       </div>
