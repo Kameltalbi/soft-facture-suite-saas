@@ -133,7 +133,7 @@ const CheckoutPage = () => {
               <p><strong>RIB :</strong> 0804 3013 0 710 0000 8645</p>
               <p><strong>IBAN :</strong> TN59 0804 3013 0710 0000 8645</p>
               <p><strong>SWIFT :</strong> BIATTNTT</p>
-              <p><strong>Référence :</strong> {form.watch('email')}</p>
+              <p>{form.watch('email')}</p>
             </div>
           </div>
         );
