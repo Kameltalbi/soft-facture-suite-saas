@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ interface Document {
   date: string;
   client: string;
   amount: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
 }
 
 const mockDocuments: Document[] = [
@@ -78,7 +79,9 @@ const statusLabels = {
   draft: { label: 'Brouillon', variant: 'secondary' as const },
   sent: { label: 'Envoyé', variant: 'default' as const },
   paid: { label: 'Payé', variant: 'default' as const },
-  overdue: { label: 'En retard', variant: 'destructive' as const }
+  overdue: { label: 'En retard', variant: 'destructive' as const },
+  partially_paid: { label: 'Payé P.', variant: 'outline' as const },
+  validated: { label: 'Validée', variant: 'success' as const }
 };
 
 export function Sales() {
@@ -137,8 +140,9 @@ export function Sales() {
     setShowInvoiceModal(true);
   };
 
-  const handleViewDocument = (document: Document) => {
-    console.log('Viewing document:', document.number);
+  const handleValidateDocument = (document: Document) => {
+    console.log('Validating document:', document.number);
+    // Logic to validate document
   };
 
   const handleDuplicateDocument = (document: Document) => {
@@ -389,10 +393,11 @@ export function Sales() {
                         number: document.number,
                         client: document.client,
                         amount: document.amount,
+                        paidAmount: 0,
                         status: document.status
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(document)} />}
-                      onView={() => handleViewDocument(document)}
+                      onValidate={() => handleValidateDocument(document)}
                       onEdit={() => handleEditDocument(document)}
                       onDuplicate={() => handleDuplicateDocument(document)}
                       onMarkAsSent={() => handleMarkAsSent(document)}
