@@ -266,20 +266,61 @@ export function useSettings() {
     if (!organization?.id) return;
 
     try {
-      const { error } = await supabase
+      console.log('🔧 Sauvegarde des paramètres globaux:', settings);
+      
+      // First, try to get existing settings
+      const { data: existingSettings, error: fetchError } = await supabase
         .from('global_settings')
-        .upsert({
-          footer_content: settings.footer_content,
-          footer_display: settings.footer_display,
-          primary_currency: settings.primary_currency,
-          invoice_template: settings.invoice_template,
-          quote_template: settings.quote_template,
-          delivery_note_template: settings.delivery_note_template,
-          credit_template: settings.credit_template,
-          organization_id: organization.id
-        });
+        .select('id')
+        .eq('organization_id', organization.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (fetchError) {
+        console.error('Erreur lors de la récupération des paramètres existants:', fetchError);
+      }
+
+      let result;
+
+      if (existingSettings) {
+        // Update existing settings
+        console.log('📝 Mise à jour des paramètres existants');
+        result = await supabase
+          .from('global_settings')
+          .update({
+            footer_content: settings.footer_content,
+            footer_display: settings.footer_display,
+            primary_currency: settings.primary_currency,
+            invoice_template: settings.invoice_template,
+            quote_template: settings.quote_template,
+            delivery_note_template: settings.delivery_note_template,
+            credit_template: settings.credit_template,
+            updated_at: new Date().toISOString()
+          })
+          .eq('organization_id', organization.id)
+          .eq('id', existingSettings.id);
+      } else {
+        // Insert new settings
+        console.log('➕ Création de nouveaux paramètres');
+        result = await supabase
+          .from('global_settings')
+          .insert({
+            footer_content: settings.footer_content,
+            footer_display: settings.footer_display,
+            primary_currency: settings.primary_currency,
+            invoice_template: settings.invoice_template,
+            quote_template: settings.quote_template,
+            delivery_note_template: settings.delivery_note_template,
+            credit_template: settings.credit_template,
+            organization_id: organization.id
+          });
+      }
+
+      if (result.error) {
+        console.error('❌ Erreur lors de la sauvegarde:', result.error);
+        throw result.error;
+      }
+
+      console.log('✅ Paramètres sauvegardés avec succès');
       
       await fetchGlobalSettings();
       
@@ -291,7 +332,7 @@ export function useSettings() {
       console.error('Error saving global settings:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la sauvegarde des paramètres.',
+        description: 'Erreur lors de la sauvegarde des paramètres. Vérifiez vos permissions.',
         variant: 'destructive',
       });
     }
