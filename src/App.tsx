@@ -11,6 +11,8 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import DemoPage from "./pages/DemoPage";
 import AuthPage from "./pages/AuthPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import EnAttenteValidationPage from "./pages/EnAttenteValidationPage";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
 import InvoiceReportPage from "./pages/reports/InvoiceReportPage";
@@ -35,6 +37,8 @@ const App = () => (
               <Route path="/home" element={<HomePage />} />
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/en-attente-validation" element={<EnAttenteValidationPage />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />

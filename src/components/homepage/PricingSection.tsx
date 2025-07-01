@@ -74,7 +74,10 @@ export function PricingSection() {
               
               <div className="pt-4 border-t">
                 <p className="text-sm text-gray-600 mb-2">Support : Email (48h)</p>
-                <Button className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white">
+                <Button 
+                  className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
+                  onClick={() => window.location.href = '/checkout'}
+                >
                   Commencer avec Essentiel
                 </Button>
               </div>
@@ -114,7 +117,10 @@ export function PricingSection() {
               
               <div className="pt-4 border-t">
                 <p className="text-sm text-gray-600 mb-2">Support : Prioritaire (24h)</p>
-                <Button className="w-full bg-[#D96C4F] hover:bg-[#C25A43] text-white">
+                <Button 
+                  className="w-full bg-[#D96C4F] hover:bg-[#C25A43] text-white"
+                  onClick={() => window.location.href = '/checkout'}
+                >
                   Commencer avec Pro
                 </Button>
               </div>
@@ -143,4 +149,3 @@ export function PricingSection() {
     </section>
   );
 }
-
