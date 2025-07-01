@@ -26,10 +26,11 @@ export function Header() {
           onClick={() => navigate('/')}
           className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
         >
-          <div className="h-8 w-8 bg-[#6A9C89] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">SF</span>
-          </div>
-          <span className="text-xl font-bold text-gray-900">Soft Facture</span>
+          <img 
+            src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
+            alt="Soft Facture Logo"
+            className="h-22 w-auto"
+          />
         </button>
         
         <nav className="hidden md:flex items-center space-x-8">
