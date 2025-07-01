@@ -1,4 +1,5 @@
 
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -65,7 +66,7 @@ export function PricingSection() {
                     {feature.essential ? (
                       <Check className="w-4 h-4 text-[#6A9C89]" />
                     ) : (
-                      <X className="w-4 h-4 text-gray-400" />
+                      <X className="w-4 h-4 text-red-500" />
                     )}
                   </div>
                 ))}
@@ -105,7 +106,7 @@ export function PricingSection() {
                     {feature.pro ? (
                       <Check className="w-4 h-4 text-[#6A9C89]" />
                     ) : (
-                      <X className="w-4 h-4 text-gray-400" />
+                      <X className="w-4 h-4 text-red-500" />
                     )}
                   </div>
                 ))}
@@ -142,3 +143,4 @@ export function PricingSection() {
     </section>
   );
 }
+
