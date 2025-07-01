@@ -128,10 +128,11 @@ const CheckoutPage = () => {
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-semibold text-blue-900 mb-2">Virement bancaire</h4>
             <div className="text-sm text-blue-800">
-              <p><strong>Bénéficiaire :</strong> SoftFacture SARL</p>
-              <p><strong>IBAN :</strong> TN59 1234 5678 9012 3456 7890 12</p>
-              <p><strong>BIC :</strong> BFTNTNTTXXX</p>
-              <p><strong>Banque :</strong> Banque de Financement des PME</p>
+              <p><strong>Bénéficiaire :</strong> ABC SARL</p>
+              <p><strong>Banque :</strong> BIAT</p>
+              <p><strong>RIB :</strong> 0804 3013 0 710 0000 8645</p>
+              <p><strong>IBAN :</strong> TN59 0804 3013 0710 0000 8645</p>
+              <p><strong>SWIFT :</strong> BIATTNTT</p>
               <p><strong>Référence :</strong> {form.watch('email')}</p>
             </div>
           </div>
@@ -141,7 +142,7 @@ const CheckoutPage = () => {
           <div className="bg-green-50 p-4 rounded-lg">
             <h4 className="font-semibold text-green-900 mb-2">Paiement par chèque</h4>
             <div className="text-sm text-green-800">
-              <p><strong>À l'ordre de :</strong> SoftFacture SARL</p>
+              <p><strong>À l'ordre de :</strong> ABC SARL</p>
               <p><strong>Adresse :</strong> 123 Avenue de la République, 1001 Tunis, Tunisie</p>
               <p><strong>Note :</strong> Inscrivez votre email ({form.watch('email')}) au dos du chèque</p>
             </div>
