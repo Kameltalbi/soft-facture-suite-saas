@@ -1,6 +1,8 @@
 
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useAuth } from '@/hooks/useAuth';
+import { useCustomTaxes } from '@/hooks/useCustomTaxes';
+import { calculateCustomTaxes } from '@/utils/customTaxCalculations';
 
 interface LineItem {
   id: string;
@@ -23,12 +25,20 @@ interface InvoiceData {
 
 export const usePDFGeneration = () => {
   const { organization } = useAuth();
+  const { customTaxes } = useCustomTaxes();
 
   const generateInvoicePDF = (
     invoiceData: InvoiceData,
     lineItems: LineItem[],
-    settings: any
+    settings: any,
+    documentType: string = 'invoice'
   ) => {
+    // Calcul du sous-total
+    const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
+    
+    // Calcul des taxes personnalisées applicables
+    const customTaxCalculations = calculateCustomTaxes(subtotal, customTaxes, documentType);
+
     // Données mockées pour l'exemple - à remplacer par les vraies données
     const mockClient = {
       name: 'Entreprise ABC',
@@ -42,7 +52,7 @@ export const usePDFGeneration = () => {
       address: organization?.address || '456 Avenue de la République, 69000 Lyon',
       email: organization?.email || 'contact@softfacture.fr',
       phone: organization?.phone || '04 72 00 00 00',
-      logo: organization?.logo_url || null // Correction: utiliser logo_url
+      logo: organization?.logo_url || null
     };
 
     return {
@@ -50,7 +60,8 @@ export const usePDFGeneration = () => {
       lineItems,
       client: mockClient,
       company: companyData,
-      settings
+      settings,
+      customTaxes: customTaxCalculations
     };
   };
 

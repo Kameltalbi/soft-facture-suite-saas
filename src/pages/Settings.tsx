@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { NumberingSettings } from '@/components/settings/NumberingSettings';
 import { UserManagement } from '@/components/settings/UserManagement';
 import { RolePermissions } from '@/components/settings/RolePermissions';
 import { PdfTemplateSettings } from '@/components/settings/PdfTemplateSettings';
+import { CustomTaxSettings } from '@/components/settings/CustomTaxSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
@@ -321,11 +323,12 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="organization">Organisation</TabsTrigger>
           <TabsTrigger value="currencies">Devises</TabsTrigger>
           <TabsTrigger value="footer">Pied de page</TabsTrigger>
           <TabsTrigger value="templates">Templates PDF</TabsTrigger>
+          <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="numbering">Numérotation</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="roles">Rôles</TabsTrigger>
@@ -371,6 +374,10 @@ export default function Settings() {
             }}
             onSave={handleSavePdfTemplates}
           />
+        </TabsContent>
+
+        <TabsContent value="taxes">
+          <CustomTaxSettings />
         </TabsContent>
 
         <TabsContent value="numbering">

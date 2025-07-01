@@ -287,6 +287,42 @@ export type Database = {
           },
         ]
       }
+      custom_taxes: {
+        Row: {
+          active: boolean
+          applicable_documents: string[]
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          type: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          applicable_documents?: string[]
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          type: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          active?: boolean
+          applicable_documents?: string[]
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          type?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       delivery_note_items: {
         Row: {
           created_at: string | null
@@ -458,7 +494,9 @@ export type Database = {
           organization_id: string
           primary_currency: string | null
           quote_template: string | null
+          unified_template: string | null
           updated_at: string
+          use_unified_template: boolean | null
         }
         Insert: {
           created_at?: string
@@ -471,7 +509,9 @@ export type Database = {
           organization_id: string
           primary_currency?: string | null
           quote_template?: string | null
+          unified_template?: string | null
           updated_at?: string
+          use_unified_template?: boolean | null
         }
         Update: {
           created_at?: string
@@ -484,7 +524,9 @@ export type Database = {
           organization_id?: string
           primary_currency?: string | null
           quote_template?: string | null
+          unified_template?: string | null
           updated_at?: string
+          use_unified_template?: boolean | null
         }
         Relationships: [
           {
