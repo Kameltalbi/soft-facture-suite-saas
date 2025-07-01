@@ -9,10 +9,11 @@ export function Footer() {
           {/* Colonne 1 - Identité */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-[#1E3A8A] font-bold text-sm">SF</span>
-              </div>
-              <span className="text-xl font-bold">SoftFacture</span>
+              <img 
+                src="/lovable-uploads/3928f24a-1fb2-4bf0-8e69-dafa665eddc0.png"
+                alt="SoftFacture Logo"
+                className="h-12 w-auto"
+              />
             </div>
             <p className="text-sm text-gray-300 leading-relaxed">
               La solution de facturation intuitive pensée pour les entreprises tunisiennes et africaines.
