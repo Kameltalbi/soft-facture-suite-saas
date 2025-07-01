@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,12 +21,15 @@ export function Header() {
   return (
     <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+        >
           <div className="h-8 w-8 bg-[#6A9C89] rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">SF</span>
           </div>
           <span className="text-xl font-bold text-gray-900">Soft Facture</span>
-        </div>
+        </button>
         
         <nav className="hidden md:flex items-center space-x-8">
           <button 
