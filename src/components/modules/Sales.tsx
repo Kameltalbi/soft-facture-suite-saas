@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,8 @@ import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Document {
   id: string;
@@ -140,9 +141,23 @@ export function Sales() {
     setShowInvoiceModal(true);
   };
 
-  const handleValidateDocument = (document: Document) => {
-    console.log('Validating document:', document.number);
-    // Logic to validate document
+  const handleValidateDocument = async (document: Document) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: 'validated' })
+        .eq('id', document.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Facture validée avec succès');
+      // Optionally refresh the data or update the local state
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      toast.error('Erreur lors de la validation de la facture');
+    }
   };
 
   const handleDuplicateDocument = (document: Document) => {
