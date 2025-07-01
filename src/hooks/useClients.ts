@@ -15,6 +15,8 @@ interface Client {
   postal_code: string | null;
   country: string | null;
   vat_number: string | null;
+  payment_terms: number | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }

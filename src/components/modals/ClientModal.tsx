@@ -17,7 +17,7 @@ interface ClientModalProps {
 }
 
 export function ClientModal({ open, onClose, client }: ClientModalProps) {
-  const { createClient } = useClients();
+  const { createClient, updateClient } = useClients();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -81,9 +81,14 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
 
     try {
       setLoading(true);
-      console.log('Données du client à créer:', formData);
+      console.log('Données du client à sauvegarder:', formData);
       
-      const result = await createClient(formData);
+      let result;
+      if (client) {
+        result = await updateClient(client.id, formData);
+      } else {
+        result = await createClient(formData);
+      }
       
       if (result.error) {
         toast.error(`Erreur: ${result.error}`);
