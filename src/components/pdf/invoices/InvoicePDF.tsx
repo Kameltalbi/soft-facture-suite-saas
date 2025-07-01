@@ -270,6 +270,11 @@ export const InvoicePDF = ({
           <Text style={styles.clientInfo}>
             {client?.email || 'Email du client'}
           </Text>
+          {client?.vat_number && client.vat_number.trim() && (
+            <Text style={styles.clientInfo}>
+              N° TVA: {client.vat_number}
+            </Text>
+          )}
         </View>
 
         {/* Table */}

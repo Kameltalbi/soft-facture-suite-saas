@@ -91,7 +91,8 @@ export default function Invoices() {
             name,
             company,
             address,
-            email
+            email,
+            vat_number
           ),
           invoice_items (*)
         `)
@@ -468,7 +469,8 @@ export default function Invoices() {
       name: invoice.clients?.name || '',
       company: invoice.clients?.company || '',
       address: invoice.clients?.address || '',
-      email: invoice.clients?.email || ''
+      email: invoice.clients?.email || '',
+      vat_number: invoice.clients?.vat_number || ''
     };
 
     // Calcul des taxes personnalisées
