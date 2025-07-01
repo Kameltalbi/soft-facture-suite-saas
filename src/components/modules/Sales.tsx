@@ -156,6 +156,10 @@ export function Sales() {
     console.log('Marking as sent:', document.number);
   };
 
+  const handleMarkAsValidated = (document: Document) => {
+    console.log('Marking as validated:', document.number);
+  };
+
   const handleDeleteDocument = (document: Document) => {
     console.log('Deleting document:', document.number);
   };
@@ -396,6 +400,7 @@ export function Sales() {
                       onEdit={() => handleEditDocument(document)}
                       onDuplicate={() => handleDuplicateDocument(document)}
                       onMarkAsSent={() => handleMarkAsSent(document)}
+                      onMarkAsValidated={() => handleMarkAsValidated(document)}
                       onDelete={() => handleDeleteDocument(document)}
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
