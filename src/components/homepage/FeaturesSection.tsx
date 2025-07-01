@@ -1,37 +1,37 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, ClipboardList, Truck, Package, CreditCard, BarChart2 } from 'lucide-react';
+import { FileText, ClipboardList, Users, BarChart2, FileImage, UserCheck } from 'lucide-react';
 
 const features = [
   {
     icon: FileText,
-    title: "Factures",
-    description: "Générez des factures propres en un clic"
+    title: "Facturation simplifiée",
+    description: "Générez vos factures en quelques clics, appliquez automatiquement la TVA et envoyez-les par email en PDF à vos clients. Suivez l'état des paiements en temps réel."
   },
   {
     icon: ClipboardList,
-    title: "Devis",
-    description: "Éditez et convertissez vos devis facilement"
+    title: "Devis professionnels",
+    description: "Créez des devis clairs et élégants, personnalisés avec votre logo. Transformez-les en factures dès validation du client, sans ressaisie."
   },
   {
-    icon: Truck,
-    title: "Bons de livraison",
-    description: "Suivez vos livraisons simplement"
-  },
-  {
-    icon: Package,
-    title: "Stock (Pro)",
-    description: "Gérez vos entrées et sorties de produit"
-  },
-  {
-    icon: CreditCard,
-    title: "Paiements (Pro)",
-    description: "Suivi des règlements reçus"
+    icon: Users,
+    title: "Gestion centralisée des clients",
+    description: "Regroupez toutes les informations de vos clients : coordonnées, historiques de factures, devis et paiements. Gagnez du temps et restez organisé."
   },
   {
     icon: BarChart2,
-    title: "Rapports (Pro)",
-    description: "Export PDF et CSV pour mieux décider"
+    title: "Tableau de bord clair",
+    description: "Visualisez votre chiffre d'affaires, vos factures en attente et vos performances mensuelles grâce à un tableau de bord moderne et facile à lire."
+  },
+  {
+    icon: FileImage,
+    title: "Documents PDF personnalisables",
+    description: "Personnalisez vos factures, devis et avoirs avec vos mentions légales, votre logo et vos préférences. Choisissez parmi plusieurs modèles professionnels (selon le plan)."
+  },
+  {
+    icon: UserCheck,
+    title: "Multi-utilisateurs et accès sécurisé",
+    description: "Travaillez à plusieurs sur le même compte avec des accès distincts. Gérez les utilisateurs selon votre organisation (2 ou 3 inclus selon le plan, utilisateurs supplémentaires à 20 DT HT/an)."
   }
 ];
 
@@ -41,7 +41,7 @@ export function FeaturesSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Tout ce dont vous avez besoin pour bien gérer
+            Fonctionnalités principales
           </h2>
           <p className="text-xl text-gray-600">
             Des outils simples, complets et adaptés à votre quotidien
