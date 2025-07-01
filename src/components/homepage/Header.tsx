@@ -21,7 +21,7 @@ export function Header() {
 
   return (
     <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <button 
           onClick={() => navigate('/')}
           className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
@@ -29,7 +29,7 @@ export function Header() {
           <img 
             src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
             alt="Soft Facture Logo"
-            className="h-24 w-auto"
+            className="h-16 w-auto"
           />
         </button>
         
