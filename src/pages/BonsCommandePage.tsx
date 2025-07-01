@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -148,7 +147,7 @@ const BonsCommandePage = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F9FA] p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
