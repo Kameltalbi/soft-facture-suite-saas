@@ -61,14 +61,14 @@ const DemoPage = () => {
       {/* Hero Section */}
       <section className="py-20 bg-gradient-to-b from-white to-[#F7F9FA]">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="max-w-4xl mx-auto text-center">
             <div className="space-y-8">
               <div className="space-y-6">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                   Découvrez SoftFacture 
                   <span className="text-[#6A9C89]"> en action</span>
                 </h1>
-                <p className="text-xl text-gray-600 leading-relaxed">
+                <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
                   Une démonstration rapide, personnalisée, sans engagement pour voir comment 
                   SoftFacture peut simplifier votre gestion commerciale.
                 </p>
@@ -81,18 +81,6 @@ const DemoPage = () => {
               >
                 Réservez votre démo
               </Button>
-            </div>
-            
-            <div className="lg:pl-8">
-              <Card className="p-6 shadow-2xl bg-white rounded-2xl">
-                <div className="aspect-video bg-white rounded-xl overflow-hidden">
-                  <img 
-                    src="/lovable-uploads/aa6d5b72-4a25-4522-94b2-7dfd5d462531.png" 
-                    alt="Interface SoftFacture - Démonstration"
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                </div>
-              </Card>
             </div>
           </div>
         </div>
