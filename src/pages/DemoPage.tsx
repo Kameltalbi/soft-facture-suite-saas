@@ -10,6 +10,7 @@ import { Header } from '@/components/homepage/Header';
 import { Footer } from '@/components/homepage/Footer';
 import { CheckCircle, Clock, Users, Zap, Mail, Phone, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const DemoPage = () => {
   const { toast } = useToast();
@@ -23,6 +24,7 @@ const DemoPage = () => {
     wantsCallback: false
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -39,15 +41,36 @@ const DemoPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log('Demo request submitted:', formData);
-    setIsSubmitted(true);
-    toast({
-      title: "Demande envoyée !",
-      description: "Nous vous contacterons dans les 24h pour planifier votre démonstration.",
-    });
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-demo-request', {
+        body: formData
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Demo request sent successfully:', data);
+      setIsSubmitted(true);
+      toast({
+        title: "Demande envoyée !",
+        description: "Nous vous contacterons dans les 24h pour planifier votre démonstration.",
+      });
+
+    } catch (error: any) {
+      console.error('Error sending demo request:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'envoi. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const scrollToForm = () => {
@@ -192,6 +215,7 @@ const DemoPage = () => {
                         value={formData.fullName}
                         onChange={handleInputChange}
                         className="w-full"
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div className="space-y-2">
@@ -204,6 +228,7 @@ const DemoPage = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         className="w-full"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -219,6 +244,7 @@ const DemoPage = () => {
                         value={formData.phone}
                         onChange={handleInputChange}
                         className="w-full"
+                        disabled={isSubmitting}
                       />
                     </div>
                     <div className="space-y-2">
@@ -231,6 +257,7 @@ const DemoPage = () => {
                         value={formData.company}
                         onChange={handleInputChange}
                         className="w-full"
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -244,6 +271,7 @@ const DemoPage = () => {
                       value={formData.position}
                       onChange={handleInputChange}
                       className="w-full"
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -257,6 +285,7 @@ const DemoPage = () => {
                       onChange={handleInputChange}
                       className="w-full"
                       placeholder="Décrivez vos besoins spécifiques ou posez vos questions..."
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -265,6 +294,7 @@ const DemoPage = () => {
                       id="callback"
                       checked={formData.wantsCallback}
                       onCheckedChange={handleCheckboxChange}
+                      disabled={isSubmitting}
                     />
                     <Label htmlFor="callback" className="text-sm">
                       Je souhaite être rappelé pour fixer un rendez-vous
@@ -274,8 +304,9 @@ const DemoPage = () => {
                   <Button 
                     type="submit"
                     className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white py-3 text-lg"
+                    disabled={isSubmitting}
                   >
-                    Envoyer ma demande
+                    {isSubmitting ? "Envoi en cours..." : "Envoyer ma demande"}
                   </Button>
                 </form>
               </Card>
