@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface Client {
   id: string;
@@ -23,6 +24,7 @@ export function useClients() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { organization } = useAuth();
+  const { toast } = useToast();
 
   const fetchClients = async () => {
     if (!organization?.id) return;
@@ -77,11 +79,85 @@ export function useClients() {
     }
   };
 
+  const updateClient = async (id: string, clientData: Partial<Omit<Client, 'id' | 'created_at' | 'updated_at'>>) => {
+    if (!organization?.id) return { error: 'Organization not found' };
+
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .update(clientData)
+        .eq('id', id)
+        .eq('organization_id', organization.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Refresh the clients list
+      await fetchClients();
+      
+      toast({
+        title: 'Succès',
+        description: 'Client modifié avec succès.',
+      });
+
+      return { data, error: null };
+    } catch (err) {
+      console.error('Error updating client:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la modification du client';
+      
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+
+      return { data: null, error: errorMessage };
+    }
+  };
+
+  const deleteClient = async (id: string) => {
+    if (!organization?.id) return { error: 'Organization not found' };
+
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .delete()
+        .eq('id', id)
+        .eq('organization_id', organization.id);
+
+      if (error) throw error;
+      
+      // Refresh the clients list
+      await fetchClients();
+      
+      toast({
+        title: 'Succès',
+        description: 'Client supprimé avec succès.',
+      });
+
+      return { error: null };
+    } catch (err) {
+      console.error('Error deleting client:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la suppression du client';
+      
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+
+      return { error: errorMessage };
+    }
+  };
+
   return {
     clients,
     loading,
     error,
     fetchClients,
-    createClient
+    createClient,
+    updateClient,
+    deleteClient
   };
 }

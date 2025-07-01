@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,7 @@ const Clients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
-  const { clients, loading } = useClients();
+  const { clients, loading, deleteClient } = useClients();
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,9 +44,9 @@ const Clients = () => {
     setShowModal(true);
   };
 
-  const handleDeleteClient = (id) => {
+  const handleDeleteClient = async (id) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
-      console.log('Deleting client:', id);
+      await deleteClient(id);
     }
   };
 

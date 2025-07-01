@@ -25,7 +25,13 @@ export function useCustomTaxes() {
 
       if (error) throw error;
       
-      setCustomTaxes(data || []);
+      // Convertir les données avec le bon type
+      const typedData = (data || []).map(item => ({
+        ...item,
+        type: item.type as 'percentage' | 'fixed'
+      }));
+      
+      setCustomTaxes(typedData);
     } catch (error) {
       console.error('Error fetching custom taxes:', error);
       toast({
@@ -54,14 +60,19 @@ export function useCustomTaxes() {
 
       if (error) throw error;
 
-      setCustomTaxes(prev => [data, ...prev]);
+      const typedData = {
+        ...data,
+        type: data.type as 'percentage' | 'fixed'
+      };
+
+      setCustomTaxes(prev => [typedData, ...prev]);
       
       toast({
         title: 'Succès',
         description: 'Taxe personnalisée créée avec succès.',
       });
 
-      return data;
+      return typedData;
     } catch (error) {
       console.error('Error creating custom tax:', error);
       toast({
@@ -91,8 +102,13 @@ export function useCustomTaxes() {
 
       if (error) throw error;
 
+      const typedData = {
+        ...data,
+        type: data.type as 'percentage' | 'fixed'
+      };
+
       setCustomTaxes(prev => 
-        prev.map(tax => tax.id === id ? data : tax)
+        prev.map(tax => tax.id === id ? typedData : tax)
       );
       
       toast({
@@ -100,7 +116,7 @@ export function useCustomTaxes() {
         description: 'Taxe personnalisée modifiée avec succès.',
       });
 
-      return data;
+      return typedData;
     } catch (error) {
       console.error('Error updating custom tax:', error);
       toast({
