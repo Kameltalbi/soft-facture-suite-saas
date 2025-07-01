@@ -12,6 +12,13 @@ export function Header() {
     navigate('/');
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -23,15 +30,24 @@ export function Header() {
         </div>
         
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-gray-600 hover:text-[#6A9C89] font-medium">
+          <button 
+            onClick={() => scrollToSection('features')}
+            className="text-gray-600 hover:text-[#6A9C89] font-medium"
+          >
             Fonctionnalités
-          </a>
-          <a href="#pricing" className="text-gray-600 hover:text-[#6A9C89] font-medium">
+          </button>
+          <button 
+            onClick={() => scrollToSection('pricing')}
+            className="text-gray-600 hover:text-[#6A9C89] font-medium"
+          >
             Tarifs
-          </a>
-          <a href="#testimonials" className="text-gray-600 hover:text-[#6A9C89] font-medium">
+          </button>
+          <button 
+            onClick={() => scrollToSection('testimonials')}
+            className="text-gray-600 hover:text-[#6A9C89] font-medium"
+          >
             Témoignages
-          </a>
+          </button>
           <button 
             onClick={() => navigate('/demo')}
             className="text-gray-600 hover:text-[#6A9C89] font-medium"
