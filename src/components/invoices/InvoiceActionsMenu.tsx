@@ -20,14 +20,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   MoreHorizontal, 
-  Eye, 
   Printer, 
   Mail, 
   Repeat, 
   CreditCard, 
   Edit, 
   Trash2,
-  Send
+  CheckCircle
 } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PaymentModal } from '@/components/modals/PaymentModal';
@@ -40,13 +39,14 @@ interface InvoiceActionsMenuProps {
     client: string;
     amount: number;
     paidAmount?: number;
-    status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
+    status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
   };
   pdfComponent: React.ReactElement;
   onView: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onMarkAsSent: () => void;
+  onMarkAsValidated: () => void;
   onDelete: () => void;
   onPaymentRecorded: (paymentData: any) => void;
   onEmailSent: (emailData: any) => void;
@@ -59,6 +59,7 @@ export function InvoiceActionsMenu({
   onEdit,
   onDuplicate,
   onMarkAsSent,
+  onMarkAsValidated,
   onDelete,
   onPaymentRecorded,
   onEmailSent
@@ -69,7 +70,7 @@ export function InvoiceActionsMenu({
 
   const isFullyPaid = invoice.status === 'paid' || (invoice.paidAmount && invoice.paidAmount >= invoice.amount);
   const canRecordPayment = !isFullyPaid;
-  const canMarkAsSent = invoice.status === 'draft';
+  const canValidate = invoice.status === 'draft' || invoice.status === 'sent';
   const canModify = invoice.status === 'draft';
 
   const handlePaymentSave = (paymentData: any) => {
@@ -97,11 +98,6 @@ export function InvoiceActionsMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onClick={onView}>
-            <Eye className="mr-2 h-4 w-4" />
-            Aperçu
-          </DropdownMenuItem>
-          
           <PDFDownloadLink
             document={pdfComponent}
             fileName={`${invoice.number}.pdf`}
@@ -126,17 +122,17 @@ export function InvoiceActionsMenu({
 
           <DropdownMenuSeparator />
 
+          {canValidate && (
+            <DropdownMenuItem onClick={onMarkAsValidated}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Validée
+            </DropdownMenuItem>
+          )}
+
           {canRecordPayment && (
             <DropdownMenuItem onClick={() => setShowPaymentModal(true)}>
               <CreditCard className="mr-2 h-4 w-4" />
               Enregistrer un paiement
-            </DropdownMenuItem>
-          )}
-
-          {canMarkAsSent && (
-            <DropdownMenuItem onClick={onMarkAsSent}>
-              <Send className="mr-2 h-4 w-4" />
-              Marquer comme envoyée
             </DropdownMenuItem>
           )}
 
