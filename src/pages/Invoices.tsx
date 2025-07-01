@@ -356,33 +356,6 @@ export default function Invoices() {
     }
   };
 
-  const handleMarkAsValidated = async (invoice: any) => {
-    try {
-      const { error } = await supabase
-        .from('invoices')
-        .update({ 
-          status: 'validated',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', invoice.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été validée`,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la validation:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la validation de la facture",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleDeleteInvoice = async (invoice: any) => {
     try {
       // Supprimer d'abord les éléments de facture
@@ -719,7 +692,6 @@ export default function Invoices() {
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}
                       onMarkAsSent={() => handleMarkAsSent(invoice)}
-                      onMarkAsValidated={() => handleMarkAsValidated(invoice)}
                       onDelete={() => handleDeleteInvoice(invoice)}
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
