@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClassicTemplate, ModernTemplate, MinimalTemplate, ProfessionalTemplate } from './templates';
+import { ClassicTemplate, ModernTemplate } from './templates';
 
 interface TemplatedInvoicePDFProps {
   invoiceData: any;
@@ -10,30 +10,27 @@ interface TemplatedInvoicePDFProps {
   settings: any;
   template?: string;
   documentType?: string;
-  customTaxes?: any[]; // Ajouter les taxes personnalisées
+  customTaxes?: any[];
 }
 
 export const TemplatedInvoicePDF = ({ 
   template = 'classic',
   documentType = 'FACTURE',
-  customTaxes = [], // Valeur par défaut
+  customTaxes = [],
   ...props 
 }: TemplatedInvoicePDFProps) => {
+  console.log('🎨 TemplatedInvoicePDF - Template utilisé:', template);
   console.log('🎨 TemplatedInvoicePDF - Taxes reçues:', customTaxes);
   
   const templateProps = { 
     ...props, 
     documentType,
-    customTaxes // Passer les taxes aux templates
+    customTaxes
   };
   
   switch (template) {
     case 'modern':
       return <ModernTemplate {...templateProps} />;
-    case 'minimal':
-      return <MinimalTemplate {...templateProps} />;
-    case 'professional':
-      return <ProfessionalTemplate {...templateProps} />;
     case 'classic':
     default:
       return <ClassicTemplate {...templateProps} />;
