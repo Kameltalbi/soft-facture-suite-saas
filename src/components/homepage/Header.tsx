@@ -25,59 +25,56 @@ export function Header() {
     <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
         {/* Layout mobile/tablette */}
-        <div className="lg:hidden">
-          {/* Logo centré en haut */}
-          <div className="flex justify-center py-4">
-            <button 
-              onClick={() => navigate('/')}
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-            >
-              <img 
-                src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
-                alt="Soft Facture Logo"
-                className="h-[4rem] w-auto"
-              />
-            </button>
-          </div>
+        <div className="lg:hidden h-16 flex items-center justify-between">
+          {/* Logo à gauche */}
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
+            <img 
+              src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
+              alt="Soft Facture Logo"
+              className="h-[3rem] w-auto"
+            />
+          </button>
           
-          {/* Menu hamburger et boutons en dessous */}
-          <div className="flex items-center justify-between pb-4">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-gray-600 hover:text-[#6A9C89]"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            
-            <div className="flex items-center space-x-2">
-              {user ? (
+          {/* Menu hamburger au centre */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-gray-600 hover:text-[#6A9C89]"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          
+          {/* Boutons à droite */}
+          <div className="flex items-center space-x-2">
+            {user ? (
+              <Button 
+                variant="outline"
+                size="sm"
+                className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
+                onClick={handleSignOut}
+              >
+                Déconnexion
+              </Button>
+            ) : (
+              <>
                 <Button 
-                  variant="outline"
                   size="sm"
-                  className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
-                  onClick={handleSignOut}
+                  className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
+                  onClick={() => navigate('/auth')}
                 >
-                  Déconnexion
+                  Connexion
                 </Button>
-              ) : (
-                <>
-                  <Button 
-                    size="sm"
-                    className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
-                    onClick={() => navigate('/auth')}
-                  >
-                    Connexion
-                  </Button>
-                  <Button 
-                    size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => navigate('/demo')}
-                  >
-                    Démo
-                  </Button>
-                </>
-              )}
-            </div>
+                <Button 
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => navigate('/demo')}
+                >
+                  Démo
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
