@@ -46,16 +46,16 @@ export function Header() {
           ) : (
             <>
               <Button 
-                variant="outline"
-                className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
-              >
-                Réserver votre démo gratuite
-              </Button>
-              <Button 
                 className="bg-[#D96C4F] hover:bg-[#C25A43] text-white"
                 onClick={() => navigate('/auth')}
               >
                 Connexion
+              </Button>
+              <Button 
+                variant="outline"
+                className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
+              >
+                Réserver votre démo gratuite
               </Button>
             </>
           )}
