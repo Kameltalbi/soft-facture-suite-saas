@@ -2,10 +2,13 @@
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 export function Header() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -60,6 +63,15 @@ export function Header() {
           </button>
         </nav>
         
+        {/* Menu hamburger pour mobile/tablette */}
+        <div className="md:hidden flex items-center">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-gray-600 hover:text-[#6A9C89]"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
         <div className="flex items-center space-x-4">
           {user ? (
             <Button 
@@ -87,6 +99,86 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {/* Menu mobile/tablette */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t bg-white/95 backdrop-blur-sm">
+          <div className="container mx-auto px-4 py-4 space-y-4">
+            <button 
+              onClick={() => {
+                scrollToSection('features');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
+            >
+              Fonctionnalités
+            </button>
+            <button 
+              onClick={() => {
+                scrollToSection('pricing');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
+            >
+              Tarifs
+            </button>
+            <button 
+              onClick={() => {
+                scrollToSection('testimonials');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
+            >
+              Témoignages
+            </button>
+            <button 
+              onClick={() => {
+                navigate('/demo');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
+            >
+              Démo
+            </button>
+            
+            <div className="pt-4 border-t space-y-2">
+              {user ? (
+                <Button 
+                  variant="outline"
+                  className="w-full text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Déconnexion
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button 
+                    className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
+                    onClick={() => {
+                      navigate('/auth');
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Connexion
+                  </Button>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => {
+                      navigate('/demo');
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    Réserver votre démo gratuite
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
