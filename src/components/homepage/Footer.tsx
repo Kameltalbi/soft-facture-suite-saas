@@ -12,7 +12,7 @@ export function Footer() {
               <img 
                 src="/lovable-uploads/3928f24a-1fb2-4bf0-8e69-dafa665eddc0.png"
                 alt="SoftFacture Logo"
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
             </div>
             <p className="text-sm text-gray-300 leading-relaxed">
