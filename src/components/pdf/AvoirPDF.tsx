@@ -44,148 +44,234 @@ interface AvoirPDFProps {
     showDiscount: boolean;
     currency: string;
     amountInWords: boolean;
+    footer_content?: string;
   };
+  template?: string;
 }
 
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
-    padding: 30,
+    padding: 25,
     fontFamily: 'Helvetica',
     fontSize: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    alignItems: 'flex-start',
+    marginBottom: 35,
     paddingBottom: 20,
     borderBottomWidth: 2,
-    borderBottomColor: '#DC2626', // Rouge pour les avoirs
+    borderBottomColor: '#DC2626',
   },
   logo: {
-    width: 80,
-    height: 60,
+    width: 90,
+    height: 70,
     objectFit: 'contain',
   },
   companyInfo: {
-    alignItems: 'flex-end',
-    maxWidth: 200,
+    alignItems: 'flex-start',
+    maxWidth: 280,
+    flex: 1,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#DC2626', // Rouge pour les avoirs
-    marginBottom: 10,
+    color: '#DC2626',
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  companyText: {
+    fontSize: 9,
+    color: '#4B5563',
+    marginBottom: 2,
+    lineHeight: 1.4,
   },
   documentInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 30,
+    backgroundColor: '#FEF2F2',
+    padding: 20,
+    borderRadius: 8,
   },
   clientInfo: {
-    maxWidth: 250,
+    maxWidth: 280,
+    flex: 1,
   },
   avoirDetails: {
     alignItems: 'flex-end',
-    maxWidth: 200,
+    maxWidth: 220,
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: '#2E2E2E',
-    marginBottom: 8,
+    color: '#DC2626',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   text: {
-    fontSize: 10,
-    color: '#2E2E2E',
+    fontSize: 9,
+    color: '#374151',
     marginBottom: 3,
+    lineHeight: 1.3,
   },
   table: {
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: 25,
+    marginBottom: 25,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#DC2626', // Rouge pour les avoirs
-    padding: 8,
-    color: '#FFFFFF',
+    backgroundColor: '#DC2626',
+    padding: 12,
     fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-    padding: 8,
-    minHeight: 30,
+    borderBottomColor: '#FEF2F2',
+    padding: 12,
+    minHeight: 32,
+    backgroundColor: '#FFFFFF',
   },
-  tableCol1: { width: '50%' },
-  tableCol2: { width: '10%', textAlign: 'center' },
-  tableCol3: { width: '15%', textAlign: 'right' },
-  tableCol4: { width: '10%', textAlign: 'center' },
-  tableCol5: { width: '15%', textAlign: 'right' },
+  tableRowAlt: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FEF2F2',
+    padding: 12,
+    minHeight: 32,
+    backgroundColor: '#FEF2F2',
+  },
+  tableCol1: { width: '50%', color: '#374151' },
+  tableCol2: { width: '10%', textAlign: 'center', color: '#374151' },
+  tableCol3: { width: '15%', textAlign: 'right', color: '#374151' },
+  tableCol4: { width: '10%', textAlign: 'center', color: '#374151' },
+  tableCol5: { width: '15%', textAlign: 'right', color: '#374151', fontWeight: 'bold' },
   totalsSection: {
-    marginTop: 20,
+    marginTop: 25,
     alignItems: 'flex-end',
+  },
+  totalsContainer: {
+    backgroundColor: '#FEF2F2',
+    padding: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    minWidth: 250,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: 250,
-    paddingVertical: 3,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#FCA5A5',
+    marginBottom: 4,
+  },
+  totalLabel: {
+    fontSize: 10,
+    color: '#DC2626',
+    fontWeight: 'bold',
+  },
+  totalValue: {
+    fontSize: 10,
+    color: '#DC2626',
+    fontWeight: 'bold',
   },
   totalFinal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: 250,
-    paddingVertical: 5,
+    paddingVertical: 8,
     borderTopWidth: 2,
     borderTopColor: '#DC2626',
-    marginTop: 5,
-    fontWeight: 'bold',
+    marginTop: 15,
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 15,
+    borderRadius: 6,
+  },
+  totalFinalLabel: {
     fontSize: 12,
-    color: '#DC2626',
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  totalFinalValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
+    bottom: 25,
+    left: 25,
+    right: 25,
     textAlign: 'center',
     fontSize: 8,
-    color: '#6C6C6C',
+    color: '#6B7280',
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 10,
+    borderTopColor: '#FCA5A5',
+    paddingTop: 15,
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 15,
+    paddingBottom: 10,
   },
   notes: {
-    marginTop: 20,
-    padding: 15,
+    marginTop: 25,
+    padding: 18,
     backgroundColor: '#FEF2F2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
+    borderRadius: 6,
+  },
+  notesTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#DC2626',
+    marginBottom: 8,
+  },
+  notesText: {
+    fontSize: 9,
+    color: '#DC2626',
+    lineHeight: 1.4,
+  },
+  subjectContainer: {
+    marginBottom: 20,
+    padding: 12,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 6,
     borderLeftWidth: 3,
     borderLeftColor: '#DC2626',
   },
-  amountInWords: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: '#FEF2F2',
-    fontStyle: 'italic',
+  subjectText: {
+    fontSize: 10,
+    fontWeight: 'bold',
     color: '#DC2626',
   },
   invoiceReference: {
-    marginTop: 15,
-    padding: 10,
+    marginBottom: 20,
+    padding: 12,
     backgroundColor: '#F3F4F6',
+    borderRadius: 6,
     borderLeftWidth: 3,
     borderLeftColor: '#6B7280',
   },
+  invoiceReferenceText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
 });
-
-const numberToWords = (num: number): string => {
-  const absNum = Math.abs(num);
-  if (absNum === 0) return 'zéro';
-  return `${Math.floor(absNum)} euros et ${Math.round((absNum % 1) * 100)} centimes`;
-};
 
 export const AvoirPDF: React.FC<AvoirPDFProps> = ({
   avoirData,
@@ -196,7 +282,8 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
     showDiscount: false,
     currency: 'EUR',
     amountInWords: true
-  }
+  },
+  template = 'modern'
 }) => {
   // Utilise les données de l'organisation passées en props ou des valeurs par défaut
   const clientData = client || {
@@ -244,33 +331,35 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          <View style={styles.companyInfo}>
+            <Text style={styles.title}>AVOIR</Text>
+            <Text style={[styles.companyText, { fontWeight: 'bold', fontSize: 11, marginBottom: 5 }]}>
+              {companyData.name}
+            </Text>
+            {companyData.address && <Text style={styles.companyText}>{companyData.address}</Text>}
+            {companyData.email && <Text style={styles.companyText}>✉ {companyData.email}</Text>}
+            {companyData.phone && <Text style={styles.companyText}>☎ {companyData.phone}</Text>}
+          </View>
           <View>
             {companyData.logo && (
               <Image style={styles.logo} src={companyData.logo} />
             )}
-          </View>
-          <View style={styles.companyInfo}>
-            <Text style={styles.title}>AVOIR</Text>
-            <Text style={styles.text}>{companyData.name}</Text>
-            {companyData.address && <Text style={styles.text}>{companyData.address}</Text>}
-            {companyData.email && <Text style={styles.text}>{companyData.email}</Text>}
-            {companyData.phone && <Text style={styles.text}>{companyData.phone}</Text>}
           </View>
         </View>
 
         {/* Document Info */}
         <View style={styles.documentInfo}>
           <View style={styles.clientInfo}>
-            <Text style={styles.sectionTitle}>AVOIR ÉMIS POUR :</Text>
-            <Text style={styles.text}>{clientData.name}</Text>
+            <Text style={styles.sectionTitle}>Client</Text>
+            <Text style={[styles.text, { fontWeight: 'bold', fontSize: 10 }]}>{clientData.name}</Text>
             {clientData.company && clientData.company !== clientData.name && (
               <Text style={styles.text}>{clientData.company}</Text>
             )}
             {clientData.address && <Text style={styles.text}>{clientData.address}</Text>}
-            {clientData.email && <Text style={styles.text}>{clientData.email}</Text>}
+            {clientData.email && <Text style={styles.text}>✉ {clientData.email}</Text>}
           </View>
           <View style={styles.avoirDetails}>
-            <Text style={styles.text}>Avoir N° : {avoirData.number}</Text>
+            <Text style={[styles.text, { fontWeight: 'bold' }]}>N° {avoirData.number}</Text>
             <Text style={styles.text}>Date : {new Date(avoirData.date).toLocaleDateString('fr-FR')}</Text>
             <Text style={styles.text}>Type : {avoirData.type === 'facture_liee' ? 'Facture liée' : 'Économique'}</Text>
           </View>
@@ -279,8 +368,14 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
         {/* Invoice Reference if applicable */}
         {avoirData.type === 'facture_liee' && avoirData.invoiceNumber && (
           <View style={styles.invoiceReference}>
-            <Text style={[styles.text, { fontWeight: 'bold', marginBottom: 5 }]}>Facture de référence :</Text>
-            <Text style={styles.text}>Facture N° {avoirData.invoiceNumber}</Text>
+            <Text style={styles.invoiceReferenceText}>Facture de référence : {avoirData.invoiceNumber}</Text>
+          </View>
+        )}
+
+        {/* Subject/Notes as subtitle if available */}
+        {avoirData.notes && (
+          <View style={styles.subjectContainer}>
+            <Text style={styles.subjectText}>Motif : {avoirData.notes}</Text>
           </View>
         )}
 
@@ -290,60 +385,45 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
             <Text style={styles.tableCol1}>Description</Text>
             <Text style={styles.tableCol2}>Qté</Text>
             <Text style={styles.tableCol3}>Prix unit.</Text>
-            {settings.showVat && <Text style={styles.tableCol4}>TVA</Text>}
+            <Text style={styles.tableCol4}>TVA</Text>
             <Text style={styles.tableCol5}>Total</Text>
           </View>
           
-          {lineItems.map((item) => (
-            <View key={item.id} style={styles.tableRow}>
+          {lineItems.map((item, index) => (
+            <View key={item.id} style={index % 2 === 0 ? styles.tableRow : styles.tableRowAlt}>
               <Text style={styles.tableCol1}>{item.description}</Text>
               <Text style={styles.tableCol2}>{item.quantity}</Text>
-              <Text style={styles.tableCol3}>-{item.unitPrice.toFixed(2)} {settings.currency}</Text>
-              {settings.showVat && <Text style={styles.tableCol4}>{item.vatRate}%</Text>}
-              <Text style={styles.tableCol5}>-{item.total.toFixed(2)} {settings.currency}</Text>
+              <Text style={styles.tableCol3}>-{item.unitPrice.toFixed(2)} €</Text>
+              <Text style={styles.tableCol4}>{item.vatRate}%</Text>
+              <Text style={styles.tableCol5}>-{item.total.toFixed(2)} €</Text>
             </View>
           ))}
         </View>
 
         {/* Totals */}
         <View style={styles.totalsSection}>
-          <View style={styles.totalRow}>
-            <Text>Sous-total HT :</Text>
-            <Text>-{subtotalHT.toFixed(2)} {settings.currency}</Text>
-          </View>
-          {settings.showVat && (
+          <View style={styles.totalsContainer}>
             <View style={styles.totalRow}>
-              <Text>TVA :</Text>
-              <Text>-{totalVAT.toFixed(2)} {settings.currency}</Text>
+              <Text style={styles.totalLabel}>Sous-total HT :</Text>
+              <Text style={styles.totalValue}>-{subtotalHT.toFixed(2)} €</Text>
             </View>
-          )}
-          <View style={styles.totalFinal}>
-            <Text>TOTAL AVOIR TTC :</Text>
-            <Text>-{totalTTC.toFixed(2)} {settings.currency}</Text>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>TVA :</Text>
+              <Text style={styles.totalValue}>-{totalVAT.toFixed(2)} €</Text>
+            </View>
+            <View style={styles.totalFinal}>
+              <Text style={styles.totalFinalLabel}>TOTAL AVOIR TTC :</Text>
+              <Text style={styles.totalFinalValue}>-{totalTTC.toFixed(2)} €</Text>
+            </View>
           </View>
         </View>
-
-        {/* Amount in words */}
-        {settings.amountInWords && (
-          <View style={styles.amountInWords}>
-            <Text style={[styles.text, { fontWeight: 'bold' }]}>Montant en lettres :</Text>
-            <Text style={styles.text}>Avoir de {numberToWords(totalTTC)}</Text>
-          </View>
-        )}
-
-        {/* Notes */}
-        {avoirData.notes && (
-          <View style={styles.notes}>
-            <Text style={[styles.text, { fontWeight: 'bold', marginBottom: 5 }]}>Motif de l'avoir :</Text>
-            <Text style={styles.text}>{avoirData.notes}</Text>
-          </View>
-        )}
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text>Note de crédit • {companyData.name}</Text>
-          <Text>Cet avoir vient en déduction de votre prochain règlement</Text>
-        </View>
+        {settings.footer_content && (
+          <View style={styles.footer}>
+            <Text>{settings.footer_content}</Text>
+          </View>
+        )}
       </Page>
     </Document>
   );
