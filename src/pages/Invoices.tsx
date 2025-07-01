@@ -25,7 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
-type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
+type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
 
 interface Invoice {
   id: string;
@@ -40,7 +40,8 @@ const statusLabels = {
   sent: { label: 'Envoyé', variant: 'default' as const },
   paid: { label: 'Payé', variant: 'default' as const },
   overdue: { label: 'En retard', variant: 'destructive' as const },
-  partially_paid: { label: 'Payé P.', variant: 'outline' as const }
+  partially_paid: { label: 'Payé P.', variant: 'outline' as const },
+  validated: { label: 'Validée', variant: 'success' as const }
 };
 
 export default function Invoices() {
@@ -498,6 +499,33 @@ export default function Invoices() {
     };
   };
 
+  const handleValidateInvoice = async (invoice: any) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          status: 'validated',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', invoice.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast({
+        title: "Succès",
+        description: `La facture ${invoice.invoice_number} a été validée`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la validation de la facture",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -578,7 +606,7 @@ export default function Invoices() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -587,6 +615,17 @@ export default function Invoices() {
                 <p className="text-2xl font-bold text-neutral-900">{filteredInvoices.length}</p>
               </div>
               <div className="w-3 h-3 bg-primary rounded-full"></div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-600">Validées</p>
+                <p className="text-2xl font-bold text-green-600">{filteredInvoices.filter(i => i.status === 'validated').length}</p>
+              </div>
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
           </CardContent>
         </Card>
@@ -688,7 +727,7 @@ export default function Invoices() {
                         status: invoice.status as InvoiceStatus
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
-                      onView={() => handleViewInvoice(invoice)}
+                      onValidate={() => handleValidateInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}
                       onMarkAsSent={() => handleMarkAsSent(invoice)}

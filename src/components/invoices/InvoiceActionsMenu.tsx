@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   MoreHorizontal, 
-  Eye, 
+  CheckCircle, 
   Printer, 
   Mail, 
   Repeat, 
@@ -40,10 +40,10 @@ interface InvoiceActionsMenuProps {
     client: string;
     amount: number;
     paidAmount?: number;
-    status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid';
+    status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
   };
   pdfComponent: React.ReactElement;
-  onView: () => void;
+  onValidate: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onMarkAsSent: () => void;
@@ -55,7 +55,7 @@ interface InvoiceActionsMenuProps {
 export function InvoiceActionsMenu({
   invoice,
   pdfComponent,
-  onView,
+  onValidate,
   onEdit,
   onDuplicate,
   onMarkAsSent,
@@ -70,6 +70,7 @@ export function InvoiceActionsMenu({
   const isFullyPaid = invoice.status === 'paid' || (invoice.paidAmount && invoice.paidAmount >= invoice.amount);
   const canRecordPayment = !isFullyPaid;
   const canMarkAsSent = invoice.status === 'draft';
+  const canValidate = invoice.status === 'draft' || invoice.status === 'sent';
   const canModify = invoice.status === 'draft';
 
   const handlePaymentSave = (paymentData: any) => {
@@ -97,10 +98,12 @@ export function InvoiceActionsMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onClick={onView}>
-            <Eye className="mr-2 h-4 w-4" />
-            Aperçu
-          </DropdownMenuItem>
+          {canValidate && (
+            <DropdownMenuItem onClick={onValidate}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Valider
+            </DropdownMenuItem>
+          )}
           
           <PDFDownloadLink
             document={pdfComponent}
