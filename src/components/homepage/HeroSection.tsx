@@ -27,7 +27,7 @@ export function HeroSection() {
               <Button 
                 size="lg"
                 className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white px-8 py-3 text-lg"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/checkout')}
               >
                 Commencer maintenant
               </Button>
