@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { TaxCalculation } from '@/utils/customTaxCalculations';
@@ -200,6 +201,7 @@ export const InvoicePDF = ({
   customTaxes = []
 }: InvoicePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
+  const currencyCode = currency?.code || 'EUR';
   
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
@@ -340,7 +342,7 @@ export const InvoicePDF = ({
         {/* Montant en toutes lettres */}
         <View style={{ marginTop: 15, padding: 10, backgroundColor: '#F8F9FA', borderRadius: 5 }}>
           <Text style={{ fontSize: 10, color: '#666666', fontStyle: 'italic', textAlign: 'center' }}>
-            {numberToWords(totalTTC)}
+            {numberToWords(totalTTC, currencyCode)}
           </Text>
         </View>
 

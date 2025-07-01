@@ -1,6 +1,6 @@
 
-export function numberToWords(num: number): string {
-  if (num === 0) return 'zéro euro';
+export function numberToWords(num: number, currency: string = 'EUR'): string {
+  if (num === 0) return `zéro ${getCurrencyName(currency).toLowerCase()}`;
 
   const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
   const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
@@ -55,8 +55,25 @@ export function numberToWords(num: number): string {
     return result;
   }
 
+  function getCurrencyName(currencyCode: string): string {
+    const currencyNames: Record<string, { singular: string; plural: string; centSingular: string; centPlural: string }> = {
+      'EUR': { singular: 'euro', plural: 'euros', centSingular: 'centime', centPlural: 'centimes' },
+      'USD': { singular: 'dollar', plural: 'dollars', centSingular: 'cent', centPlural: 'cents' },
+      'GBP': { singular: 'livre sterling', plural: 'livres sterling', centSingular: 'penny', centPlural: 'pence' },
+      'CHF': { singular: 'franc suisse', plural: 'francs suisses', centSingular: 'centime', centPlural: 'centimes' },
+      'CAD': { singular: 'dollar canadien', plural: 'dollars canadiens', centSingular: 'cent', centPlural: 'cents' },
+      'JPY': { singular: 'yen', plural: 'yens', centSingular: 'sen', centPlural: 'sen' },
+      'TND': { singular: 'dinar tunisien', plural: 'dinars tunisiens', centSingular: 'millime', centPlural: 'millimes' },
+      'MAD': { singular: 'dirham marocain', plural: 'dirhams marocains', centSingular: 'centime', centPlural: 'centimes' },
+      'DZD': { singular: 'dinar algérien', plural: 'dinars algériens', centSingular: 'centime', centPlural: 'centimes' },
+    };
+    
+    return currencyNames[currencyCode] || { singular: 'unité', plural: 'unités', centSingular: 'centième', centPlural: 'centièmes' };
+  }
+
   const euros = Math.floor(num);
   const cents = Math.round((num - euros) * 100);
+  const currencyInfo = getCurrencyName(currency);
 
   let result = '';
 
@@ -100,17 +117,17 @@ export function numberToWords(num: number): string {
   }
 
   if (euros === 1) {
-    result += ' euro';
+    result += ' ' + currencyInfo.singular;
   } else {
-    result += ' euros';
+    result += ' ' + currencyInfo.plural;
   }
 
   if (cents > 0) {
     result += ' et ' + convertHundreds(cents);
     if (cents === 1) {
-      result += ' centime';
+      result += ' ' + currencyInfo.centSingular;
     } else {
-      result += ' centimes';
+      result += ' ' + currencyInfo.centPlural;
     }
   }
 

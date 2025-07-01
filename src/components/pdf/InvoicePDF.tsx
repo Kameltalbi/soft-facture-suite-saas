@@ -1,51 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { TaxCalculation } from '@/utils/customTaxCalculations';
-
-interface LineItem {
-  id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  vatRate: number;
-  discount: number;
-  total: number;
-}
-
-interface InvoiceData {
-  number: string;
-  date: string;
-  dueDate?: string;
-  clientId: string;
-  subject: string;
-  notes: string;
-}
-
-interface InvoicePDFProps {
-  invoiceData: InvoiceData;
-  lineItems: LineItem[];
-  client: {
-    name: string;
-    company?: string;
-    address?: string;
-    email?: string;
-  };
-  company: {
-    name: string;
-    address?: string;
-    email?: string;
-    phone?: string;
-    logo?: string;
-  };
-  settings: {
-    showVat: boolean;
-    showDiscount: boolean;
-    showAdvance: boolean;
-    currency: string;
-    amountInWords: boolean;
-  };
-  customTaxes?: TaxCalculation[];
-}
+import { numberToWords } from '@/utils/numberToWords';
 
 const styles = StyleSheet.create({
   page: {
@@ -180,10 +136,50 @@ const styles = StyleSheet.create({
   },
 });
 
-const numberToWords = (num: number): string => {
-  if (num === 0) return 'zéro';
-  return `${Math.floor(num)} euros et ${Math.round((num % 1) * 100)} centimes`;
-};
+interface LineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  vatRate: number;
+  discount: number;
+  total: number;
+}
+
+interface InvoiceData {
+  number: string;
+  date: string;
+  dueDate?: string;
+  clientId: string;
+  subject: string;
+  notes: string;
+}
+
+interface InvoicePDFProps {
+  invoiceData: InvoiceData;
+  lineItems: LineItem[];
+  client: {
+    name: string;
+    company?: string;
+    address?: string;
+    email?: string;
+  };
+  company: {
+    name: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+    logo?: string;
+  };
+  settings: {
+    showVat: boolean;
+    showDiscount: boolean;
+    showAdvance: boolean;
+    currency: string;
+    amountInWords: boolean;
+  };
+  customTaxes?: TaxCalculation[];
+}
 
 export const InvoicePDF: React.FC<InvoicePDFProps> = ({
   invoiceData,
@@ -303,7 +299,7 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
         {settings.amountInWords && (
           <View style={styles.amountInWords}>
             <Text style={[styles.text, { fontWeight: 'bold' }]}>Montant en lettres :</Text>
-            <Text style={styles.text}>{numberToWords(totalTTC)}</Text>
+            <Text style={styles.text}>{numberToWords(totalTTC, settings.currency)}</Text>
           </View>
         )}
 
