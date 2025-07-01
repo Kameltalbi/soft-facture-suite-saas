@@ -32,9 +32,8 @@ export function HeroSection() {
                 Commencer l'essai gratuit
               </Button>
               <Button 
-                variant="outline" 
                 size="lg"
-                className="border-[#6A9C89] text-[#6A9C89] hover:bg-[#6A9C89] hover:text-white px-8 py-3 text-lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
                 onClick={() => navigate('/checkout')}
               >
                 Créer mon compte
