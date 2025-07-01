@@ -10,16 +10,21 @@ interface TemplatedInvoicePDFProps {
   settings: any;
   template?: string;
   documentType?: string;
+  customTaxes?: any[]; // Ajouter les taxes personnalisées
 }
 
 export const TemplatedInvoicePDF = ({ 
   template = 'classic',
   documentType = 'FACTURE',
+  customTaxes = [], // Valeur par défaut
   ...props 
 }: TemplatedInvoicePDFProps) => {
+  console.log('🎨 TemplatedInvoicePDF - Taxes reçues:', customTaxes);
+  
   const templateProps = { 
     ...props, 
-    documentType // Assurer que documentType est bien passé
+    documentType,
+    customTaxes // Passer les taxes aux templates
   };
   
   switch (template) {

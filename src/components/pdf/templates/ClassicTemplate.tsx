@@ -1,89 +1,102 @@
 
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
-
-interface LineItem {
-  id: string;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  vatRate: number;
-  discount: number;
-  total: number;
-}
-
-interface ClassicTemplateProps {
-  invoiceData: any;
-  lineItems: LineItem[];
-  client: any;
-  company: any;
-  settings: any;
-  documentType?: string;
-}
+import { TaxCalculation } from '@/utils/customTaxCalculations';
 
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: '#FFFFFF',
     padding: 30,
+    paddingBottom: 45,
     fontFamily: 'Helvetica',
-    fontSize: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 30,
     paddingBottom: 20,
     borderBottomWidth: 2,
     borderBottomColor: '#3B82F6',
   },
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+  },
   logo: {
     width: 80,
     height: 60,
     objectFit: 'contain',
+    marginRight: 15,
   },
   companyInfo: {
-    alignItems: 'flex-end',
-    maxWidth: 200,
+    flex: 1,
   },
-  title: {
+  companyName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333333',
+  },
+  companyDetails: {
+    fontSize: 10,
+    color: '#666666',
+    lineHeight: 1.4,
+    marginBottom: 2,
+  },
+  rightSection: {
+    alignItems: 'flex-end',
+  },
+  documentTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#3B82F6',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   documentInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-  clientInfo: {
-    maxWidth: 250,
-  },
-  invoiceDetails: {
     alignItems: 'flex-end',
-    maxWidth: 200,
+  },
+  documentNumber: {
+    fontSize: 12,
+    color: '#333333',
+    marginBottom: 5,
+    fontWeight: 'bold',
+  },
+  documentDate: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 3,
+  },
+  clientSection: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 5,
   },
   sectionTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#2E2E2E',
-    marginBottom: 8,
+    marginBottom: 5,
+    color: '#333333',
   },
-  text: {
+  clientInfo: {
     fontSize: 10,
-    color: '#2E2E2E',
-    marginBottom: 3,
+    lineHeight: 1.4,
+    color: '#666666',
   },
   table: {
-    marginTop: 20,
     marginBottom: 20,
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: '#3B82F6',
     padding: 8,
+  },
+  tableHeaderText: {
     color: '#FFFFFF',
+    fontSize: 10,
     fontWeight: 'bold',
   },
   tableRow: {
@@ -91,150 +104,205 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
     padding: 8,
-    minHeight: 30,
   },
-  tableCol1: { width: '50%' },
-  tableCol2: { width: '10%', textAlign: 'center' },
-  tableCol3: { width: '15%', textAlign: 'right' },
-  tableCol4: { width: '10%', textAlign: 'center' },
-  tableCol5: { width: '15%', textAlign: 'right' },
+  tableCell: {
+    fontSize: 9,
+    color: '#333333',
+  },
   totalsSection: {
+    alignSelf: 'flex-end',
+    width: 200,
     marginTop: 20,
-    alignItems: 'flex-end',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: 250,
-    paddingVertical: 3,
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  totalFinal: {
+  totalLabel: {
+    fontSize: 10,
+    color: '#666666',
+  },
+  totalValue: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  customTaxRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: 250,
-    paddingVertical: 5,
-    borderTopWidth: 2,
-    borderTopColor: '#3B82F6',
-    marginTop: 5,
-    fontWeight: 'bold',
-    fontSize: 12,
-    color: '#3B82F6',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    textAlign: 'center',
-    fontSize: 8,
-    color: '#6C6C6C',
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 10,
+  customTaxLabel: {
+    fontSize: 10,
+    color: '#D96C4F',
+  },
+  customTaxValue: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#D96C4F',
+  },
+  grandTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    backgroundColor: '#3B82F6',
+    color: '#FFFFFF',
+    marginTop: 5,
+    paddingHorizontal: 10,
+  },
+  grandTotalText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   notes: {
     marginTop: 20,
-    padding: 15,
-    backgroundColor: '#F8FAFC',
-    borderLeftWidth: 3,
-    borderLeftColor: '#3B82F6',
+    fontSize: 9,
+    color: '#666666',
+    lineHeight: 1.4,
   },
-  amountInWords: {
-    marginTop: 15,
-    padding: 10,
-    backgroundColor: '#F0F9FF',
-    fontStyle: 'italic',
-    color: '#1E40AF',
+  footer: {
+    position: 'absolute',
+    bottom: 15,
+    left: 30,
+    right: 30,
+    fontSize: 8,
+    color: '#666666',
+    textAlign: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    paddingTop: 8,
   },
 });
 
-const numberToWords = (num: number): string => {
-  if (num === 0) return 'zéro';
-  return `${Math.floor(num)} euros et ${Math.round((num % 1) * 100)} centimes`;
-};
+interface ClassicTemplateProps {
+  invoiceData: any;
+  lineItems: any[];
+  client: any;
+  company: any;
+  settings: any;
+  currency?: { code: string; symbol: string; name: string };
+  customTaxes?: TaxCalculation[];
+  documentType?: string;
+}
 
-export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
+export const ClassicTemplate = ({
   invoiceData,
   lineItems,
   client,
   company,
   settings,
+  currency,
+  customTaxes = [],
   documentType = 'FACTURE'
-}) => {
+}: ClassicTemplateProps) => {
+  const currencySymbol = currency?.symbol || '€';
+  
+  console.log('📄 ClassicTemplate - Taxes reçues:', customTaxes);
+  
   const calculateTotals = () => {
-    const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
+    const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
     const totalVAT = lineItems.reduce((sum, item) => {
-      return sum + (item.total * item.vatRate / 100);
+      return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0);
-    const totalTTC = subtotalHT + totalVAT;
+    
+    // Calcul du total des taxes personnalisées
+    const totalCustomTaxes = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+    
+    const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
-    return { subtotalHT, totalVAT, totalTTC };
+    return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC };
   };
 
-  const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
+  const { subtotalHT, totalVAT, totalCustomTaxes, totalTTC } = calculateTotals();
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            {company.logo && (
-              <Image style={styles.logo} src={company.logo} />
+          <View style={styles.leftSection}>
+            {company?.logo_url && (
+              <Image style={styles.logo} src={company.logo_url} />
             )}
+            <View style={styles.companyInfo}>
+              <Text style={styles.companyName}>
+                {company?.name || 'Soft Facture'}
+              </Text>
+              <Text style={styles.companyDetails}>
+                {company?.address || 'Adresse de l\'entreprise'}
+              </Text>
+              <Text style={styles.companyDetails}>
+                {company?.email || 'contact@softfacture.fr'}
+              </Text>
+              <Text style={styles.companyDetails}>
+                {company?.phone || 'Téléphone'}
+              </Text>
+            </View>
           </View>
-          <View style={styles.companyInfo}>
-            <Text style={styles.title}>{documentType}</Text>
-            <Text style={styles.text}>{company.name}</Text>
-            {company.address && <Text style={styles.text}>{company.address}</Text>}
-            {company.email && <Text style={styles.text}>{company.email}</Text>}
-            {company.phone && <Text style={styles.text}>{company.phone}</Text>}
+          
+          <View style={styles.rightSection}>
+            <Text style={styles.documentTitle}>{documentType}</Text>
+            <View style={styles.documentInfo}>
+              <Text style={styles.documentNumber}>N° {invoiceData?.number || 'N/A'}</Text>
+              <Text style={styles.documentDate}>
+                Date: {new Date(invoiceData?.date || Date.now()).toLocaleDateString('fr-FR')}
+              </Text>
+              {invoiceData?.dueDate && (
+                <Text style={styles.documentDate}>
+                  Échéance: {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}
+                </Text>
+              )}
+            </View>
           </View>
         </View>
 
-        {/* Document Info */}
-        <View style={styles.documentInfo}>
-          <View style={styles.clientInfo}>
-            <Text style={styles.sectionTitle}>FACTURÉ À :</Text>
-            <Text style={styles.text}>{client.name}</Text>
-            {client.company && client.company !== client.name && (
-              <Text style={styles.text}>{client.company}</Text>
-            )}
-            {client.address && <Text style={styles.text}>{client.address}</Text>}
-            {client.email && <Text style={styles.text}>{client.email}</Text>}
-          </View>
-          <View style={styles.invoiceDetails}>
-            <Text style={styles.text}>{documentType} N° : {invoiceData.number}</Text>
-            <Text style={styles.text}>Date : {new Date(invoiceData.date).toLocaleDateString('fr-FR')}</Text>
-            {invoiceData.dueDate && (
-              <Text style={styles.text}>Échéance : {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}</Text>
-            )}
-          </View>
+        {/* Client Section */}
+        <View style={styles.clientSection}>
+          <Text style={styles.sectionTitle}>FACTURER À :</Text>
+          <Text style={styles.clientInfo}>
+            {client?.company || client?.name || 'Nom du client'}
+          </Text>
+          <Text style={styles.clientInfo}>
+            {client?.address || 'Adresse du client'}
+          </Text>
+          <Text style={styles.clientInfo}>
+            {client?.email || 'Email du client'}
+          </Text>
         </View>
-
-        {invoiceData.subject && (
-          <View style={{ marginBottom: 20 }}>
-            <Text style={[styles.text, { fontWeight: 'bold' }]}>Objet : {invoiceData.subject}</Text>
-          </View>
-        )}
 
         {/* Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={styles.tableCol1}>Description</Text>
-            <Text style={styles.tableCol2}>Qté</Text>
-            <Text style={styles.tableCol3}>Prix unit.</Text>
-            {settings.showVat && <Text style={styles.tableCol4}>TVA</Text>}
-            <Text style={styles.tableCol5}>Total</Text>
+            <Text style={[styles.tableHeaderText, { flex: 3 }]}>DESCRIPTION</Text>
+            <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>QTÉ</Text>
+            <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>P.U. HT</Text>
+            {settings?.showVat && (
+              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>TVA</Text>
+            )}
+            <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>TOTAL HT</Text>
           </View>
-          
-          {lineItems.map((item) => (
-            <View key={item.id} style={styles.tableRow}>
-              <Text style={styles.tableCol1}>{item.description}</Text>
-              <Text style={styles.tableCol2}>{item.quantity}</Text>
-              <Text style={styles.tableCol3}>{item.unitPrice.toFixed(2)} {settings.currency}</Text>
-              {settings.showVat && <Text style={styles.tableCol4}>{item.vatRate}%</Text>}
-              <Text style={styles.tableCol5}>{item.total.toFixed(2)} {settings.currency}</Text>
+
+          {lineItems?.filter(item => item.description && item.description.trim()).map((item, index) => (
+            <View key={index} style={styles.tableRow}>
+              <Text style={[styles.tableCell, { flex: 3 }]}>{item.description}</Text>
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>{item.quantity || 0}</Text>
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
+                {(item.unitPrice || 0).toFixed(2)} {currencySymbol}
+              </Text>
+              {settings?.showVat && (
+                <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
+                  {item.vatRate || 0}%
+                </Text>
+              )}
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
+                {(item.total || 0).toFixed(2)} {currencySymbol}
+              </Text>
             </View>
           ))}
         </View>
@@ -242,42 +310,47 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
         {/* Totals */}
         <View style={styles.totalsSection}>
           <View style={styles.totalRow}>
-            <Text>Sous-total HT :</Text>
-            <Text>{subtotalHT.toFixed(2)} {settings.currency}</Text>
+            <Text style={styles.totalLabel}>Sous-total HT:</Text>
+            <Text style={styles.totalValue}>{subtotalHT.toFixed(2)} {currencySymbol}</Text>
           </View>
-          {settings.showVat && (
+          {settings?.showVat && (
             <View style={styles.totalRow}>
-              <Text>TVA :</Text>
-              <Text>{totalVAT.toFixed(2)} {settings.currency}</Text>
+              <Text style={styles.totalLabel}>TVA:</Text>
+              <Text style={styles.totalValue}>{totalVAT.toFixed(2)} {currencySymbol}</Text>
             </View>
           )}
-          <View style={styles.totalFinal}>
-            <Text>TOTAL TTC :</Text>
-            <Text>{totalTTC.toFixed(2)} {settings.currency}</Text>
+          
+          {/* Affichage des taxes personnalisées */}
+          {customTaxes && customTaxes.length > 0 && customTaxes.map((tax) => (
+            <View key={tax.id} style={styles.customTaxRow}>
+              <Text style={styles.customTaxLabel}>
+                {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
+              </Text>
+              <Text style={styles.customTaxValue}>{tax.amount.toFixed(2)} {currencySymbol}</Text>
+            </View>
+          ))}
+          
+          <View style={styles.grandTotal}>
+            <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
+            <Text style={styles.grandTotalText}>{totalTTC.toFixed(2)} {currencySymbol}</Text>
           </View>
         </View>
-
-        {/* Amount in words */}
-        {settings.amountInWords && (
-          <View style={styles.amountInWords}>
-            <Text style={[styles.text, { fontWeight: 'bold' }]}>Montant en lettres :</Text>
-            <Text style={styles.text}>{numberToWords(totalTTC)}</Text>
-          </View>
-        )}
 
         {/* Notes */}
-        {invoiceData.notes && (
+        {invoiceData?.notes && invoiceData.notes.trim() && (
           <View style={styles.notes}>
-            <Text style={[styles.text, { fontWeight: 'bold', marginBottom: 5 }]}>Notes :</Text>
-            <Text style={styles.text}>{invoiceData.notes}</Text>
+            <Text style={styles.sectionTitle}>NOTES :</Text>
+            <Text>{invoiceData.notes}</Text>
           </View>
         )}
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text>{company.name} • {documentType}</Text>
-          {settings.footer_content && <Text>{settings.footer_content}</Text>}
-        </View>
+        {/* Footer fixe en bas de page */}
+        {settings?.footer_content && settings?.footer_content.trim() && 
+         (settings?.footer_display === 'all' || settings?.footer_display === 'invoices_only') && (
+          <View style={styles.footer} fixed>
+            <Text>{settings.footer_content}</Text>
+          </View>
+        )}
       </Page>
     </Document>
   );
