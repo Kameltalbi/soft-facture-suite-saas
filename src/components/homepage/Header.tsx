@@ -29,7 +29,7 @@ export function Header() {
           <img 
             src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
             alt="Soft Facture Logo"
-            className="h-[4.5rem] w-auto"
+            className="h-[4.75rem] w-auto"
           />
         </button>
         
