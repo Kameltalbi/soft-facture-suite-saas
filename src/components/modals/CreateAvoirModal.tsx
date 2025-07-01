@@ -195,17 +195,6 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
     return items.reduce((sum, item) => sum + item.total, 0);
   };
 
-  const calculateTotals = () => {
-    const items = type === 'facture_liee' ? lineItems : customItems;
-    const subtotalHT = items.reduce((sum, item) => sum + item.total, 0);
-    const totalVAT = items.reduce((sum, item) => {
-      return sum + (item.total * item.vatRate / 100);
-    }, 0);
-    const totalTTC = subtotalHT + totalVAT;
-
-    return { subtotalHT, totalVAT, totalTTC };
-  };
-
   const handleSubmit = (status: 'brouillon' | 'valide') => {
     if (type === 'facture_liee' && !selectedInvoice) {
       toast({
@@ -254,6 +243,17 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
     });
   };
 
+  const calculateTotals = () => {
+    const items = type === 'facture_liee' ? lineItems : customItems;
+    const subtotalHT = items.reduce((sum, item) => sum + item.total, 0);
+    const totalVAT = items.reduce((sum, item) => {
+      return sum + (item.total * item.vatRate / 100);
+    }, 0);
+    const totalTTC = subtotalHT + totalVAT;
+
+    return { subtotalHT, totalVAT, totalTTC };
+  };
+
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
@@ -275,187 +275,177 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white">
-      {/* Header - Style PDF avec rouge */}
-      <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-red-600">
+    <div className="max-w-4xl mx-auto bg-white min-h-[800px]">
+      {/* Header exact comme le PDF */}
+      <div className="flex justify-between items-start mb-8 pb-4">
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-red-600 mb-4">AVOIR</h1>
-          <div className="space-y-1 text-sm text-gray-600">
-            <p className="font-semibold">Soft Facture</p>
-            <p>456 Avenue de la République, 69000 Lyon</p>
-            <p>contact@softfacture.fr</p>
-            <p>04 72 00 00 00</p>
+          <h1 className="text-4xl font-bold text-red-600 mb-2">AVOIR</h1>
+          <div className="text-sm text-gray-700 space-y-1">
+            <p className="font-semibold">ABC SARL</p>
+            <p>123 Rue de l'Exemple</p>
+            <p>Montpellier 34000 Gard - France</p>
+            <p>contact@abc-sarl.fr</p>
+            <p>04 67 00 00 00</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="w-20 h-20 border-2 border-blue-500 rounded-full flex items-center justify-center mb-4">
+            <span className="text-blue-500 font-bold text-lg">ABC</span>
           </div>
         </div>
       </div>
 
-      {/* Document Info - Style PDF */}
-      <div className="flex justify-between mb-8 bg-gray-50 p-6 rounded-lg">
+      {/* Ligne rouge horizontale */}
+      <div className="w-full h-1 bg-red-600 mb-8"></div>
+
+      {/* Section CLIENT et détails de l'avoir */}
+      <div className="flex justify-between mb-8">
         <div className="flex-1">
-          <h3 className="text-sm font-bold text-red-600 mb-3 uppercase">AVOIR ÉMIS POUR :</h3>
-          <div className="space-y-2">
-            <div className="space-y-2">
-              <Label>Type d'avoir</Label>
-              <Tabs value={type} onValueChange={(value) => setType(value as 'facture_liee' | 'economique')} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="facture_liee">Facture liée</TabsTrigger>
-                  <TabsTrigger value="economique">Économique</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
-            {type === 'facture_liee' ? (
-              <div className="space-y-2">
-                <Label>Facture à créditer</Label>
-                {invoices.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 text-sm">
-                    <p>Aucune facture payée trouvée</p>
-                  </div>
-                ) : (
-                  <Select onValueChange={handleInvoiceSelection}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une facture" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {invoices.map((invoice) => (
-                        <SelectItem key={invoice.id} value={invoice.id}>
-                          {invoice.number} - {invoice.clientName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label>Client</Label>
-                {clients.length === 0 ? (
-                  <div className="text-center py-4 text-gray-500 text-sm">
-                    <p>Aucun client trouvé</p>
-                  </div>
-                ) : (
-                  <Select onValueChange={setSelectedClient}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client} value={client}>
-                          {client}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
-
-            {selectedClient && (
-              <div className="mt-4 p-3 bg-white border rounded">
-                <p className="font-medium">{selectedClient}</p>
-                <p className="text-sm text-gray-600">123 Rue de l'Exemple, 75001 Paris</p>
-                <p className="text-sm text-gray-600">contact@example.com</p>
-              </div>
-            )}
+          <h3 className="text-sm font-bold text-red-600 mb-4 uppercase">CLIENT</h3>
+          
+          {/* Type d'avoir */}
+          <div className="mb-4">
+            <Label className="text-sm font-medium">Type d'avoir</Label>
+            <Tabs value={type} onValueChange={(value) => setType(value as 'facture_liee' | 'economique')} className="w-full mt-1">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="facture_liee">Facture liée</TabsTrigger>
+                <TabsTrigger value="economique">Économique</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
+
+          {/* Sélection facture ou client */}
+          {type === 'facture_liee' ? (
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Facture à créditer</Label>
+              {invoices.length === 0 ? (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  <p>Aucune facture payée trouvée</p>
+                </div>
+              ) : (
+                <Select onValueChange={handleInvoiceSelection}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Sélectionner une facture" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {invoices.map((invoice) => (
+                      <SelectItem key={invoice.id} value={invoice.id}>
+                        {invoice.number} - {invoice.clientName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <Label className="text-sm font-medium">Client</Label>
+              {clients.length === 0 ? (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  <p>Aucun client trouvé</p>
+                </div>
+              ) : (
+                <Select onValueChange={setSelectedClient}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Sélectionner un client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client} value={client}>
+                        {client}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
+
+          {/* Informations client affichées comme dans le PDF */}
+          {selectedClient && (
+            <div className="mt-4 space-y-1 text-sm">
+              <p className="font-semibold">{selectedClient}</p>
+              <p>123 Rue du Client, 75001 Paris</p>
+              <p>contact@example.com</p>
+            </div>
+          )}
         </div>
 
-        <div className="bg-white p-4 rounded border border-gray-200 min-w-[200px]">
-          <div className="space-y-2 text-sm">
-            <div>
-              <Label htmlFor="number" className="text-xs">Avoir N°</Label>
-              <Input
-                id="number"
-                value={number}
-                onChange={(e) => setNumber(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="date" className="text-xs">Date</Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <p className="text-xs font-medium">Type : {type === 'facture_liee' ? 'Facture liée' : 'Économique'}</p>
-            </div>
+        {/* Détails de l'avoir à droite */}
+        <div className="w-64 text-right space-y-2 text-sm">
+          <div>
+            <span className="font-medium">N° </span>
+            <Input
+              value={number}
+              onChange={(e) => setNumber(e.target.value)}
+              className="inline-block w-32 ml-2 text-right"
+            />
+          </div>
+          <div>
+            <span className="font-medium">Date: </span>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="inline-block w-32 ml-2"
+            />
+          </div>
+          <div>
+            <span className="font-medium">Type: </span>
+            <span>{type === 'facture_liee' ? 'Facture liée' : 'Économique'}</span>
           </div>
         </div>
       </div>
 
-      {/* Facture de référence */}
-      {type === 'facture_liee' && selectedInvoice && (
-        <div className="mb-6 p-4 bg-gray-100 border-l-4 border-gray-600 rounded">
-          <p className="font-bold text-sm mb-2">Facture de référence :</p>
-          <p className="text-sm">Facture N° {selectedInvoice.number}</p>
-        </div>
-      )}
-
-      {/* Table des articles - Style PDF */}
-      <div className="mb-6">
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-red-600 text-white p-3">
-            <div className="grid grid-cols-12 gap-4 font-bold text-sm">
-              <div className="col-span-6">Description</div>
-              <div className="col-span-1 text-center">Qté</div>
-              <div className="col-span-2 text-right">Prix unit.</div>
-              <div className="col-span-1 text-center">TVA</div>
-              <div className="col-span-2 text-right">Total</div>
-            </div>
-          </div>
-
-          <div className="divide-y divide-gray-200">
+      {/* Table des articles avec style PDF exact */}
+      <div className="mb-8">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-red-600 text-white">
+              <th className="border border-red-600 p-3 text-left font-bold text-sm">Description</th>
+              <th className="border border-red-600 p-3 text-center font-bold text-sm w-20">Qté</th>
+              <th className="border border-red-600 p-3 text-right font-bold text-sm w-24">Prix unit.</th>
+              <th className="border border-red-600 p-3 text-center font-bold text-sm w-20">TVA</th>
+              <th className="border border-red-600 p-3 text-right font-bold text-sm w-24">Total</th>
+            </tr>
+          </thead>
+          <tbody>
             {type === 'facture_liee' && lineItems.length > 0 && (
               <>
                 {lineItems.map((item) => {
                   const originalItem = selectedInvoice?.items.find(i => i.id === item.id);
                   return (
-                    <div key={item.id} className="p-3 hover:bg-gray-50">
-                      <div className="grid grid-cols-12 gap-4 items-center text-sm">
-                        <div className="col-span-6">
-                          <p className="font-medium">{item.description}</p>
+                    <tr key={item.id} className="border-b">
+                      <td className="border border-gray-300 p-3">
+                        <div>
+                          <p className="font-medium text-sm">{item.description}</p>
                           {originalItem && (
-                            <p className="text-xs text-gray-500">
-                              Qté orig.: <Badge variant="outline">{originalItem.quantity}</Badge>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Qté orig.: <Badge variant="outline" className="text-xs">{originalItem.quantity}</Badge>
                             </p>
                           )}
                         </div>
-                        <div className="col-span-1 text-center">
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => updateLineItemQuantity(item.id, parseInt(e.target.value) || 0)}
-                            min="0"
-                            max={originalItem?.quantity || 0}
-                            className="w-16 text-center"
-                          />
-                        </div>
-                        <div className="col-span-2 text-right">
-                          -{formatCurrency(item.unitPrice)}
-                        </div>
-                        <div className="col-span-1 text-center">
-                          {item.vatRate}%
-                        </div>
-                        <div className="col-span-2 text-right font-medium">
-                          -{formatCurrency(item.total)}
-                        </div>
-                      </div>
-                      <div className="mt-2 flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLineItem(item.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
+                      </td>
+                      <td className="border border-gray-300 p-3 text-center">
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateLineItemQuantity(item.id, parseInt(e.target.value) || 0)}
+                          min="0"
+                          max={originalItem?.quantity || 0}
+                          className="w-16 text-center text-sm"
+                        />
+                      </td>
+                      <td className="border border-gray-300 p-3 text-right text-sm">
+                        -{formatCurrency(item.unitPrice)}
+                      </td>
+                      <td className="border border-gray-300 p-3 text-center text-sm">
+                        {item.vatRate}%
+                      </td>
+                      <td className="border border-gray-300 p-3 text-right font-medium text-sm">
+                        -{formatCurrency(item.total)}
+                      </td>
+                    </tr>
                   );
                 })}
               </>
@@ -464,123 +454,111 @@ export function CreateAvoirModal({ onSave, onCancel }: CreateAvoirModalProps) {
             {type === 'economique' && (
               <>
                 {customItems.map((item) => (
-                  <div key={item.id} className="p-3">
-                    <div className="grid grid-cols-12 gap-4 items-center text-sm">
-                      <div className="col-span-6">
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateCustomItem(item.id, 'description', e.target.value)}
-                          placeholder="Description de l'avoir..."
-                        />
-                      </div>
-                      <div className="col-span-1 text-center">
-                        <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateCustomItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
-                          min="1"
-                          className="w-16 text-center"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Input
-                          type="number"
-                          value={item.unitPrice}
-                          onChange={(e) => updateCustomItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                          step="0.01"
-                          min="0"
-                          className="text-right"
-                        />
-                      </div>
-                      <div className="col-span-1 text-center">
-                        <Select
-                          value={item.vatRate.toString()}
-                          onValueChange={(value) => updateCustomItem(item.id, 'vatRate', parseInt(value))}
-                        >
-                          <SelectTrigger className="w-20">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">0%</SelectItem>
-                            <SelectItem value="5.5">5.5%</SelectItem>
-                            <SelectItem value="10">10%</SelectItem>
-                            <SelectItem value="20">20%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="col-span-2 text-right font-medium">
-                        -{formatCurrency(item.total)}
-                      </div>
-                    </div>
-                    <div className="mt-2 flex justify-end">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeCustomItem(item.id)}
-                        className="text-red-600 hover:text-red-700"
+                  <tr key={item.id} className="border-b">
+                    <td className="border border-gray-300 p-3">
+                      <Input
+                        value={item.description}
+                        onChange={(e) => updateCustomItem(item.id, 'description', e.target.value)}
+                        placeholder="Description de l'avoir..."
+                        className="text-sm"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-3 text-center">
+                      <Input
+                        type="number"
+                        value={item.quantity}
+                        onChange={(e) => updateCustomItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                        min="1"
+                        className="w-16 text-center text-sm"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-3">
+                      <Input
+                        type="number"
+                        value={item.unitPrice}
+                        onChange={(e) => updateCustomItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                        step="0.01"
+                        min="0"
+                        className="text-right text-sm"
+                      />
+                    </td>
+                    <td className="border border-gray-300 p-3 text-center">
+                      <Select
+                        value={item.vatRate.toString()}
+                        onValueChange={(value) => updateCustomItem(item.id, 'vatRate', parseInt(value))}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                        <SelectTrigger className="w-16 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0%</SelectItem>
+                          <SelectItem value="5.5">5.5%</SelectItem>
+                          <SelectItem value="10">10%</SelectItem>
+                          <SelectItem value="20">20%</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="border border-gray-300 p-3 text-right font-medium text-sm">
+                      -{formatCurrency(item.total)}
+                    </td>
+                  </tr>
                 ))}
-
-                <div className="p-3 border-t bg-gray-50">
-                  <Button onClick={addCustomItem} size="sm" variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une ligne
-                  </Button>
-                </div>
+                <tr>
+                  <td colSpan={5} className="border border-gray-300 p-3 bg-gray-50">
+                    <Button onClick={addCustomItem} size="sm" variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter une ligne
+                    </Button>
+                  </td>
+                </tr>
               </>
             )}
 
             {((type === 'facture_liee' && lineItems.length === 0) || (type === 'economique' && customItems.length === 0)) && (
-              <div className="p-8 text-center text-gray-500">
-                <p>Aucune ligne ajoutée</p>
-                <p className="text-sm">
-                  {type === 'facture_liee' 
-                    ? 'Sélectionnez une facture pour voir les lignes'
-                    : 'Cliquez sur "Ajouter une ligne" pour commencer'
-                  }
-                </p>
-              </div>
+              <tr>
+                <td colSpan={5} className="border border-gray-300 p-8 text-center text-gray-500">
+                  <p>Aucune ligne ajoutée</p>
+                  <p className="text-sm mt-1">
+                    {type === 'facture_liee' 
+                      ? 'Sélectionnez une facture pour voir les lignes'
+                      : 'Cliquez sur "Ajouter une ligne" pour commencer'
+                    }
+                  </p>
+                </td>
+              </tr>
             )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Totaux exactement comme dans le PDF */}
+      <div className="flex justify-end mb-8">
+        <div className="w-80 space-y-2">
+          <div className="flex justify-between py-2 text-sm border-b">
+            <span>Sous-total HT :</span>
+            <span className="font-medium">-{formatCurrency(subtotalHT)}</span>
+          </div>
+          <div className="flex justify-between py-2 text-sm border-b">
+            <span>TVA :</span>
+            <span className="font-medium">-{formatCurrency(totalVAT)}</span>
+          </div>
+          <div className="flex justify-between py-3 px-4 bg-red-600 text-white font-bold text-sm rounded">
+            <span>TOTAL AVOIR TTC :</span>
+            <span>-{formatCurrency(totalTTC)}</span>
           </div>
         </div>
       </div>
 
-      {/* Totaux - Style PDF */}
-      <div className="flex justify-end mb-6">
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-w-[300px]">
-          <div className="space-y-2">
-            <div className="flex justify-between py-1 border-b border-gray-200">
-              <span className="text-sm">Sous-total HT :</span>
-              <span className="text-sm font-medium">-{formatCurrency(subtotalHT)}</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-gray-200">
-              <span className="text-sm">TVA :</span>
-              <span className="text-sm font-medium">-{formatCurrency(totalVAT)}</span>
-            </div>
-            <div className="flex justify-between py-2 border-t-2 border-red-600 bg-red-600 text-white px-3 rounded">
-              <span className="font-bold">TOTAL AVOIR TTC :</span>
-              <span className="font-bold">-{formatCurrency(totalTTC)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Notes - Style PDF */}
-      <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded">
-        <div className="space-y-2">
-          <Label className="font-bold text-red-800">Motif de l'avoir :</Label>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Motif de l'avoir, explications..."
-            rows={3}
-            className="bg-white"
-          />
-        </div>
+      {/* Section notes */}
+      <div className="mb-8">
+        <Label className="font-bold text-sm mb-2 block">Motif de l'avoir :</Label>
+        <Textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Motif de l'avoir, explications..."
+          rows={4}
+          className="w-full"
+        />
       </div>
 
       {/* Actions */}
