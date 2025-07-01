@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useInvoiceNumber } from '@/hooks/useInvoiceNumber';
+import { useCustomTaxes } from '@/hooks/useCustomTaxes';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { calculateCustomTaxes, getTotalCustomTaxAmount } from '@/utils/customTaxCalculations';
 
 interface InvoiceItem {
   id: string;
@@ -35,9 +36,10 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
   const { nextInvoiceNumber, generateNextInvoiceNumber, isLoading: numberLoading } = useInvoiceNumber();
+  const { customTaxes } = useCustomTaxes();
   const { currency } = useCurrency();
   
-  // Form state
+  // Form state variables
   const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || '');
   const [invoiceDate, setInvoiceDate] = useState(invoice?.date || new Date().toISOString().split('T')[0]);
   const [dueDate, setDueDate] = useState(invoice?.dueDate || '');
@@ -61,16 +63,19 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
 
+  // Filter clients based on search
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
   
+  // Filter products based on search
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
     (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
   );
   
+  // Add a new empty invoice item
   const addInvoiceItem = () => {
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
@@ -84,6 +89,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     setInvoiceItems([...invoiceItems, newItem]);
   };
   
+  // Update an invoice item field and recalculate total
   const updateInvoiceItem = (id: string, field: keyof InvoiceItem, value: any) => {
     setInvoiceItems(invoiceItems.map(item => {
       if (item.id === id) {
@@ -99,10 +105,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }));
   };
   
+  // Remove an invoice item by id
   const removeInvoiceItem = (id: string) => {
     setInvoiceItems(invoiceItems.filter(item => item.id !== id));
   };
   
+  // Calculate totals including custom taxes
   const calculateTotals = () => {
     const subtotalHT = invoiceItems.reduce((sum, item) => sum + item.total, 0);
     const totalDiscount = invoiceItems.reduce((sum, item) => {
@@ -110,14 +118,19 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       return sum + (subtotal * item.discount / 100);
     }, 0);
     const totalVAT = invoiceItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
-    const totalTTC = subtotalHT + totalVAT;
     
-    return { subtotalHT, totalDiscount, totalVAT, totalTTC };
+    // Calculate custom taxes based on subtotal
+    const customTaxCalculations = calculateCustomTaxes(subtotalHT, customTaxes, 'invoice');
+    const totalCustomTaxes = getTotalCustomTaxAmount(customTaxCalculations);
+    
+    const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
+    
+    return { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC, customTaxCalculations };
   };
   
-  const { subtotalHT, totalDiscount, totalVAT, totalTTC } = calculateTotals();
+  const { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC, customTaxCalculations } = calculateTotals();
   
-  // Set default due date (30 days from now)
+  // Set default due date (30 days from now) if not set
   React.useEffect(() => {
     if (!dueDate) {
       const defaultDate = new Date();
@@ -126,8 +139,9 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [dueDate]);
   
+  // Handle save action
   const handleSave = async () => {
-    // Si c'est une nouvelle facture et que le numéro n'a pas été modifié, générer un nouveau numéro unique
+    // If new invoice and number not modified, generate new unique number
     let finalInvoiceNumber = invoiceNumber;
     if (!invoice && (!invoiceNumber || invoiceNumber === nextInvoiceNumber)) {
       finalInvoiceNumber = await generateNextInvoiceNumber();
@@ -141,12 +155,14 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       subject,
       items: invoiceItems,
       notes,
-      totals: { subtotalHT, totalDiscount, totalVAT, totalTTC }
+      totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
+      customTaxes: customTaxCalculations
     };
     onSave(invoiceData);
     onClose();
   };
 
+  // Format currency display
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
@@ -164,7 +180,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Header avec logo et infos organisation */}
+          {/* Header with logo and organization info */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -219,7 +235,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardHeader>
           </Card>
 
-          {/* Section Client */}
+          {/* Client Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -295,7 +311,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardContent>
           </Card>
 
-          {/* Table des produits/services */}
+          {/* Products/Services Table */}
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -435,7 +451,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </CardContent>
           </Card>
 
-          {/* Section Totaux */}
+          {/* Totals Section */}
           <div className="flex justify-end">
             <Card className="w-80">
               <CardHeader>
@@ -461,6 +477,15 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     <span>TVA:</span>
                     <span className="font-medium">{formatCurrency(totalVAT)}</span>
                   </div>
+                  
+                  {/* Display custom taxes */}
+                  {customTaxCalculations.map((tax) => (
+                    <div key={tax.id} className="flex justify-between text-orange-600">
+                      <span>{tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currency.symbol}`}):</span>
+                      <span className="font-medium">{formatCurrency(tax.amount)}</span>
+                    </div>
+                  ))}
+                  
                   <div className="border-t pt-2">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total TTC:</span>
@@ -472,7 +497,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </Card>
           </div>
 
-          {/* Notes */}
+          {/* Notes Section */}
           <Card>
             <CardHeader>
               <CardTitle>Notes</CardTitle>

@@ -38,6 +38,14 @@ export const usePDFGeneration = () => {
     
     // Calcul des taxes personnalisées applicables
     const customTaxCalculations = calculateCustomTaxes(subtotal, customTaxes, documentType);
+    
+    console.log('🧾 Génération PDF - Données de taxes:', {
+      documentType,
+      subtotal,
+      customTaxes: customTaxes.length,
+      customTaxCalculations: customTaxCalculations.length,
+      taxes: customTaxCalculations
+    });
 
     // Données mockées pour l'exemple - à remplacer par les vraies données
     const mockClient = {

@@ -17,6 +17,8 @@ import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { InvoicePDF } from '@/components/pdf/invoices/InvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { useCustomTaxes } from '@/hooks/useCustomTaxes';
+import { calculateCustomTaxes } from '@/utils/customTaxCalculations';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,10 +45,12 @@ const statusLabels = {
 
 export default function Invoices() {
   const { generateInvoicePDF } = usePDFGeneration();
+  const { customTaxes } = useCustomTaxes();
   const { organization } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currency } = useCurrency();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
@@ -74,7 +78,6 @@ export default function Invoices() {
     { value: 12, label: 'Décembre' },
   ];
 
-  // Fetch invoices from Supabase
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices', organization?.id],
     queryFn: async () => {
@@ -104,7 +107,6 @@ export default function Invoices() {
     enabled: !!organization?.id
   });
 
-  // Fetch global settings for PDF generation
   const { data: globalSettings } = useQuery({
     queryKey: ['globalSettings', organization?.id],
     queryFn: async () => {
@@ -469,6 +471,10 @@ export default function Invoices() {
       email: invoice.clients?.email || ''
     };
 
+    // Calcul des taxes personnalisées
+    const subtotal = mockLineItems.reduce((sum, item) => sum + (item.total || 0), 0);
+    const customTaxCalculations = calculateCustomTaxes(subtotal, customTaxes, 'invoice');
+
     return {
       invoiceData: {
         number: invoice.invoice_number,
@@ -485,7 +491,8 @@ export default function Invoices() {
         footer_content: globalSettings?.footer_content || '',
         footer_display: globalSettings?.footer_display || 'all'
       },
-      currency: currency
+      currency: currency,
+      customTaxes: customTaxCalculations
     };
   };
 

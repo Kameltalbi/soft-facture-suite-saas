@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { TaxCalculation } from '@/utils/customTaxCalculations';
 
 interface LineItem {
   id: string;
@@ -44,6 +44,7 @@ interface InvoicePDFProps {
     currency: string;
     amountInWords: boolean;
   };
+  customTaxes?: TaxCalculation[];
 }
 
 const styles = StyleSheet.create({
@@ -145,6 +146,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 12,
   },
+  customTaxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 250,
+    paddingVertical: 3,
+    color: '#D96C4F',
+  },
   footer: {
     position: 'absolute',
     bottom: 30,
@@ -183,18 +191,23 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
   client,
   company,
   settings,
+  customTaxes = [],
 }) => {
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
     const totalVAT = lineItems.reduce((sum, item) => {
       return sum + (item.total * item.vatRate / 100);
     }, 0);
-    const totalTTC = subtotalHT + totalVAT;
+    
+    // Calcul du total des taxes personnalisées
+    const totalCustomTaxes = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+    
+    const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
-    return { subtotalHT, totalVAT, totalTTC };
+    return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC };
   };
 
-  const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
+  const { subtotalHT, totalVAT, totalCustomTaxes, totalTTC } = calculateTotals();
 
   return (
     <Document>
@@ -271,6 +284,15 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
               <Text>{totalVAT.toFixed(2)} {settings.currency}</Text>
             </View>
           )}
+          
+          {/* Affichage des taxes personnalisées */}
+          {customTaxes.map((tax) => (
+            <View key={tax.id} style={styles.customTaxRow}>
+              <Text>{tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${settings.currency}`}) :</Text>
+              <Text>{tax.amount.toFixed(2)} {settings.currency}</Text>
+            </View>
+          ))}
+          
           <View style={styles.totalFinal}>
             <Text>TOTAL TTC :</Text>
             <Text>{totalTTC.toFixed(2)} {settings.currency}</Text>
