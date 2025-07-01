@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { TaxCalculation } from '@/utils/customTaxCalculations';
 
 const styles = StyleSheet.create({
   page: {
@@ -129,6 +130,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333333',
   },
+  customTaxRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  customTaxLabel: {
+    fontSize: 10,
+    color: '#D96C4F',
+  },
+  customTaxValue: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#D96C4F',
+  },
   grandTotal: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -170,6 +187,7 @@ interface InvoicePDFProps {
   company: any;
   settings: any;
   currency?: { code: string; symbol: string; name: string };
+  customTaxes?: TaxCalculation[];
 }
 
 export const InvoicePDF = ({
@@ -178,7 +196,8 @@ export const InvoicePDF = ({
   client,
   company,
   settings,
-  currency
+  currency,
+  customTaxes = []
 }: InvoicePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
   
@@ -187,12 +206,16 @@ export const InvoicePDF = ({
     const totalVAT = lineItems.reduce((sum, item) => {
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0);
-    const totalTTC = subtotalHT + totalVAT;
+    
+    // Calcul du total des taxes personnalisées
+    const totalCustomTaxes = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+    
+    const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
-    return { subtotalHT, totalVAT, totalTTC };
+    return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC };
   };
 
-  const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
+  const { subtotalHT, totalVAT, totalCustomTaxes, totalTTC } = calculateTotals();
 
   return (
     <Document>
@@ -292,6 +315,17 @@ export const InvoicePDF = ({
               <Text style={styles.totalValue}>{totalVAT.toFixed(2)} {currencySymbol}</Text>
             </View>
           )}
+          
+          {/* Affichage des taxes personnalisées */}
+          {customTaxes.map((tax) => (
+            <View key={tax.id} style={styles.customTaxRow}>
+              <Text style={styles.customTaxLabel}>
+                {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
+              </Text>
+              <Text style={styles.customTaxValue}>{tax.amount.toFixed(2)} {currencySymbol}</Text>
+            </View>
+          ))}
+          
           <View style={styles.grandTotal}>
             <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
             <Text style={styles.grandTotalText}>{totalTTC.toFixed(2)} {currencySymbol}</Text>
