@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -52,8 +51,7 @@ export function Header() {
                 Connexion
               </Button>
               <Button 
-                variant="outline"
-                className="text-[#6A9C89] border-[#6A9C89] hover:bg-[#6A9C89] hover:text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Réserver votre démo gratuite
               </Button>
