@@ -1,6 +1,6 @@
 
 export function numberToWords(num: number, currency: string = 'EUR'): string {
-  if (num === 0) return `zéro ${getCurrencyName(currency).toLowerCase()}`;
+  if (num === 0) return `zéro ${getCurrencyNames(currency).singular}`;
 
   const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
   const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
@@ -55,7 +55,7 @@ export function numberToWords(num: number, currency: string = 'EUR'): string {
     return result;
   }
 
-  function getCurrencyName(currencyCode: string): string {
+  function getCurrencyNames(currencyCode: string): { singular: string; plural: string; centSingular: string; centPlural: string } {
     const currencyNames: Record<string, { singular: string; plural: string; centSingular: string; centPlural: string }> = {
       'EUR': { singular: 'euro', plural: 'euros', centSingular: 'centime', centPlural: 'centimes' },
       'USD': { singular: 'dollar', plural: 'dollars', centSingular: 'cent', centPlural: 'cents' },
@@ -73,7 +73,7 @@ export function numberToWords(num: number, currency: string = 'EUR'): string {
 
   const euros = Math.floor(num);
   const cents = Math.round((num - euros) * 100);
-  const currencyInfo = getCurrencyName(currency);
+  const currencyInfo = getCurrencyNames(currency);
 
   let result = '';
 
