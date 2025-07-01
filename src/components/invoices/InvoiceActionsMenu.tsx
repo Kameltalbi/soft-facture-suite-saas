@@ -20,17 +20,17 @@ import {
 } from '@/components/ui/alert-dialog';
 import { 
   MoreHorizontal, 
-  Printer, 
+  Download, 
   Mail, 
-  Repeat, 
   CreditCard, 
   Edit, 
-  Trash2,
-  CheckCircle
+  CheckCircle,
+  Plus
 } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PaymentModal } from '@/components/modals/PaymentModal';
 import { EmailModal } from '@/components/modals/EmailModal';
+import { CreateAvoirModal } from '@/components/modals/CreateAvoirModal';
 
 interface InvoiceActionsMenuProps {
   invoice: {
@@ -66,15 +66,15 @@ export function InvoiceActionsMenu({
 }: InvoiceActionsMenuProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAvoirModal, setShowAvoirModal] = useState(false);
 
   const isFullyPaid = invoice.status === 'paid' || (invoice.paidAmount && invoice.paidAmount >= invoice.amount);
   const canRecordPayment = !isFullyPaid;
-  const canValidate = invoice.status === 'draft' || invoice.status === 'sent';
+  const canValidate = invoice.status === 'draft';
   const canModify = invoice.status === 'draft';
+  const isValidated = invoice.status !== 'draft';
 
   const handlePaymentSave = (paymentData: any) => {
-    // Passer les données avec le montant total de la facture pour la validation
     const paymentDataWithTotal = {
       ...paymentData,
       totalAmount: invoice.amount
@@ -88,6 +88,11 @@ export function InvoiceActionsMenu({
     setShowEmailModal(false);
   };
 
+  const handleAvoirCreate = (avoirData: any) => {
+    console.log('Creating avoir:', avoirData);
+    setShowAvoirModal(false);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -98,62 +103,62 @@ export function InvoiceActionsMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <PDFDownloadLink
-            document={pdfComponent}
-            fileName={`${invoice.number}.pdf`}
-          >
-            {({ loading }) => (
-              <DropdownMenuItem disabled={loading}>
-                <Printer className="mr-2 h-4 w-4" />
-                {loading ? 'Génération...' : 'Télécharger PDF'}
-              </DropdownMenuItem>
-            )}
-          </PDFDownloadLink>
-
-          <DropdownMenuItem onClick={() => setShowEmailModal(true)}>
-            <Mail className="mr-2 h-4 w-4" />
-            Envoyer par email
-          </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={onDuplicate}>
-            <Repeat className="mr-2 h-4 w-4" />
-            Dupliquer
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
-          {canValidate && (
-            <DropdownMenuItem onClick={onMarkAsValidated}>
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Validée
-            </DropdownMenuItem>
-          )}
-
-          {canRecordPayment && (
-            <DropdownMenuItem onClick={() => setShowPaymentModal(true)}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              Enregistrer un paiement
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuSeparator />
-
+          {/* 1. Modifier */}
           <DropdownMenuItem 
             onClick={onEdit}
             disabled={!canModify}
           >
             <Edit className="mr-2 h-4 w-4" />
             Modifier
-            {!canModify && <span className="ml-auto text-xs text-muted-foreground">(Lecture seule)</span>}
+            {!canModify && <span className="ml-auto text-xs text-muted-foreground">(Verrouillée)</span>}
           </DropdownMenuItem>
 
-          <DropdownMenuItem 
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Supprimer
+          {/* 2. Valider */}
+          {canValidate && (
+            <DropdownMenuItem onClick={onMarkAsValidated}>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Valider
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuSeparator />
+
+          {/* 3. Envoyer par email */}
+          <DropdownMenuItem onClick={() => setShowEmailModal(true)}>
+            <Mail className="mr-2 h-4 w-4" />
+            Envoyer par email
           </DropdownMenuItem>
+
+          {/* 4. Ajouter un paiement */}
+          {canRecordPayment && (
+            <DropdownMenuItem onClick={() => setShowPaymentModal(true)}>
+              <CreditCard className="mr-2 h-4 w-4" />
+              Ajouter un paiement
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuSeparator />
+
+          {/* 5. Télécharger le PDF */}
+          <PDFDownloadLink
+            document={pdfComponent}
+            fileName={`${invoice.number}.pdf`}
+          >
+            {({ loading }) => (
+              <DropdownMenuItem disabled={loading}>
+                <Download className="mr-2 h-4 w-4" />
+                {loading ? 'Génération...' : 'Télécharger le PDF'}
+              </DropdownMenuItem>
+            )}
+          </PDFDownloadLink>
+
+          {/* 6. Créer un avoir */}
+          {isValidated && (
+            <DropdownMenuItem onClick={() => setShowAvoirModal(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Créer un avoir
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -178,32 +183,13 @@ export function InvoiceActionsMenu({
         onSend={handleEmailSend}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer la facture</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer la facture {invoice.number} ?
-              Cette action est irréversible.
-              {isFullyPaid && (
-                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
-                  ⚠️ Attention: Cette facture a été payée. La suppression peut affecter votre comptabilité.
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={onDelete}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Avoir Modal */}
+      <CreateAvoirModal
+        open={showAvoirModal}
+        onClose={() => setShowAvoirModal(false)}
+        invoice={invoice}
+        onSave={handleAvoirCreate}
+      />
     </>
   );
 }
