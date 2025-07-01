@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +48,7 @@ export function PricingSection() {
               <CardTitle className="text-2xl text-gray-900 mb-2">Plan Essentiel</CardTitle>
               <div className="space-y-2">
                 <div className="text-4xl font-bold text-[#6A9C89]">29 DT/mois</div>
-                <div className="text-lg text-gray-600">348 DT HT/an</div>
+                <div className="text-lg text-gray-600">Payable par an : 348 DT HT/an</div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -89,7 +88,7 @@ export function PricingSection() {
               <CardTitle className="text-2xl text-gray-900 mb-2">Plan Pro</CardTitle>
               <div className="space-y-2">
                 <div className="text-4xl font-bold text-[#6A9C89]">45 DT/mois</div>
-                <div className="text-lg text-gray-600">540 DT HT/an</div>
+                <div className="text-lg text-gray-600">Payable par an : 540 DT HT/an</div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
