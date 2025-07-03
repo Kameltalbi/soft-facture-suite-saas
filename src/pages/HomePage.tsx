@@ -9,6 +9,7 @@ import { PricingSection } from '@/components/homepage/PricingSection';
 import { FinalCtaSection } from '@/components/homepage/FinalCtaSection';
 import { Footer } from '@/components/homepage/Footer';
 import { Header } from '@/components/homepage/Header';
+import { Chatbot } from '@/components/homepage/Chatbot';
 
 const HomePage = () => {
   const { user, loading } = useAuth();
@@ -40,6 +41,7 @@ const HomePage = () => {
       <PricingSection />
       <FinalCtaSection />
       <Footer />
+      <Chatbot tawkToId="YOUR_TAWK_TO_ID_HERE" />
     </div>
   );
 };
