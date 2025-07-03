@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Trash2, Package, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
+import { useProducts } from '@/hooks/useProducts';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface DeliveryItem {
   id: string;
@@ -17,6 +19,16 @@ interface DeliveryItem {
   quantity: number;
   deliveredQuantity?: number;
   status: 'pending' | 'delivered' | 'partial';
+  productId?: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  unit: string | null;
+  tax_rate?: number;
 }
 
 interface DeliveryNoteModalProps {
@@ -29,6 +41,8 @@ interface DeliveryNoteModalProps {
 export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: DeliveryNoteModalProps) {
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
+  const { products, loading: productsLoading } = useProducts();
+  const { currency } = useCurrency();
   
   // Form state
   const [deliveryNumber, setDeliveryNumber] = useState(deliveryNote?.number || 'BL-2025-001');
@@ -44,25 +58,65 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     { id: '1', description: '', quantity: 1, deliveredQuantity: 0, status: 'pending' }
   ]);
   
-  // Product search
-  const [productSearch, setProductSearch] = useState('');
-  
-  // Mock products for search (we'll replace this later with real products)
-  const mockProducts = [
-    { id: '1', name: 'Ordinateur portable', unit: 'pièce' },
-    { id: '2', name: 'Écran 24 pouces', unit: 'pièce' },
-    { id: '3', name: 'Clavier sans fil', unit: 'pièce' },
-    { id: '4', name: 'Souris optique', unit: 'pièce' }
-  ];
+  // Product search inline
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fonction de nettoyage des timeouts
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
   
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
-  
-  const filteredProducts = mockProducts.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase())
-  );
+
+  // Fonction de recherche de produits avec debounce
+  const handleProductSearch = (itemId: string, searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    setActiveItemId(itemId);
+    
+    if (searchTerm.length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => {
+        const filtered = products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        setSearchSuggestions(filtered.slice(0, 5));
+        setShowSuggestions(true);
+      }, 300);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Sélectionner un produit depuis les suggestions
+  const selectProduct = (itemId: string, product: Product) => {
+    setDeliveryItems(deliveryItems.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          description: product.name,
+          productId: product.id
+        };
+      }
+      return item;
+    }));
+    setShowSuggestions(false);
+    setActiveItemId(null);
+    setSearchSuggestions([]);
+  };
 
   const formatAddress = (client: any) => {
     const parts = [];
@@ -146,6 +200,16 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     };
     onSave(deliveryData);
     onClose();
+  };
+
+  // Format currency display
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: currency.code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
   };
 
   return (
@@ -334,48 +398,13 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                   <Package className="mr-2 h-5 w-5" />
                   Articles à livrer
                 </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Rechercher un produit..."
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10 w-64"
-                    />
-                  </div>
-                  <Button onClick={addDeliveryItem} size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
-                </div>
+                <Button onClick={addDeliveryItem} size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ajouter une ligne
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto bg-white">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
-                      onClick={() => {
-                        const newItem: DeliveryItem = {
-                          id: Date.now().toString(),
-                          description: product.name,
-                          quantity: 1,
-                          deliveredQuantity: 0,
-                          status: 'pending'
-                        };
-                        setDeliveryItems([...deliveryItems, newItem]);
-                        setProductSearch('');
-                      }}
-                    >
-                      <span>{product.name}</span>
-                      <span className="text-sm text-gray-500">{product.unit}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
               
               <Table>
                 <TableHeader>
@@ -391,12 +420,82 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                 <TableBody>
                   {deliveryItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>
+                      <TableCell className="relative">
                         <Input
                           value={item.description}
-                          onChange={(e) => updateDeliveryItem(item.id, 'description', e.target.value)}
-                          placeholder="Description de l'article"
+                          onChange={(e) => {
+                            updateDeliveryItem(item.id, 'description', e.target.value);
+                            handleProductSearch(item.id, e.target.value);
+                          }}
+                          placeholder="Tapez pour rechercher un produit..."
+                          onFocus={() => {
+                            setActiveItemId(item.id);
+                            if (item.description.length >= 2) {
+                              handleProductSearch(item.id, item.description);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Délai pour permettre le clic sur une suggestion
+                            setTimeout(() => {
+                              const currentTarget = e.currentTarget;
+                              const activeElement = document.activeElement;
+                              if (!currentTarget || !activeElement || !currentTarget.contains(activeElement)) {
+                                setShowSuggestions(false);
+                                setActiveItemId(null);
+                              }
+                            }, 200);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowSuggestions(false);
+                              setActiveItemId(null);
+                            }
+                          }}
                         />
+                        
+                        {/* Suggestions dropdown */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
+                          <div 
+                            className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
+                            style={{
+                              zIndex: 9999,
+                              top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
+                              left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
+                              width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
+                            }}
+                          >
+                            {searchSuggestions.map((product) => (
+                              <div
+                                key={product.id}
+                                className="p-3 hover:bg-green-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
+                                onMouseDown={(e) => {
+                                  e.preventDefault(); // Empêche le blur de l'input
+                                  selectProduct(item.id, product);
+                                }}
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                                  {product.description && (
+                                    <div className="text-xs text-gray-500 mt-1">{product.description}</div>
+                                  )}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {product.unit && `Unité: ${product.unit}`}
+                                  </div>
+                                </div>
+                                <div className="text-sm font-medium text-green-600 ml-3">
+                                  {formatCurrency(product.price)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Message si aucun résultat */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
+                            Aucun produit trouvé pour "{item.description}"
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Input
