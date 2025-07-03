@@ -122,6 +122,12 @@ export function Header() {
             >
               Démo
             </button>
+            <button 
+              onClick={() => navigate('/contact')}
+              className="text-gray-600 hover:text-[#6A9C89] font-medium"
+            >
+              Contact
+            </button>
           </nav>
           
           <div className="flex items-center space-x-4">
@@ -201,6 +207,15 @@ export function Header() {
               className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
             >
               Démo
+            </button>
+            <button 
+              onClick={() => {
+                navigate('/contact');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
+            >
+              Contact
             </button>
           </div>
         </div>
