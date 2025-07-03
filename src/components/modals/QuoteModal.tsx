@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ interface QuoteItem {
   vatRate: number;
   discount: number;
   total: number;
+  productId?: string;
 }
 
 interface Client {
@@ -79,8 +80,11 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
   
-  // Product search
-  const [productSearch, setProductSearch] = useState('');
+  // Product search inline
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Générer un numéro de devis unique
   const generateUniqueQuoteNumber = async () => {
@@ -176,11 +180,27 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
-  
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+
+  // Fonction de recherche de produits avec debounce
+  const searchProducts = (searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      if (searchTerm.length >= 2) {
+        const filtered = products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        setSearchSuggestions(filtered.slice(0, 5)); // Limiter à 5 suggestions
+        setShowSuggestions(true);
+      } else {
+        setSearchSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+  };
   
   const addQuoteItem = () => {
     const newItem: QuoteItem = {
@@ -204,10 +224,36 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           const discountAmount = subtotal * (updated.discount / 100);
           updated.total = subtotal - discountAmount;
         }
+        // Si on modifie la description, rechercher des produits
+        if (field === 'description' && typeof value === 'string') {
+          searchProducts(value);
+          setActiveItemId(id);
+        }
         return updated;
       }
       return item;
     }));
+  };
+
+  // Sélectionner un produit depuis les suggestions
+  const selectProduct = (itemId: string, product: Product) => {
+    const taxRate = 20; // Vous pouvez ajuster selon votre logique métier
+    setQuoteItems(quoteItems.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          description: product.name,
+          unitPrice: product.price,
+          vatRate: taxRate,
+          total: product.price,
+          productId: product.id
+        };
+      }
+      return item;
+    }));
+    setShowSuggestions(false);
+    setActiveItemId(null);
+    setSearchSuggestions([]);
   };
   
   const removeQuoteItem = (id: string) => {
@@ -524,63 +570,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   <FileText className="mr-2 h-5 w-5" />
                   Services / Prestations
                 </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Rechercher un service..."
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10 w-64"
-                      disabled={productsLoading}
-                    />
-                    {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
-                  </div>
-                  <Button onClick={addQuoteItem} size="sm" className="bg-purple-600 hover:bg-purple-700">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
-                </div>
+                <Button onClick={addQuoteItem} size="sm" className="bg-purple-600 hover:bg-purple-700">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ajouter une ligne
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {/* Liste de produits filtrés - Ne s'affiche que s'il y a une recherche et des résultats */}
-              {productSearch && filteredProducts.length > 0 && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
-                      onClick={() => {
-                        const newItem: QuoteItem = {
-                          id: Date.now().toString(),
-                          description: product.name,
-                          quantity: 1,
-                          unitPrice: product.price,
-                          vatRate: 20,
-                          discount: 0,
-                          total: product.price
-                        };
-                        setQuoteItems([...quoteItems, newItem]);
-                        setProductSearch('');
-                      }}
-                    >
-                      <div>
-                        <span className="font-medium">{product.name}</span>
-                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
-                      </div>
-                      <span className="text-sm text-gray-500">{formatCurrency(product.price)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Message si recherche sans résultat */}
-              {productSearch && filteredProducts.length === 0 && (
-                <div className="mb-4 p-3 text-center text-gray-500 bg-gray-50 rounded-lg">
-                  Aucun produit trouvé pour "{productSearch}"
-                </div>
-              )}
               
               <Table>
                 <TableHeader>
@@ -597,12 +593,84 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                 <TableBody>
                   {quoteItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>
+                      <TableCell className="relative">
                         <Input
                           value={item.description}
                           onChange={(e) => updateQuoteItem(item.id, 'description', e.target.value)}
-                          placeholder="Description du service"
+                          placeholder="Tapez pour rechercher un produit..."
+                          onFocus={() => {
+                            setActiveItemId(item.id);
+                            if (item.description.length >= 2) {
+                              searchProducts(item.description);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Délai pour permettre le clic sur une suggestion
+                            setTimeout(() => {
+                              if (!e.currentTarget.contains(document.activeElement)) {
+                                setShowSuggestions(false);
+                                setActiveItemId(null);
+                              }
+                            }, 200);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowSuggestions(false);
+                              setActiveItemId(null);
+                            }
+                          }}
                         />
+                        
+                        {/* Suggestions dropdown */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                            {searchSuggestions.map((product) => (
+                              <div
+                                key={product.id}
+                                className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start"
+                                onMouseDown={(e) => e.preventDefault()} // Empêche le blur de l'input
+                                onClick={() => selectProduct(item.id, product)}
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm">{product.name}</div>
+                                  {product.description && (
+                                    <div className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</div>
+                                  )}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {product.unit && `Unité: ${product.unit}`}
+                                  </div>
+                                </div>
+                                <div className="text-sm font-medium text-purple-600 ml-3">
+                                  {formatCurrency(product.price)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Message si aucun résultat */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                          <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm">
+                            Aucun produit trouvé pour "{item.description}"
+                            <div className="mt-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => {
+                                  // Ici, vous pourriez ouvrir un modal de création de produit
+                                  toast({
+                                    title: "Créer un nouveau produit",
+                                    description: "Fonctionnalité à venir",
+                                  });
+                                  setShowSuggestions(false);
+                                }}
+                              >
+                                + Créer "{item.description}"
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Input
