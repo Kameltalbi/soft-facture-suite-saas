@@ -177,9 +177,18 @@ const AuthPage = () => {
               >
                 {isSignUp 
                   ? 'Vous avez déjà un compte ? Se connecter'
-                  : "Vous n'avez pas de compte ? Créer un compte"
+                  : null
                 }
               </button>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/checkout')}
+                  className="text-[#6A9C89] hover:text-[#5A8A75] font-medium"
+                >
+                  Vous n'avez pas de compte ? Créer un compte
+                </button>
+              )}
             </div>
 
             <div className="mt-4 text-center">
