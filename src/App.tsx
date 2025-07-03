@@ -17,6 +17,7 @@ import AuthPage from "./pages/AuthPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import EnAttenteValidationPage from "./pages/EnAttenteValidationPage";
 import ContactPage from "./pages/ContactPage";
+import MentionsLegalesPage from "./pages/MentionsLegalesPage";
 import NotFound from "./pages/NotFound";
 import Reports from "./pages/Reports";
 import InvoiceReportPage from "./pages/reports/InvoiceReportPage";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/en-attente-validation" element={<EnAttenteValidationPage />} />

@@ -1,7 +1,10 @@
 
 import { Facebook, Linkedin, Mail, Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function Footer() {
+  const navigate = useNavigate();
+  
   return (
     <footer className="bg-[#1E3A8A] text-white">
       <div className="container mx-auto px-4 py-12">
@@ -52,9 +55,28 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Ressources</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/about')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
+                  À propos
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => navigate('/features')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
+                  Fonctionnalités
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => navigate('/mentions-legales')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Mentions légales
-                </a>
+                </button>
               </li>
               <li>
                 <a href="#" className="text-sm text-gray-300 hover:text-white transition-colors">
@@ -67,9 +89,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/contact')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Contact support
-                </a>
+                </button>
               </li>
             </ul>
           </div>
