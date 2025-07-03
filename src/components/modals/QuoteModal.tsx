@@ -252,10 +252,10 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
   // Sélectionner un produit depuis les suggestions
   const selectProduct = (itemId: string, product: Product) => {
-    // Utiliser la TVA du produit ou 20% par défaut seulement si tax_rate est undefined/null
-    const taxRate = product.tax_rate !== undefined && product.tax_rate !== null ? product.tax_rate : 20;
-    // Les prix sont stockés en centimes, donc diviser par 100
-    const unitPrice = product.price / 100;
+    // Utiliser la TVA exacte du produit (même si c'est 0)
+    const taxRate = product.tax_rate || 0;
+    // Les prix sont stockés normalement, pas besoin de diviser
+    const unitPrice = product.price;
     
     setQuoteItems(quoteItems.map(item => {
       if (item.id === itemId) {
@@ -436,9 +436,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const filteredItems = quoteItems.filter(item => item.description.trim());
 
   const formatCurrency = (amount: number) => {
+    // Afficher sans décimales si c'est un nombre entier
+    const hasDecimals = amount % 1 !== 0;
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
-      currency: currency.code 
+      currency: currency.code,
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: 2
     });
   };
 
@@ -675,7 +679,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                                   </div>
                                 </div>
                                 <div className="text-sm font-medium text-purple-600 ml-3">
-                                  {formatCurrency(product.price / 100)}
+                                  {formatCurrency(product.price)}
                                 </div>
                               </div>
                             ))}
