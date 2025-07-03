@@ -252,15 +252,19 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
   // Sélectionner un produit depuis les suggestions
   const selectProduct = (itemId: string, product: Product) => {
-    const taxRate = product.tax_rate || 20;
+    // Utiliser la TVA du produit ou 20% par défaut seulement si tax_rate est undefined/null
+    const taxRate = product.tax_rate !== undefined && product.tax_rate !== null ? product.tax_rate : 20;
+    // Les prix sont stockés en centimes, donc diviser par 100
+    const unitPrice = product.price / 100;
+    
     setQuoteItems(quoteItems.map(item => {
       if (item.id === itemId) {
         return {
           ...item,
           description: product.name,
-          unitPrice: product.price,
+          unitPrice: unitPrice,
           vatRate: taxRate,
-          total: product.price,
+          total: unitPrice,
           productId: product.id
         };
       }
@@ -671,7 +675,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                                   </div>
                                 </div>
                                 <div className="text-sm font-medium text-purple-600 ml-3">
-                                  {formatCurrency(product.price)}
+                                  {formatCurrency(product.price / 100)}
                                 </div>
                               </div>
                             ))}
