@@ -643,18 +643,26 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         
                         {/* Suggestions dropdown */}
                         {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
-                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                          <div 
+                            className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
+                            style={{
+                              zIndex: 9999,
+                              top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
+                              left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
+                              width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
+                            }}
+                          >
                             {searchSuggestions.map((product) => (
                               <div
                                 key={product.id}
-                                className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start"
+                                className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
                                 onMouseDown={(e) => {
                                   e.preventDefault(); // Empêche le blur de l'input
                                   selectProduct(item.id, product);
                                 }}
                               >
                                 <div className="flex-1">
-                                  <div className="font-medium text-sm">{product.name}</div>
+                                  <div className="font-medium text-sm text-gray-900">{product.name}</div>
                                   {product.description && (
                                     <div className="text-xs text-gray-500 mt-1">{product.description}</div>
                                   )}
