@@ -7,7 +7,7 @@ interface ChatbotProps {
 export function Chatbot({ tawkToId = "6866b94319aaf4190bd9fb13" }: ChatbotProps) {
   useEffect(() => {
     // Ne charger le script que si nous avons un ID valide
-    if (!tawkToId || tawkToId === "YOUR_TAWK_TO_ID_HERE") {
+    if (!tawkToId) {
       console.warn("Tawk.to ID not provided. Please add your Tawk.to ID.");
       return;
     }
