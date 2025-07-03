@@ -84,9 +84,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/cgu')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Conditions générales d'utilisation
-                </a>
+                </button>
               </li>
               <li>
                 <button 
