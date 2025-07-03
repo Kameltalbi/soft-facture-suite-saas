@@ -111,12 +111,6 @@ export function Header() {
               Tarifs
             </button>
             <button 
-              onClick={() => navigate('/demo')}
-              className="text-gray-600 hover:text-[#6A9C89] font-medium"
-            >
-              Démo
-            </button>
-            <button 
               onClick={() => navigate('/contact')}
               className="text-gray-600 hover:text-[#6A9C89] font-medium"
             >
@@ -183,15 +177,6 @@ export function Header() {
               className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
             >
               Tarifs
-            </button>
-            <button 
-              onClick={() => {
-                navigate('/demo');
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
-            >
-              Démo
             </button>
             <button 
               onClick={() => {
