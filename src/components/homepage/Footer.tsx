@@ -28,24 +28,36 @@ export function Footer() {
             <h3 className="text-lg font-semibold">Navigation</h3>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Accueil
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#fonctionnalites" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/features')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Fonctionnalités
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#tarifs" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/pricing')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Tarifs
-                </a>
+                </button>
               </li>
               <li>
-                <a href="/demo" className="text-sm text-gray-300 hover:text-white transition-colors">
+                <button 
+                  onClick={() => navigate('/demo')}
+                  className="text-sm text-gray-300 hover:text-white transition-colors"
+                >
                   Démo
-                </a>
+                </button>
               </li>
             </ul>
           </div>
