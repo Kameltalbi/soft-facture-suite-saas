@@ -23,6 +23,7 @@ export interface Currency {
   symbol: string;
   name: string;
   is_primary: boolean;
+  decimal_places: number;
   tenant_id: string;
 }
 

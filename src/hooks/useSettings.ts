@@ -32,6 +32,7 @@ export function useSettings() {
         symbol: currency.symbol,
         name: currency.name,
         is_primary: currency.is_primary,
+        decimal_places: currency.decimal_places || 2,
         tenant_id: currency.organization_id
       }));
       
@@ -140,6 +141,7 @@ export function useSettings() {
           symbol: currency.symbol,
           name: currency.name,
           is_primary: currency.is_primary,
+          decimal_places: currency.decimal_places,
           organization_id: organization.id
         })
         .select()
@@ -210,6 +212,7 @@ export function useSettings() {
           code: data.code,
           symbol: data.symbol,
           name: data.name,
+          decimal_places: data.decimal_places,
         })
         .eq('id', currencyId)
         .eq('organization_id', organization.id);

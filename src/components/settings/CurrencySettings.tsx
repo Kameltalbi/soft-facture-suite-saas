@@ -43,12 +43,13 @@ export function CurrencySettings({
     symbol: '',
     name: '',
     is_primary: false,
+    decimal_places: 2,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAddCurrency(newCurrency);
-    setNewCurrency({ code: '', symbol: '', name: '', is_primary: false });
+    setNewCurrency({ code: '', symbol: '', name: '', is_primary: false, decimal_places: 2 });
     setIsDialogOpen(false);
   };
 
@@ -59,6 +60,7 @@ export function CurrencySettings({
         code: editingCurrency.code,
         symbol: editingCurrency.symbol,
         name: editingCurrency.name,
+        decimal_places: editingCurrency.decimal_places,
       });
       setEditingCurrency(null);
       setIsEditDialogOpen(false);
@@ -74,6 +76,7 @@ export function CurrencySettings({
     onAddCurrency({
       ...currency,
       is_primary: currencies.length === 0,
+      decimal_places: 2,
     });
   };
 
@@ -157,6 +160,18 @@ export function CurrencySettings({
                       required
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="decimal_places">Nombre de décimales</Label>
+                    <Input
+                      id="decimal_places"
+                      type="number"
+                      value={newCurrency.decimal_places}
+                      onChange={(e) => setNewCurrency(prev => ({ ...prev, decimal_places: parseInt(e.target.value) || 0 }))}
+                      min="0"
+                      max="4"
+                      required
+                    />
+                  </div>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                       Annuler
@@ -174,6 +189,7 @@ export function CurrencySettings({
                 <TableHead>Code</TableHead>
                 <TableHead>Symbole</TableHead>
                 <TableHead>Nom</TableHead>
+                <TableHead>Décimales</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Actions</TableHead>
                 <TableHead></TableHead>
@@ -185,6 +201,7 @@ export function CurrencySettings({
                   <TableCell className="font-medium">{currency.code}</TableCell>
                   <TableCell>{currency.symbol}</TableCell>
                   <TableCell>{currency.name}</TableCell>
+                  <TableCell className="text-center">{currency.decimal_places}</TableCell>
                   <TableCell>
                     {currency.is_primary ? (
                       <Badge className="bg-yellow-100 text-yellow-800">
@@ -251,6 +268,18 @@ export function CurrencySettings({
                     id="edit-name"
                     value={editingCurrency.name}
                     onChange={(e) => setEditingCurrency(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-decimal-places">Nombre de décimales</Label>
+                  <Input
+                    id="edit-decimal-places"
+                    type="number"
+                    value={editingCurrency.decimal_places}
+                    onChange={(e) => setEditingCurrency(prev => prev ? { ...prev, decimal_places: parseInt(e.target.value) || 0 } : null)}
+                    min="0"
+                    max="4"
                     required
                   />
                 </div>
