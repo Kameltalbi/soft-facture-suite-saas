@@ -302,7 +302,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     }
   }, [validUntil]);
   
-  const handleSave = async () => {
+  const handleSave = async (status: 'draft' | 'pending' = 'draft') => {
     if (!organization?.id || !selectedClient) {
       toast({
         title: "Erreur",
@@ -342,7 +342,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           valid_until: validUntil,
           client_id: selectedClient.id,
           organization_id: organization.id,
-          status: 'draft',
+          status: status,
           notes,
           subtotal: subtotalHT,
           tax_amount: totalVAT,
@@ -385,7 +385,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
       toast({
         title: "Succès",
-        description: "Le devis a été créé avec succès"
+        description: status === 'draft' ? "Le devis a été enregistré comme brouillon" : "Le devis a été créé avec succès"
       });
 
       const quoteData = {
@@ -863,30 +863,19 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Annuler
             </Button>
-            {selectedClient && filteredItems.length > 0 && (
-              <PDFDownloadLink
-                document={
-                  <QuotePDF
-                    quoteData={pdfData}
-                    lineItems={filteredItems}
-                    client={selectedClient}
-                    company={companyData}
-                    settings={{ showVat: true }}
-                    currency={currency}
-                  />
-                }
-                fileName={`${quoteNumber}.pdf`}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2"
-              >
-                {({ loading }) => (loading ? 'Génération...' : 'Télécharger PDF')}
-              </PDFDownloadLink>
-            )}
             <Button 
-              onClick={handleSave} 
+              onClick={() => handleSave('draft')} 
+              variant="secondary"
+              disabled={saving}
+            >
+              {saving ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
+            <Button 
+              onClick={() => handleSave('pending')} 
               className="bg-purple-600 hover:bg-purple-700"
               disabled={saving}
             >
-              {saving ? 'Enregistrement...' : (quote ? 'Mettre à jour' : 'Créer le devis')}
+              {saving ? 'Validation...' : 'Valider'}
             </Button>
           </div>
         </div>
