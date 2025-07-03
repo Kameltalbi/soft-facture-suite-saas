@@ -56,22 +56,6 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <button 
-                  onClick={() => navigate('/about')}
-                  className="text-sm text-gray-300 hover:text-white transition-colors"
-                >
-                  À propos
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => navigate('/features')}
-                  className="text-sm text-gray-300 hover:text-white transition-colors"
-                >
-                  Fonctionnalités
-                </button>
-              </li>
-              <li>
-                <button 
                   onClick={() => navigate('/mentions-legales')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
