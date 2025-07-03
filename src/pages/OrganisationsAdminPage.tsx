@@ -225,7 +225,7 @@ export default function OrganisationsAdminPage() {
         <Header activeModule="admin" />
       </div>
       
-      <div className="container mx-auto px-6 py-8">
+      <div className="w-full px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Administration Superadmin</h1>
           <p className="text-gray-600 mt-2">Gestion globale des organisations et utilisateurs</p>
