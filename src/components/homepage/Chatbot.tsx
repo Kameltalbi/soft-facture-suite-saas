@@ -21,7 +21,7 @@ export function Chatbot({ tawkToId = "6866b94319aaf4190bd9fb13" }: ChatbotProps)
     const script = document.createElement('script');
     script.id = 'tawk-script';
     script.async = true;
-    script.src = 'https://embed.tawk.to/' + tawkToId + '/default';
+    script.src = 'https://embed.tawk.to/6866b94319aaf4190bd9fb13/1iv8k7e7e';
     script.charset = 'UTF-8';
     script.setAttribute('crossorigin', '*');
 
