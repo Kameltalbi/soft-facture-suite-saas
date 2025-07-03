@@ -139,9 +139,12 @@ export function PricingSection() {
               <p className="text-gray-600 mb-6">
                 Réservez votre démonstration gratuite et visualisez comment notre solution peut s'adapter à votre activité.
               </p>
-              <Button className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white px-8 py-3">
-                Réserver une démonstration gratuite
-              </Button>
+               <Button 
+                 className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white px-8 py-3"
+                 onClick={() => window.location.href = '/demo'}
+               >
+                 Réserver une démonstration gratuite
+               </Button>
             </div>
           </div>
         </div>
