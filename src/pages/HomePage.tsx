@@ -41,7 +41,7 @@ const HomePage = () => {
       <PricingSection />
       <FinalCtaSection />
       <Footer />
-      <Chatbot tawkToId="YOUR_TAWK_TO_ID_HERE" />
+      <Chatbot />
     </div>
   );
 };
