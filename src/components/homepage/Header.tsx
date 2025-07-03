@@ -105,7 +105,7 @@ export function Header() {
               À propos
             </button>
             <button 
-              onClick={() => scrollToSection('pricing')}
+              onClick={() => navigate('/pricing')}
               className="text-gray-600 hover:text-[#6A9C89] font-medium"
             >
               Tarifs
@@ -177,7 +177,7 @@ export function Header() {
             </button>
             <button 
               onClick={() => {
-                scrollToSection('pricing');
+                navigate('/pricing');
                 setIsMobileMenuOpen(false);
               }}
               className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"

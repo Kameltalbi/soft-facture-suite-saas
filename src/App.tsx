@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import FeaturesPage from "./pages/FeaturesPage";
 import AboutPage from "./pages/AboutPage";
+import PricingPage from "./pages/PricingPage";
 import DemoPage from "./pages/DemoPage";
 import AuthPage from "./pages/AuthPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/home" element={<HomePage />} />
               <Route path="/features" element={<FeaturesPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
