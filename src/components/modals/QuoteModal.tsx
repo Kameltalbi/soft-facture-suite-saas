@@ -436,13 +436,12 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const filteredItems = quoteItems.filter(item => item.description.trim());
 
   const formatCurrency = (amount: number) => {
-    // Afficher sans décimales si c'est un nombre entier
-    const hasDecimals = amount % 1 !== 0;
+    // Afficher toujours sans décimales comme demandé
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
       currency: currency.code,
-      minimumFractionDigits: hasDecimals ? 2 : 0,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   };
 
