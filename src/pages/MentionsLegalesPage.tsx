@@ -31,7 +31,7 @@ const MentionsLegalesPage = () => {
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
                   SoftFacture est une solution de facturation en ligne éditée par la société <strong>ABC Archibat</strong>, 
-                  société à responsabilité limitée (SARL) au capital de 10 000 DT, immatriculée au Registre de Commerce 
+                  société à responsabilité limitée (SARL) au capital de 50 000 DT, immatriculée au Registre de Commerce 
                   de Tunis sous le numéro <strong>B1234562024</strong>.
                 </p>
               </CardContent>
