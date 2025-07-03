@@ -254,8 +254,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const selectProduct = (itemId: string, product: Product) => {
     // Utiliser la TVA exacte du produit (même si c'est 0)
     const taxRate = product.tax_rate || 0;
-    // Les prix sont stockés en unité de devise, pas de conversion
-    const unitPrice = product.price;
+    // Les prix sont stockés en millimes, diviser par 100 pour avoir les dinars
+    const unitPrice = product.price / 100;
     
     setQuoteItems(quoteItems.map(item => {
       if (item.id === itemId) {
@@ -678,7 +678,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                                   </div>
                                 </div>
                                 <div className="text-sm font-medium text-purple-600 ml-3">
-                                  {formatCurrency(product.price)}
+                                  {formatCurrency(product.price / 100)}
                                 </div>
                               </div>
                             ))}
