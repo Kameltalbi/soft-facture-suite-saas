@@ -17,7 +17,7 @@ interface DashboardKpiData {
   totalInvoices: number;
   totalQuotes: number;
   activeClients: number;
-  currency: { code: string; symbol: string; name: string };
+  currency: { code: string; symbol: string; name: string; decimal_places: number };
 }
 
 interface DashboardKpisProps {
@@ -27,7 +27,7 @@ interface DashboardKpisProps {
 
 export function DashboardKpis({ data, loading }: DashboardKpisProps) {
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${data.currency.symbol}`;
+    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: data.currency.decimal_places, maximumFractionDigits: data.currency.decimal_places })} ${data.currency.symbol}`;
   };
 
   if (loading) {

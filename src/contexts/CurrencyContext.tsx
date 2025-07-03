@@ -7,6 +7,7 @@ interface Currency {
   code: string;
   symbol: string;
   name: string;
+  decimal_places: number;
 }
 
 interface CurrencyContextType {
@@ -18,7 +19,8 @@ interface CurrencyContextType {
 const defaultCurrency: Currency = {
   code: 'EUR',
   symbol: '€',
-  name: 'Euro'
+  name: 'Euro',
+  decimal_places: 2
 };
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -42,7 +44,7 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       try {
         const { data, error } = await supabase
           .from('currencies')
-          .select('code, symbol, name')
+          .select('code, symbol, name, decimal_places')
           .eq('organization_id', profile.organization_id)
           .eq('is_primary', true)
           .single();
@@ -55,7 +57,8 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
           setCurrency({
             code: data.code,
             symbol: data.symbol,
-            name: data.name
+            name: data.name,
+            decimal_places: data.decimal_places
           });
         }
       } catch (error) {

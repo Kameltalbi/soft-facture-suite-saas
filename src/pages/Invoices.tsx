@@ -444,7 +444,10 @@ export default function Invoices() {
   };
 
   const formatCurrency = (amount) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
+    return `${amount.toLocaleString('fr-FR', { 
+      minimumFractionDigits: currency.decimal_places, 
+      maximumFractionDigits: currency.decimal_places 
+    })} ${currency.symbol}`;
   };
 
   const getPDFData = (invoice: any) => {

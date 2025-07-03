@@ -94,7 +94,10 @@ const BonsCommandePage = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${currency.symbol}`;
+    return `${amount.toLocaleString('fr-FR', { 
+      minimumFractionDigits: currency.decimal_places, 
+      maximumFractionDigits: currency.decimal_places 
+    })} ${currency.symbol}`;
   };
 
   const filteredBonsCommande = purchaseOrders.filter(bonCommande =>

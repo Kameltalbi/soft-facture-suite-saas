@@ -48,7 +48,10 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
   const { currency } = useCurrency();
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR')} ${currency.symbol}`;
+    return `${amount.toLocaleString('fr-FR', { 
+      minimumFractionDigits: currency.decimal_places, 
+      maximumFractionDigits: currency.decimal_places 
+    })} ${currency.symbol}`;
   };
 
   const formatNumber = (num: number) => {

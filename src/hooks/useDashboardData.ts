@@ -10,7 +10,7 @@ interface DashboardKpiData {
   totalInvoices: number;
   totalQuotes: number;
   activeClients: number;
-  currency: { code: string; symbol: string; name: string };
+  currency: { code: string; symbol: string; name: string; decimal_places: number };
 }
 
 interface DashboardChartData {
@@ -52,7 +52,7 @@ export const useDashboardData = (selectedYear: number) => {
     totalInvoices: 0,
     totalQuotes: 0,
     activeClients: 0,
-    currency: { code: 'EUR', symbol: '€', name: 'Euro' }
+    currency: { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 }
   });
   const [chartData, setChartData] = useState<DashboardChartData>({
     caByCategory: [],
@@ -71,28 +71,29 @@ export const useDashboardData = (selectedYear: number) => {
   }, [profile?.organization_id, selectedYear]);
 
   const fetchOrganizationCurrency = async () => {
-    if (!profile?.organization_id) return { code: 'EUR', symbol: '€', name: 'Euro' };
+    if (!profile?.organization_id) return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
 
     try {
       const { data, error } = await supabase
         .from('currencies')
-        .select('code, symbol, name')
+        .select('code, symbol, name, decimal_places')
         .eq('organization_id', profile.organization_id)
         .eq('is_primary', true)
         .single();
 
       if (error || !data) {
-        return { code: 'EUR', symbol: '€', name: 'Euro' };
+        return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
       }
 
       return {
         code: data.code,
         symbol: data.symbol,
-        name: data.name
+        name: data.name,
+        decimal_places: data.decimal_places
       };
     } catch (error) {
       console.error('Erreur lors de la récupération de la devise:', error);
-      return { code: 'EUR', symbol: '€', name: 'Euro' };
+      return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
     }
   };
 
