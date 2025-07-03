@@ -1337,6 +1337,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_feature: {
+        Args: { feature_name: string }
+        Returns: boolean
+      }
+      check_plan_limits: {
+        Args: { limit_type: string }
+        Returns: number
+      }
       extend_subscription: {
         Args: { org_id: string; months: number }
         Returns: undefined
@@ -1367,6 +1375,10 @@ export type Database = {
         }[]
       }
       get_user_organization_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_organization_plan: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
