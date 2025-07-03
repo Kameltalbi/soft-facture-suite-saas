@@ -625,7 +625,9 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                           onBlur={(e) => {
                             // Délai pour permettre le clic sur une suggestion
                             setTimeout(() => {
-                              if (!e.currentTarget.contains(document.activeElement)) {
+                              const currentTarget = e.currentTarget;
+                              const activeElement = document.activeElement;
+                              if (!currentTarget || !activeElement || !currentTarget.contains(activeElement)) {
                                 setShowSuggestions(false);
                                 setActiveItemId(null);
                               }
@@ -641,18 +643,20 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         
                         {/* Suggestions dropdown */}
                         {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
-                          <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
                             {searchSuggestions.map((product) => (
                               <div
                                 key={product.id}
                                 className="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start"
-                                onMouseDown={(e) => e.preventDefault()} // Empêche le blur de l'input
-                                onClick={() => selectProduct(item.id, product)}
+                                onMouseDown={(e) => {
+                                  e.preventDefault(); // Empêche le blur de l'input
+                                  selectProduct(item.id, product);
+                                }}
                               >
                                 <div className="flex-1">
                                   <div className="font-medium text-sm">{product.name}</div>
                                   {product.description && (
-                                    <div className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</div>
+                                    <div className="text-xs text-gray-500 mt-1">{product.description}</div>
                                   )}
                                   <div className="text-xs text-gray-400 mt-1">
                                     {product.unit && `Unité: ${product.unit}`}
@@ -668,13 +672,14 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         
                         {/* Message si aucun résultat */}
                         {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
-                          <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm">
+                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
                             Aucun produit trouvé pour "{item.description}"
                             <div className="mt-2">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="text-xs"
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
                                   // Ici, vous pourriez ouvrir un modal de création de produit
                                   toast({
