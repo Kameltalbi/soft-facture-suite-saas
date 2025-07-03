@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,16 @@ interface InvoiceItem {
   vatRate: number;
   discount: number;
   total: number;
+  productId?: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  unit: string | null;
+  tax_rate?: number;
 }
 
 interface InvoiceModalProps {
@@ -53,8 +63,26 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
   
-  // Product search
-  const [productSearch, setProductSearch] = useState('');
+  // Product search inline
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fonction de nettoyage des timeouts
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Filter clients based on search
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
+  );
   
   // Set default invoice number when modal opens for new invoice
   React.useEffect(() => {
@@ -63,17 +91,51 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
 
-  // Filter clients based on search
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
-    (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
-  );
-  
-  // Filter products based on search
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+  // Fonction de recherche de produits avec debounce
+  const handleProductSearch = (itemId: string, searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    setActiveItemId(itemId);
+    
+    if (searchTerm.length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => {
+        const filtered = products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        setSearchSuggestions(filtered.slice(0, 5));
+        setShowSuggestions(true);
+      }, 300);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Sélectionner un produit depuis les suggestions
+  const selectProduct = (itemId: string, product: Product) => {
+    const taxRate = product.tax_rate || 0;
+    const unitPrice = product.price;
+    
+    setInvoiceItems(invoiceItems.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          description: product.name,
+          unitPrice: unitPrice,
+          vatRate: taxRate,
+          total: unitPrice,
+          productId: product.id
+        };
+      }
+      return item;
+    }));
+    setShowSuggestions(false);
+    setActiveItemId(null);
+    setSearchSuggestions([]);
+  };
   
   // Add a new empty invoice item
   const addInvoiceItem = () => {
@@ -166,7 +228,9 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
-      currency: currency.code 
+      currency: currency.code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     });
   };
 
@@ -319,55 +383,13 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                   <FileText className="mr-2 h-5 w-5" />
                   Produits / Services
                 </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Rechercher un produit..."
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10 w-64"
-                      disabled={productsLoading}
-                    />
-                    {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
-                  </div>
-                  <Button onClick={addInvoiceItem} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
-                </div>
+                <Button onClick={addInvoiceItem} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Ajouter une ligne
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
-                      onClick={() => {
-                        const newItem: InvoiceItem = {
-                          id: Date.now().toString(),
-                          description: product.name,
-                          quantity: 1,
-                          unitPrice: product.price,
-                          vatRate: 20,
-                          discount: 0,
-                          total: product.price
-                        };
-                        setInvoiceItems([...invoiceItems, newItem]);
-                        setProductSearch('');
-                      }}
-                    >
-                      <div>
-                        <span className="font-medium">{product.name}</span>
-                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
-                      </div>
-                      <span className="text-sm text-gray-500">{formatCurrency(product.price)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
               
               <Table>
                 <TableHeader>
@@ -384,12 +406,82 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 <TableBody>
                   {invoiceItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell>
+                      <TableCell className="relative">
                         <Input
                           value={item.description}
-                          onChange={(e) => updateInvoiceItem(item.id, 'description', e.target.value)}
-                          placeholder="Description du produit/service"
+                          onChange={(e) => {
+                            updateInvoiceItem(item.id, 'description', e.target.value);
+                            handleProductSearch(item.id, e.target.value);
+                          }}
+                          placeholder="Tapez pour rechercher un produit..."
+                          onFocus={() => {
+                            setActiveItemId(item.id);
+                            if (item.description.length >= 2) {
+                              handleProductSearch(item.id, item.description);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Délai pour permettre le clic sur une suggestion
+                            setTimeout(() => {
+                              const currentTarget = e.currentTarget;
+                              const activeElement = document.activeElement;
+                              if (!currentTarget || !activeElement || !currentTarget.contains(activeElement)) {
+                                setShowSuggestions(false);
+                                setActiveItemId(null);
+                              }
+                            }, 200);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowSuggestions(false);
+                              setActiveItemId(null);
+                            }
+                          }}
                         />
+                        
+                        {/* Suggestions dropdown */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
+                          <div 
+                            className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
+                            style={{
+                              zIndex: 9999,
+                              top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
+                              left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
+                              width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
+                            }}
+                          >
+                            {searchSuggestions.map((product) => (
+                              <div
+                                key={product.id}
+                                className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
+                                onMouseDown={(e) => {
+                                  e.preventDefault(); // Empêche le blur de l'input
+                                  selectProduct(item.id, product);
+                                }}
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                                  {product.description && (
+                                    <div className="text-xs text-gray-500 mt-1">{product.description}</div>
+                                  )}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {product.unit && `Unité: ${product.unit}`}
+                                  </div>
+                                </div>
+                                <div className="text-sm font-medium text-blue-600 ml-3">
+                                  {formatCurrency(product.price)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Message si aucun résultat */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
+                            Aucun produit trouvé pour "{item.description}"
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Input
