@@ -27,7 +27,7 @@ export function PricingSection() {
     { name: "Gestion des fournisseurs", essential: false, pro: true },
     { name: "Rapports avancés", essential: false, pro: true },
     { name: "Taxes personnalisées", essential: true, pro: true },
-    { name: "Gestion des devises", essential: false, pro: true },
+    { name: "Gestion des devises", essential: true, pro: true },
     { name: "Modèles PDF professionnels", essential: false, pro: true },
   ];
 
