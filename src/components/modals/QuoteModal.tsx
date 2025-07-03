@@ -43,6 +43,7 @@ interface Product {
   description: string | null;
   price: number;
   unit: string | null;
+  tax_rate?: number;
 }
 
 interface QuoteModalProps {
@@ -146,7 +147,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       setProductsLoading(true);
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select('id, name, description, price, unit, tax_rate')
         .eq('organization_id', organization.id)
         .eq('active', true)
         .order('name');
@@ -181,26 +182,21 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
 
-  // Fonction de recherche de produits avec debounce
-  const searchProducts = (searchTerm: string) => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    searchTimeoutRef.current = setTimeout(() => {
-      if (searchTerm.length >= 2) {
-        const filtered = products.filter(product =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-        setSearchSuggestions(filtered.slice(0, 5)); // Limiter à 5 suggestions
-        setShowSuggestions(true);
-      } else {
-        setSearchSuggestions([]);
-        setShowSuggestions(false);
+  // Fonction de nettoyage des timeouts
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
       }
-    }, 300);
-  };
+    };
+  }, []);
+
+  // Debug: afficher les produits chargés
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log('Produits chargés:', products.length, products);
+    }
+  }, [products]);
   
   const addQuoteItem = () => {
     const newItem: QuoteItem = {
@@ -224,20 +220,39 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           const discountAmount = subtotal * (updated.discount / 100);
           updated.total = subtotal - discountAmount;
         }
-        // Si on modifie la description, rechercher des produits
-        if (field === 'description' && typeof value === 'string') {
-          searchProducts(value);
-          setActiveItemId(id);
-        }
         return updated;
       }
       return item;
     }));
   };
 
+  // Fonction de recherche de produits avec debounce améliorée
+  const handleProductSearch = (itemId: string, searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    setActiveItemId(itemId);
+    
+    if (searchTerm.length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => {
+        const filtered = products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        console.log('Recherche produits:', searchTerm, 'Résultats:', filtered);
+        setSearchSuggestions(filtered.slice(0, 5));
+        setShowSuggestions(true);
+      }, 300);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
   // Sélectionner un produit depuis les suggestions
   const selectProduct = (itemId: string, product: Product) => {
-    const taxRate = 20; // Vous pouvez ajuster selon votre logique métier
+    const taxRate = product.tax_rate || 20;
     setQuoteItems(quoteItems.map(item => {
       if (item.id === itemId) {
         return {
@@ -596,12 +611,15 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                       <TableCell className="relative">
                         <Input
                           value={item.description}
-                          onChange={(e) => updateQuoteItem(item.id, 'description', e.target.value)}
+                          onChange={(e) => {
+                            updateQuoteItem(item.id, 'description', e.target.value);
+                            handleProductSearch(item.id, e.target.value);
+                          }}
                           placeholder="Tapez pour rechercher un produit..."
                           onFocus={() => {
                             setActiveItemId(item.id);
                             if (item.description.length >= 2) {
-                              searchProducts(item.description);
+                              handleProductSearch(item.id, item.description);
                             }
                           }}
                           onBlur={(e) => {
