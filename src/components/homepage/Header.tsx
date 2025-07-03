@@ -99,6 +99,12 @@ export function Header() {
               Fonctionnalités
             </button>
             <button 
+              onClick={() => navigate('/about')}
+              className="text-gray-600 hover:text-[#6A9C89] font-medium"
+            >
+              À propos
+            </button>
+            <button 
               onClick={() => scrollToSection('pricing')}
               className="text-gray-600 hover:text-[#6A9C89] font-medium"
             >
@@ -159,6 +165,15 @@ export function Header() {
               className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
             >
               Fonctionnalités
+            </button>
+            <button 
+              onClick={() => {
+                navigate('/about');
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
+            >
+              À propos
             </button>
             <button 
               onClick={() => {
