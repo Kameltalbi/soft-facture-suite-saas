@@ -254,7 +254,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const selectProduct = (itemId: string, product: Product) => {
     // Utiliser la TVA exacte du produit (même si c'est 0)
     const taxRate = product.tax_rate || 0;
-    // Les prix sont stockés normalement, pas besoin de diviser
+    // Les prix sont stockés en unité de devise, pas de conversion
     const unitPrice = product.price;
     
     setQuoteItems(quoteItems.map(item => {
