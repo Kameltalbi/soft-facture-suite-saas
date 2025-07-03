@@ -93,7 +93,7 @@ export function Header() {
           
           <nav className="flex items-center space-x-8">
             <button 
-              onClick={() => scrollToSection('features')}
+              onClick={() => navigate('/features')}
               className="text-gray-600 hover:text-[#6A9C89] font-medium"
             >
               Fonctionnalités
@@ -153,7 +153,7 @@ export function Header() {
           <div className="container mx-auto px-4 py-4 space-y-4">
             <button 
               onClick={() => {
-                scrollToSection('features');
+                navigate('/features');
                 setIsMobileMenuOpen(false);
               }}
               className="block w-full text-left text-gray-600 hover:text-[#6A9C89] font-medium py-2"
