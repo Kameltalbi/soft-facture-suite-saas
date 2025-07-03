@@ -9,16 +9,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 
 const AuthPage = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [organizationName, setOrganizationName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,12 +26,7 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
-      let result;
-      if (isSignUp) {
-        result = await signUp(email, password, firstName, lastName, organizationName);
-      } else {
-        result = await signIn(email, password);
-      }
+      const result = await signIn(email, password);
 
       if (result.error) {
         toast({
@@ -46,7 +37,7 @@ const AuthPage = () => {
       } else {
         toast({
           title: "Succès",
-          description: isSignUp ? "Compte créé avec succès !" : "Connexion réussie !",
+          description: "Connexion réussie !",
         });
         navigate('/dashboard');
       }
@@ -70,58 +61,15 @@ const AuthPage = () => {
               <span className="text-white font-bold text-lg">SF</span>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              {isSignUp ? 'Créer un compte' : 'Connexion'}
+              Connexion
             </CardTitle>
             <p className="text-gray-600">
-              {isSignUp ? 'Commencez votre essai gratuit' : 'Accédez à votre tableau de bord'}
+              Accédez à votre tableau de bord
             </p>
           </CardHeader>
           
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {isSignUp && (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Prénom
-                      </label>
-                      <Input
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nom
-                      </label>
-                      <Input
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom de l'organisation
-                    </label>
-                    <Input
-                      type="text"
-                      value={organizationName}
-                      onChange={(e) => setOrganizationName(e.target.value)}
-                      required
-                      className="h-11"
-                    />
-                  </div>
-                </>
-              )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -165,30 +113,18 @@ const AuthPage = () => {
                 className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white font-semibold h-11"
                 disabled={loading}
               >
-                {loading ? 'Chargement...' : (isSignUp ? 'Créer le compte' : 'Se connecter')}
+                {loading ? 'Chargement...' : 'Se connecter'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <button
                 type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={() => navigate('/checkout')}
                 className="text-[#6A9C89] hover:text-[#5A8A75] font-medium"
               >
-                {isSignUp 
-                  ? 'Vous avez déjà un compte ? Se connecter'
-                  : null
-                }
+                Vous n'avez pas de compte ? Créer un compte
               </button>
-              {!isSignUp && (
-                <button
-                  type="button"
-                  onClick={() => navigate('/checkout')}
-                  className="text-[#6A9C89] hover:text-[#5A8A75] font-medium"
-                >
-                  Vous n'avez pas de compte ? Créer un compte
-                </button>
-              )}
             </div>
 
             <div className="mt-4 text-center">
