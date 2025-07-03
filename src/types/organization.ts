@@ -6,7 +6,7 @@ export interface Organization {
   phone: string | null;
   address: string | null;
   status: 'active' | 'suspended' | 'pending';
-  plan: 'free' | 'standard' | 'premium';
+  plan: 'essential' | 'pro';
   created_at: string;
   updated_at: string;
   subscription_start: string;

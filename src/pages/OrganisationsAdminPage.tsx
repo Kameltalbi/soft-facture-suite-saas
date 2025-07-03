@@ -54,11 +54,10 @@ export default function OrganisationsAdminPage() {
 
       if (error) throw error;
       
-      // Cast the data to match our Organization type
       const typedData = (data || []).map(org => ({
         ...org,
         status: org.status as 'active' | 'suspended' | 'pending',
-        plan: org.plan as 'free' | 'standard' | 'premium'
+        plan: org.plan as 'essential' | 'pro'
       }));
       
       console.log('📊 Organizations récupérées:', typedData.length);
@@ -179,7 +178,7 @@ export default function OrganisationsAdminPage() {
     total: organizations.length,
     active: organizations.filter(org => org.status === 'active').length,
     suspended: organizations.filter(org => org.status === 'suspended').length,
-    premium: organizations.filter(org => org.plan === 'premium').length,
+    pro: organizations.filter(org => org.plan === 'pro').length,
   };
 
   useEffect(() => {
@@ -278,11 +277,11 @@ export default function OrganisationsAdminPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Premium</CardTitle>
+                  <CardTitle className="text-sm font-medium">Plan Pro</CardTitle>
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.premium}</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.pro}</div>
                 </CardContent>
               </Card>
             </div>
@@ -322,9 +321,8 @@ export default function OrganisationsAdminPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous les plans</SelectItem>
-                      <SelectItem value="free">Gratuit</SelectItem>
-                      <SelectItem value="standard">Standard</SelectItem>
-                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="essential">Essentiel</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
                     </SelectContent>
                   </Select>
                   <NewOrganizationForm onCreated={handleRefresh} />
@@ -347,6 +345,7 @@ export default function OrganisationsAdminPage() {
                       <TableRow>
                         <TableHead className="w-64">Organisation</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Téléphone</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead>Plan</TableHead>
                         <TableHead>Début abonnement</TableHead>
@@ -380,6 +379,7 @@ export default function OrganisationsAdminPage() {
                             </div>
                           </TableCell>
                           <TableCell>{org.email || 'N/A'}</TableCell>
+                          <TableCell>{org.phone || 'N/A'}</TableCell>
                           <TableCell>
                             <Badge variant={
                               org.status === 'active' ? 'default' : 
@@ -393,12 +393,10 @@ export default function OrganisationsAdminPage() {
                           </TableCell>
                           <TableCell>
                             <Badge variant={
-                              org.plan === 'premium' ? 'default' : 
-                              org.plan === 'standard' ? 'secondary' : 'outline'
+                              org.plan === 'pro' ? 'default' : 'secondary'
                             }>
-                              {org.plan === 'free' ? 'Gratuit' : 
-                               org.plan === 'standard' ? 'Standard' :
-                               org.plan === 'premium' ? 'Premium' : org.plan}
+                              {org.plan === 'essential' ? 'Essentiel' : 
+                               org.plan === 'pro' ? 'Pro' : org.plan}
                             </Badge>
                           </TableCell>
                           <TableCell>{new Date(org.subscription_start).toLocaleDateString('fr-FR')}</TableCell>

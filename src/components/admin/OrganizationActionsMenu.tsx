@@ -134,10 +134,9 @@ export function OrganizationActionsMenu({
   };
 
   const handleUpgrade = async () => {
-    const planHierarchy: Record<string, 'free' | 'standard' | 'premium'> = { 
-      free: 'standard', 
-      standard: 'premium', 
-      premium: 'premium' 
+    const planHierarchy: Record<string, 'essential' | 'pro'> = { 
+      essential: 'pro', 
+      pro: 'pro' 
     };
     const newPlan = planHierarchy[organization.plan];
     
@@ -240,7 +239,7 @@ export function OrganizationActionsMenu({
           Abroger l'abonnement
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer" disabled={organization.plan === 'premium'}>
+        <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer" disabled={organization.plan === 'pro'}>
           <ArrowUp className="h-4 w-4 mr-2" />
           Améliorer le plan
         </DropdownMenuItem>
