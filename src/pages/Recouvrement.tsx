@@ -124,20 +124,10 @@ const Recouvrement = () => {
             <p className="text-muted-foreground">Gérez les paiements de vos factures</p>
           </div>
           
-          <div className="flex gap-2">
-            <Button onClick={handleExport} variant="outline">
-              <Download size={16} className="mr-2" />
-              Exporter
-            </Button>
-            
-            <Button 
-              onClick={() => setShowPaymentModal(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus size={16} className="mr-2" />
-              Ajouter un paiement
-            </Button>
-          </div>
+          <Button onClick={handleExport} variant="outline">
+            <Download size={16} className="mr-2" />
+            Exporter
+          </Button>
         </div>
 
         {/* Statistiques */}
