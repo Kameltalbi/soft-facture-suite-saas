@@ -165,6 +165,35 @@ export default function OrganisationsAdminPage() {
     }
   };
 
+  const handleActivateOrganization = async (orgId: string) => {
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .update({
+          status: 'active',
+          subscription_start: new Date().toISOString().split('T')[0],
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orgId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Organisation activée avec succès"
+      });
+
+      handleRefresh();
+    } catch (error) {
+      console.error('Error activating organization:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'activer l'organisation",
+        variant: "destructive"
+      });
+    }
+  };
+
   const filteredOrganizations = organizations.filter(org => {
     const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          org.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -178,6 +207,7 @@ export default function OrganisationsAdminPage() {
     total: organizations.length,
     active: organizations.filter(org => org.status === 'active').length,
     suspended: organizations.filter(org => org.status === 'suspended').length,
+    pending: organizations.filter(org => org.status === 'pending').length,
     pro: organizations.filter(org => org.plan === 'pro').length,
   };
 
@@ -244,7 +274,7 @@ export default function OrganisationsAdminPage() {
 
           <TabsContent value="organizations" className="space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total</CardTitle>
@@ -262,6 +292,16 @@ export default function OrganisationsAdminPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">En attente</CardTitle>
+                  <div className="h-4 w-4 bg-orange-500 rounded-full"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">{stats.pending}</div>
                 </CardContent>
               </Card>
 
@@ -419,6 +459,7 @@ export default function OrganisationsAdminPage() {
                               onEditSubscription={handleEditSubscription}
                               onViewUsers={handleViewUsers}
                               onViewHistory={handleViewHistory}
+                              onActivate={handleActivateOrganization}
                               onRefresh={handleRefresh}
                             />
                           </TableCell>

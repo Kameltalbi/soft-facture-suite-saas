@@ -20,6 +20,7 @@ interface OrganizationActionsMenuProps {
   onEditSubscription: (org: Organization) => void;
   onViewUsers: (org: Organization) => void;
   onViewHistory: (org: Organization) => void;
+  onActivate: (orgId: string) => void;
   onRefresh: () => void;
 }
 
@@ -29,6 +30,7 @@ export function OrganizationActionsMenu({
   onEditSubscription,
   onViewUsers, 
   onViewHistory, 
+  onActivate,
   onRefresh 
 }: OrganizationActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -224,6 +226,13 @@ export function OrganizationActionsMenu({
         <DropdownMenuSeparator />
 
         {/* Actions de gestion d'abonnement */}
+        {organization.status === 'pending' && (
+          <DropdownMenuItem onClick={() => { onActivate(organization.id); setIsOpen(false); }} className="cursor-pointer text-green-600">
+            <Check className="h-4 w-4 mr-2" />
+            Activer l'organisation
+          </DropdownMenuItem>
+        )}
+        
         <DropdownMenuItem onClick={handleValidatePayment} className="cursor-pointer">
           <Check className="h-4 w-4 mr-2" />
           Valider le paiement
