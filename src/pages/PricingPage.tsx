@@ -33,7 +33,6 @@ const PricingPage = () => {
         "Bons de commande fournisseurs",
         "Templates PDF personnalisés",
         "Rapports avancés (produits, impayés, etc.)",
-        "Export groupé de documents PDF",
         "Support prioritaire (WhatsApp, téléphone)"
       ],
       popular: false
@@ -51,7 +50,6 @@ const PricingPage = () => {
         "Bons de commande fournisseurs",
         "Templates PDF personnalisés",
         "Rapports avancés (produits, impayés, etc.)",
-        "Export groupé de documents PDF",
         "Support prioritaire (WhatsApp, téléphone)",
         "Jusqu'à 3 utilisateurs inclus",
         "Utilisateur supplémentaire : 20 DT/mois"

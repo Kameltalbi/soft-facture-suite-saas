@@ -20,7 +20,6 @@ export function PricingSection() {
     { name: "Bons de commande fournisseurs", essential: false, pro: true },
     { name: "Templates PDF personnalisés", essential: false, pro: true },
     { name: "Rapports avancés (produits, impayés, etc.)", essential: false, pro: true },
-    { name: "Export groupé de documents PDF", essential: false, pro: true },
     { name: "Support prioritaire (WhatsApp, téléphone)", essential: false, pro: true },
   ];
 
