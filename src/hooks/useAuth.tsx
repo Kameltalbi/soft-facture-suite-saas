@@ -23,6 +23,7 @@ interface Organization {
   website: string | null;
   vat_number: string | null;
   logo_url: string | null;
+  plan: 'essential' | 'pro';
   created_at: string;
   updated_at: string;
 }
@@ -128,7 +129,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        setOrganization(orgData);
+        // Ensure plan is typed correctly
+        const typedOrgData = {
+          ...orgData,
+          plan: (orgData.plan === 'pro' ? 'pro' : 'essential') as 'essential' | 'pro'
+        };
+
+        setOrganization(typedOrgData);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);

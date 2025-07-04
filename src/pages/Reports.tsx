@@ -2,9 +2,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Package, TrendingUp, Calendar, Trophy, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
 
 const Reports = () => {
   const navigate = useNavigate();
+  const { reportsAccess } = usePlanAccess();
 
   const reports = [
     {
@@ -73,7 +75,7 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {reports.map((report) => {
+        {reports.filter(report => reportsAccess[report.id as keyof typeof reportsAccess]).map((report) => {
           const Icon = report.icon;
           return (
             <Card 

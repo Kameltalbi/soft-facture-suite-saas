@@ -13,12 +13,14 @@ import { CustomTaxSettings } from '@/components/settings/CustomTaxSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Organization, User } from '@/types/settings';
 
 export default function Settings() {
   const { toast } = useToast();
   const { organization, profile } = useAuth();
+  const { settingsAccess } = usePlanAccess();
   const [activeTab, setActiveTab] = useState('organization');
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   const [organizationLoading, setOrganizationLoading] = useState(true);
@@ -323,11 +325,11 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className={`grid w-full ${settingsAccess.templates ? 'grid-cols-8' : 'grid-cols-7'}`}>
           <TabsTrigger value="organization">Organisation</TabsTrigger>
           <TabsTrigger value="currencies">Devises</TabsTrigger>
           <TabsTrigger value="footer">Pied de page</TabsTrigger>
-          <TabsTrigger value="templates">Templates PDF</TabsTrigger>
+          {settingsAccess.templates && <TabsTrigger value="templates">Templates PDF</TabsTrigger>}
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="numbering">Numérotation</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
@@ -364,17 +366,19 @@ export default function Settings() {
           />
         </TabsContent>
 
-        <TabsContent value="templates">
-          <PdfTemplateSettings
-            settings={{
-              invoice_template: globalSettings?.invoice_template || 'classic',
-              quote_template: globalSettings?.quote_template || 'classic',
-              delivery_note_template: globalSettings?.delivery_note_template || 'classic',
-              credit_template: globalSettings?.credit_template || 'classic',
-            }}
-            onSave={handleSavePdfTemplates}
-          />
-        </TabsContent>
+        {settingsAccess.templates && (
+          <TabsContent value="templates">
+            <PdfTemplateSettings
+              settings={{
+                invoice_template: globalSettings?.invoice_template || 'classic',
+                quote_template: globalSettings?.quote_template || 'classic',
+                delivery_note_template: globalSettings?.delivery_note_template || 'classic',
+                credit_template: globalSettings?.credit_template || 'classic',
+              }}
+              onSave={handleSavePdfTemplates}
+            />
+          </TabsContent>
+        )}
 
         <TabsContent value="taxes">
           <CustomTaxSettings />

@@ -14,6 +14,7 @@ import {
   Building2,
   CreditCard
 } from 'lucide-react';
+import { usePlanAccess } from '@/hooks/usePlanAccess';
 
 import {
   Sidebar,
@@ -110,6 +111,7 @@ const menuItems = [
 export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const { sidebarAccess } = usePlanAccess();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-gray-200 bg-[#F6F7F9]">
@@ -136,7 +138,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {menuItems.map((item) => {
+              {menuItems.filter(item => sidebarAccess[item.id as keyof typeof sidebarAccess]).map((item) => {
                 const Icon = item.icon;
                 const isActive = activeModule === item.id;
                 
