@@ -244,7 +244,7 @@ export function ImportClientsModal({ open, onClose, onImportComplete }: ImportCl
                 className="flex items-center gap-2"
               >
                 <Download className="h-4 w-4" />
-                Télécharger le modèle CSV
+                Télécharger le modèle CSV ou Excel
               </Button>
             </div>
           </div>
