@@ -30,104 +30,86 @@ export function PricingSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Des tarifs simples et transparents
+            Tableau comparatif des plans
           </h2>
           <p className="text-xl text-gray-600">
-            Choisissez le plan qui correspond à vos besoins
+            Voici un tableau comparatif professionnel, clair et respectueux des deux plans de SoftFacture, avec une présentation côte à côte utilisant les codes 🟢 (Essentiel) et 🔴 (Pro), et indiquant bien que le paiement est annuel.
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
-          {/* Plan Essentiel */}
-          <Card className="rounded-2xl shadow-lg bg-white relative">
-            <CardHeader className="text-center pt-8">
-              <CardTitle className="text-2xl text-gray-900 mb-2">Plan Essentiel</CardTitle>
-              <div className="space-y-2">
-                <div className="text-4xl font-bold text-[#6A9C89]">35 DT/mois</div>
-                <div className="text-lg text-gray-600">Payable par an : 420 DT HT/an</div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center mb-6">
-                <p className="text-gray-600">2 utilisateurs inclus</p>
-                <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT/mois</p>
-              </div>
-              
-              <div className="space-y-2">
+        <div className="max-w-6xl mx-auto mb-12">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="px-6 py-4 text-left text-lg font-semibold text-gray-900">Fonctionnalité</th>
+                  <th className="px-6 py-4 text-center text-lg font-semibold text-gray-900">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                      <span>Essentiel (35 DT/mois, 420 DT/an)</span>
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-center text-lg font-semibold text-gray-900">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                      <span>Pro (45 DT/mois, 540 DT/an)</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
                 {features.map((feature, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">{feature.name}</span>
-                    {feature.essential === true || typeof feature.essential === "string" ? (
-                      typeof feature.essential === "string" ? (
-                        <span className="text-xs text-gray-600">{feature.essential}</span>
+                  <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-6 py-4 text-gray-900 font-medium">{feature.name}</td>
+                    <td className="px-6 py-4 text-center">
+                      {feature.essential === true ? (
+                        <Check className="w-5 h-5 text-green-500 mx-auto" />
+                      ) : feature.essential === false ? (
+                        <X className="w-5 h-5 text-red-500 mx-auto" />
                       ) : (
-                        <Check className="w-4 h-4 text-[#6A9C89]" />
-                      )
-                    ) : (
-                      <X className="w-4 h-4 text-red-500" />
-                    )}
-                  </div>
+                        <span className="text-sm text-gray-700">{feature.essential}</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {feature.pro === true ? (
+                        <Check className="w-5 h-5 text-green-500 mx-auto" />
+                      ) : feature.pro === false ? (
+                        <X className="w-5 h-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-sm text-gray-700">{feature.pro}</span>
+                      )}
+                    </td>
+                  </tr>
                 ))}
+              </tbody>
+            </table>
+            
+            <div className="bg-gray-50 px-6 py-4">
+              <div className="flex items-center gap-2 text-sm text-red-600 mb-2">
+                <span>♦</span>
+                <span>Tous les plans sont payables annuellement.</span>
               </div>
-              
-              <div className="pt-4 border-t">
-                <p className="text-sm text-gray-600 mb-2">Support : Email (48h)</p>
-                <Button 
-                  className="w-full bg-[#6A9C89] hover:bg-[#5A8A75] text-white"
-                  onClick={() => window.location.href = '/checkout'}
-                >
-                  Commencer avec Essentiel
-                </Button>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>→</span>
+                <span>Pas d'engagement mensuel.</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </div>
 
-          {/* Plan Pro */}
-          <Card className="rounded-2xl shadow-lg bg-white relative border-2 border-[#6A9C89]">
-            <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#D96C4F]">
-              Recommandé
-            </Badge>
-            <CardHeader className="text-center pt-8">
-              <CardTitle className="text-2xl text-gray-900 mb-2">Plan Pro</CardTitle>
-              <div className="space-y-2">
-                <div className="text-4xl font-bold text-[#6A9C89]">45 DT/mois</div>
-                <div className="text-lg text-gray-600">Payable par an : 540 DT HT/an</div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center mb-6">
-                <p className="text-gray-600">3 utilisateurs inclus</p>
-                <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT/mois</p>
-              </div>
-              
-              <div className="space-y-2">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">{feature.name}</span>
-                    {feature.pro === true || typeof feature.pro === "string" ? (
-                      typeof feature.pro === "string" ? (
-                        <span className="text-xs text-gray-600">{feature.pro}</span>
-                      ) : (
-                        <Check className="w-4 h-4 text-[#6A9C89]" />
-                      )
-                    ) : (
-                      <X className="w-4 h-4 text-red-500" />
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <div className="pt-4 border-t">
-                <p className="text-sm text-gray-600 mb-2">Support : Prioritaire (24h)</p>
-                <Button 
-                  className="w-full bg-[#D96C4F] hover:bg-[#C25A43] text-white"
-                  onClick={() => window.location.href = '/checkout'}
-                >
-                  Commencer avec Pro
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex justify-center gap-6 mb-12">
+          <Button 
+            className="bg-[#6A9C89] hover:bg-[#5A8A75] text-white px-8 py-3"
+            onClick={() => window.location.href = '/checkout'}
+          >
+            Commencer avec Essentiel
+          </Button>
+          <Button 
+            className="bg-[#D96C4F] hover:bg-[#C25A43] text-white px-8 py-3"
+            onClick={() => window.location.href = '/checkout'}
+          >
+            Commencer avec Pro
+          </Button>
         </div>
 
         {/* Message de démo */}
