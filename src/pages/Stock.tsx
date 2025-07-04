@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Search, Package, AlertTriangle, TrendingUp, TrendingDown, History } from 'lucide-react';
+import { Plus, Search, Package, AlertTriangle, TrendingUp, TrendingDown, History, Upload, Download } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,20 +17,24 @@ import { Badge } from '@/components/ui/badge';
 import { StockEntryModal } from '@/components/modals/StockEntryModal';
 import { StockExitModal } from '@/components/modals/StockExitModal';
 import { StockHistoryModal } from '@/components/modals/StockHistoryModal';
+import { ImportStockModal } from '@/components/modals/ImportStockModal';
 import { useProducts } from '@/hooks/useProducts';
 import { useStockMovements } from '@/hooks/useStockMovements';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Stock = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEntryModal, setShowEntryModal] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const { products, loading: productsLoading } = useProducts();
-  const { movements, loading: movementsLoading } = useStockMovements();
+  const { products, loading: productsLoading, fetchProducts } = useProducts();
+  const { movements, loading: movementsLoading, fetchMovements } = useStockMovements();
   const { currency } = useCurrency();
+  const { toast } = useToast();
 
   // Filtrer uniquement les produits avec suivi de stock activé
   const stockTrackedProducts = products.filter(product => product.track_stock === true);
@@ -59,7 +63,7 @@ const Stock = () => {
     return new Intl.NumberFormat('fr-FR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount / 100) + ' ' + currency.symbol;
+    }).format(amount) + ' ' + currency.symbol;
   };
 
   const formatDate = (dateString) => {
@@ -106,6 +110,56 @@ const Stock = () => {
     setShowExitModal(false);
   };
 
+  const handleImportStock = () => {
+    setShowImportModal(true);
+  };
+
+  const handleExportStock = () => {
+    if (movements.length === 0) {
+      toast({
+        title: "Aucun mouvement à exporter",
+        description: "Vous n'avez aucun mouvement de stock dans votre historique",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Créer le CSV pour les mouvements de stock
+    const headers = ['date', 'product_name', 'product_sku', 'movement_type', 'quantity', 'unit_cost', 'reason', 'notes'];
+    const csvContent = [
+      headers.join(','),
+      ...movements.map(movement => [
+        `"${new Date(movement.created_at).toLocaleDateString('fr-FR')}"`,
+        `"${movement.products?.name || ''}"`,
+        `"${movement.products?.sku || ''}"`,
+        `"${movement.movement_type === 'in' ? 'entrée' : 'sortie'}"`,
+        `"${Math.abs(movement.quantity)}"`,
+        `"${movement.unit_cost || 0}"`,
+        `"${movement.reason || ''}"`,
+        `"${movement.notes || ''}"`
+      ].join(','))
+    ].join('\n');
+
+    // Télécharger le fichier
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mouvements_stock_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export réussi",
+      description: `${movements.length} mouvement(s) de stock exporté(s) avec succès`
+    });
+  };
+
+  const handleImportComplete = () => {
+    fetchProducts();
+    fetchMovements();
+  };
+
   if (productsLoading || movementsLoading) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -124,6 +178,26 @@ const Stock = () => {
           <div>
             <h1 className="text-2xl font-bold text-neutral-900">Gestion de Stock</h1>
             <p className="text-neutral-600">Gérez vos stocks et mouvements de produits avec suivi activé</p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleExportStock}
+              variant="outline"
+              className="border-neutral-200"
+            >
+              <Download size={16} className="mr-2" />
+              Exporter
+            </Button>
+            
+            <Button 
+              onClick={handleImportStock}
+              variant="outline"
+              className="border-neutral-200"
+            >
+              <Upload size={16} className="mr-2" />
+              Importer
+            </Button>
           </div>
         </div>
 
@@ -393,6 +467,12 @@ const Stock = () => {
           isOpen={showHistoryModal}
           onClose={() => setShowHistoryModal(false)}
           product={selectedProduct}
+        />
+
+        <ImportStockModal
+          open={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onImportComplete={handleImportComplete}
         />
       </div>
     </div>
