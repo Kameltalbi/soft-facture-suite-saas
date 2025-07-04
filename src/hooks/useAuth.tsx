@@ -205,6 +205,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         organization_phone: organizationData?.organization_phone || '',
         organization_website: organizationData?.organization_website || '',
         organization_vat_number: organizationData?.organization_vat_number || '',
+        plan: organizationData?.plan || 'essential',
+        additional_users: organizationData?.additional_users || 0,
+        payment_method: organizationData?.payment_method || '',
+        total_amount: organizationData?.total_amount || 0,
+        position: organizationData?.position || '',
+        phone: organizationData?.phone || '',
+        is_active: organizationData?.is_active !== undefined ? organizationData.is_active : false
       };
 
       const { data, error } = await supabase.auth.signUp({
