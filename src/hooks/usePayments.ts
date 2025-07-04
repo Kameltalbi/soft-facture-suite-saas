@@ -51,9 +51,15 @@ export const usePayments = () => {
         .not('status', 'eq', 'paid');
 
       // Ajouter les filtres de date si spécifiés
-      if (selectedMonth && selectedYear) {
-        const startDate = `${selectedYear}-${selectedMonth.padStart(2, '0')}-01`;
-        const endDate = `${selectedYear}-${selectedMonth.padStart(2, '0')}-31`;
+      if (selectedMonth && selectedMonth !== 'all') {
+        const year = selectedYear || new Date().getFullYear();
+        const startDate = `${year}-${selectedMonth.padStart(2, '0')}-01`;
+        const endDate = `${year}-${selectedMonth.padStart(2, '0')}-31`;
+        query = query.gte('date', startDate).lte('date', endDate);
+      } else if (selectedYear) {
+        // Si seulement l'année est spécifiée
+        const startDate = `${selectedYear}-01-01`;
+        const endDate = `${selectedYear}-12-31`;
         query = query.gte('date', startDate).lte('date', endDate);
       }
 

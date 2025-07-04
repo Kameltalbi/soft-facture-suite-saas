@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,10 +57,11 @@ const Recouvrement = () => {
     }
   };
 
-  const handleFilterChange = () => {
+  // Filtrage automatique lors du changement de sélection
+  useEffect(() => {
     const monthToUse = selectedMonth === 'all' ? undefined : selectedMonth;
     fetchInvoicesWithPayments(monthToUse, selectedYear);
-  };
+  }, [selectedMonth, selectedYear]);
 
   const handleAddPayment = async (paymentData: any) => {
     const success = await createPayment(paymentData);
@@ -187,45 +188,39 @@ const Recouvrement = () => {
             <CardTitle className="text-lg">Filtres</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4 items-end">
-              <div className="grid grid-cols-2 gap-4 flex-1">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Mois d'émission</label>
-                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tous les mois" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous les mois</SelectItem>
-                      {months.map(month => (
-                        <SelectItem key={month.value} value={month.value}>
-                          {month.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Année</label>
-                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map(year => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Mois d'émission</label>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les mois" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les mois</SelectItem>
+                    {months.map(month => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
-              <Button onClick={handleFilterChange}>
-                Filtrer
-              </Button>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Année</label>
+                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map(year => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
