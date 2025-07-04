@@ -18,7 +18,7 @@ const CGUPage = () => {
     {
       icon: <Shield className="h-6 w-6 text-[#6A9C89] mt-1" />,
       title: "3. Utilisation du service",
-      content: "L'utilisateur s'engage à utiliser SoftFacture dans le respect de la législation tunisienne. Toute utilisation abusive, frauduleuse ou détournée entraînera la suspension immédiate du compte."
+      content: "L'utilisateur s'engage à utiliser SoftFacture dans le respect de la législation tunisienne. Toute utilisation abusive, frauduleuse ou détournée entraînera la suspension immédiate du compte. SoftFacture se réserve le droit de limiter l'espace de stockage si l'usage met en péril la stabilité du service."
     },
     {
       icon: <FileText className="h-6 w-6 text-[#6A9C89] mt-1" />,
