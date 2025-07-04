@@ -36,7 +36,7 @@ export function Products() {
     return new Intl.NumberFormat('fr-FR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(price) + ' ' + currency.symbol;
+    }).format(price / 100) + ' ' + currency.symbol;
   };
 
   const handleAddProduct = () => {
@@ -85,7 +85,7 @@ export function Products() {
       ...products.map(product => [
         `"${product.name || ''}"`,
         `"${product.description || ''}"`,
-        `"${product.price.toFixed(2)}"`,
+        `"${(product.price / 100).toFixed(2)}"`,
         `"${product.unit || 'pièce'}"`,
         `"${product.sku || ''}"`,
         `"${product.category || ''}"`,

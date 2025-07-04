@@ -97,7 +97,7 @@ export function ImportProductsModal({ open, onClose, onImportComplete }: ImportP
         .insert(validProducts.map(product => ({
           name: product.name,
           description: product.description || null,
-          price: product.price ? parseFloat(product.price) : 0,
+          price: product.price ? parseFloat(product.price) * 100 : 0, // Convertir en centimes
           unit: product.unit || 'pièce',
           sku: product.sku || null,
           category: product.category || null,
