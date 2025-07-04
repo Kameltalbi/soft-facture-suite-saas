@@ -444,11 +444,17 @@ export default function OrganisationsAdminPage() {
                                org.plan === 'pro' ? 'Pro' : org.plan}
                             </Badge>
                           </TableCell>
-                          <TableCell>{new Date(org.subscription_start).toLocaleDateString('fr-FR')}</TableCell>
                           <TableCell>
-                            {org.subscription_end ? 
-                              new Date(org.subscription_end).toLocaleDateString('fr-FR') : 
-                              'Illimité'
+                            {org.subscription_start ? 
+                              new Date(org.subscription_start).toLocaleDateString('fr-FR') : 
+                              'N/A'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {org.status === 'pending' ? 'N/A' :
+                             org.subscription_end ? 
+                               new Date(org.subscription_end).toLocaleDateString('fr-FR') : 
+                               'Illimité'
                             }
                           </TableCell>
                           <TableCell>
