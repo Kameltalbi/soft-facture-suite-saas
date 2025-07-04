@@ -11,7 +11,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { Calendar, CreditCard, Download, History, Plus } from 'lucide-react';
 
 const Recouvrement = () => {
-  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
@@ -58,7 +58,8 @@ const Recouvrement = () => {
   };
 
   const handleFilterChange = () => {
-    fetchInvoicesWithPayments(selectedMonth, selectedYear);
+    const monthToUse = selectedMonth === 'all' ? undefined : selectedMonth;
+    fetchInvoicesWithPayments(monthToUse, selectedYear);
   };
 
   const handleAddPayment = async (paymentData: any) => {
@@ -205,7 +206,7 @@ const Recouvrement = () => {
                       <SelectValue placeholder="Tous les mois" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les mois</SelectItem>
+                      <SelectItem value="all">Tous les mois</SelectItem>
                       {months.map(month => (
                         <SelectItem key={month.value} value={month.value}>
                           {month.label}
