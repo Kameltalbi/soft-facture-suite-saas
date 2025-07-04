@@ -7,6 +7,8 @@ import { Check, X } from 'lucide-react';
 
 export function PricingSection() {
   const features = [
+    { name: "Utilisateurs inclus", essential: "2", pro: "3" },
+    { name: "Utilisateur supplémentaire", essential: "20 DT/mois", pro: "20 DT/mois" },
     { name: "Devis, factures, avoirs", essential: true, pro: true },
     { name: "Paiements partiels et recouvrement", essential: true, pro: true },
     { name: "Bons de livraison", essential: true, pro: true },
