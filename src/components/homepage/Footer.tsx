@@ -5,6 +5,11 @@ import { useNavigate } from 'react-router-dom';
 export function Footer() {
   const navigate = useNavigate();
   
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    window.scrollTo(0, 0);
+  };
+  
   return (
     <footer className="bg-[#1E3A8A] text-white">
       <div className="container mx-auto px-4 py-12">
@@ -29,7 +34,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <button 
-                  onClick={() => navigate('/')}
+                  onClick={() => handleNavigation('/')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Accueil
@@ -37,7 +42,7 @@ export function Footer() {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/features')}
+                  onClick={() => handleNavigation('/features')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Fonctionnalités
@@ -45,7 +50,7 @@ export function Footer() {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/pricing')}
+                  onClick={() => handleNavigation('/pricing')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Tarifs
@@ -53,7 +58,7 @@ export function Footer() {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/demo')}
+                  onClick={() => handleNavigation('/demo')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Démo
@@ -68,7 +73,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <button 
-                  onClick={() => navigate('/mentions-legales')}
+                  onClick={() => handleNavigation('/mentions-legales')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Mentions légales
@@ -81,7 +86,7 @@ export function Footer() {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/cgu')}
+                  onClick={() => handleNavigation('/cgu')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Conditions générales d'utilisation
@@ -89,7 +94,7 @@ export function Footer() {
               </li>
               <li>
                 <button 
-                  onClick={() => navigate('/contact')}
+                  onClick={() => handleNavigation('/contact')}
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
                   Contact support
