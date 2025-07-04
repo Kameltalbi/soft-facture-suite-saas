@@ -167,11 +167,16 @@ export default function OrganisationsAdminPage() {
 
   const handleActivateOrganization = async (orgId: string) => {
     try {
+      const today = new Date();
+      const subscriptionStart = today.toISOString().split('T')[0];
+      const subscriptionEnd = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+
       const { error } = await supabase
         .from('organizations')
         .update({
           status: 'active',
-          subscription_start: new Date().toISOString().split('T')[0],
+          subscription_start: subscriptionStart,
+          subscription_end: subscriptionEnd, // Abonnement d'une année
           updated_at: new Date().toISOString()
         })
         .eq('id', orgId);
@@ -180,7 +185,7 @@ export default function OrganisationsAdminPage() {
 
       toast({
         title: "Succès",
-        description: "Organisation activée avec succès"
+        description: "Organisation activée avec un abonnement d'une année"
       });
 
       handleRefresh();
