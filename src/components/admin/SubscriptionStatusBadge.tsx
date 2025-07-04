@@ -1,14 +1,36 @@
 
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, CheckCircle, Clock, Infinity } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, Infinity, Pause } from 'lucide-react';
 
 interface SubscriptionStatusBadgeProps {
-  subscriptionStart: string;
+  subscriptionStart: string | null;
   subscriptionEnd: string | null;
+  organizationStatus: 'active' | 'suspended' | 'pending';
 }
 
-export function SubscriptionStatusBadge({ subscriptionStart, subscriptionEnd }: SubscriptionStatusBadgeProps) {
+export function SubscriptionStatusBadge({ subscriptionStart, subscriptionEnd, organizationStatus }: SubscriptionStatusBadgeProps) {
   const getSubscriptionStatus = () => {
+    // Si l'organisation est en attente, afficher "En attente"
+    if (organizationStatus === 'pending') {
+      return {
+        status: 'pending',
+        label: 'En attente',
+        variant: 'secondary' as const,
+        icon: <Pause className="h-3 w-3" />
+      };
+    }
+
+    // Si l'organisation est suspendue
+    if (organizationStatus === 'suspended') {
+      return {
+        status: 'suspended',
+        label: 'Suspendu',
+        variant: 'destructive' as const,
+        icon: <AlertTriangle className="h-3 w-3" />
+      };
+    }
+
+    // Pour les organisations actives
     if (!subscriptionEnd) {
       return {
         status: 'unlimited',

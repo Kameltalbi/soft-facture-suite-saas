@@ -450,6 +450,7 @@ export default function OrganisationsAdminPage() {
                             <SubscriptionStatusBadge 
                               subscriptionStart={org.subscription_start}
                               subscriptionEnd={org.subscription_end}
+                              organizationStatus={org.status}
                             />
                           </TableCell>
                           <TableCell>
