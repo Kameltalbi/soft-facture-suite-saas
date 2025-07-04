@@ -41,7 +41,7 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
 
   useEffect(() => {
     if (product) {
-      const displayPrice = (product.price || 0) / 100;
+      const displayPrice = product.price || 0;
       // Afficher sans décimales si c'est un nombre entier
       const priceStr = displayPrice % 1 === 0 ? displayPrice.toString() : displayPrice.toString();
       
@@ -95,10 +95,10 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     setIsSubmitting(true);
 
     try {
-      // Convertir le prix vers centimes pour la sauvegarde
+      // Sauvegarder le prix directement en unités de devise
       const dataToSave = {
         ...formData,
-        price: Math.round(formData.price * 100)
+        price: formData.price
       };
 
       if (product) {
