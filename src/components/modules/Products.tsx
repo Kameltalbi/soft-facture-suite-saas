@@ -8,13 +8,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Search, Package, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { ProductModal } from '@/components/modals/ProductModal';
+import { ImportProductsModal } from '@/components/modals/ImportProductsModal';
+import { ProductsHeader } from './Products/ProductsHeader';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useToast } from '@/hooks/use-toast';
 
 export function Products() {
-  const { products, loading, deleteProduct } = useProducts();
+  const { products, loading, deleteProduct, fetchProducts } = useProducts();
   const { currency } = useCurrency();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const filteredProducts = products.filter(product =>
@@ -59,6 +64,56 @@ export function Products() {
     setSelectedProduct(null);
   };
 
+  const handleImportProducts = () => {
+    setShowImportModal(true);
+  };
+
+  const handleExportProducts = () => {
+    if (products.length === 0) {
+      toast({
+        title: "Aucun produit à exporter",
+        description: "Vous n'avez aucun produit dans votre catalogue",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Créer le CSV
+    const headers = ['name', 'description', 'price', 'unit', 'sku', 'category', 'stock_quantity', 'track_stock', 'active'];
+    const csvContent = [
+      headers.join(','),
+      ...products.map(product => [
+        `"${product.name || ''}"`,
+        `"${product.description || ''}"`,
+        `"${(product.price / 100).toFixed(2)}"`, // Convertir en euros
+        `"${product.unit || 'pièce'}"`,
+        `"${product.sku || ''}"`,
+        `"${product.category || ''}"`,
+        `"${product.stock_quantity || 0}"`,
+        `"${product.track_stock ? 'true' : 'false'}"`,
+        `"${product.active ? 'true' : 'false'}"`
+      ].join(','))
+    ].join('\n');
+
+    // Télécharger le fichier
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `produits_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export réussi",
+      description: `${products.length} produit(s) exporté(s) avec succès`
+    });
+  };
+
+  const handleImportComplete = () => {
+    fetchProducts();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -70,34 +125,13 @@ export function Products() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Produits & Services</h1>
-          <p className="text-muted-foreground">
-            Gérez votre catalogue de produits et services
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-80">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-            <Input
-              placeholder="Rechercher un produit..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white border-neutral-200"
-            />
-          </div>
-
-          <Button 
-            onClick={handleAddProduct}
-            className="bg-[#6A9C89] hover:bg-[#5a8473]"
-          >
-            <Plus size={16} className="mr-2" />
-            Ajouter un produit
-          </Button>
-        </div>
-      </div>
+      <ProductsHeader
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onAddProduct={handleAddProduct}
+        onImportProducts={handleImportProducts}
+        onExportProducts={handleExportProducts}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -263,6 +297,13 @@ export function Products() {
         open={isModalOpen}
         onClose={handleCloseModal}
         product={selectedProduct}
+      />
+
+      {/* Import Modal */}
+      <ImportProductsModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportComplete={handleImportComplete}
       />
     </div>
   );
