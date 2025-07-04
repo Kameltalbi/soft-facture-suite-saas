@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Plus, Search, Package, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { ProductModal } from '@/components/modals/ProductModal';
@@ -21,6 +22,7 @@ export function Products() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productToDelete, setProductToDelete] = useState<any>(null);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -50,13 +52,27 @@ export function Products() {
   };
 
   const handleDeleteProduct = async (product: any) => {
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le produit "${product.name}" ?`)) {
-      const result = await deleteProduct(product.id);
-      if (result.error) {
-        console.error('Error deleting product:', result.error);
-        alert('Erreur lors de la suppression du produit');
-      }
+    setProductToDelete(product);
+  };
+
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+    
+    const result = await deleteProduct(productToDelete.id);
+    if (result.error) {
+      console.error('Error deleting product:', result.error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression du produit",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: `Le produit "${productToDelete.name}" a été supprimé avec succès`
+      });
     }
+    setProductToDelete(null);
   };
 
   const handleCloseModal = () => {
@@ -305,6 +321,28 @@ export function Products() {
         onClose={() => setShowImportModal(false)}
         onImportComplete={handleImportComplete}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!productToDelete} onOpenChange={() => setProductToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer le produit <strong>"{productToDelete?.name}"</strong> ? 
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteProduct}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
