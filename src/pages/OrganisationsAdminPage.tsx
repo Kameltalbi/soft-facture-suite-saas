@@ -27,6 +27,7 @@ import { NewOrganizationForm } from '@/components/admin/NewOrganizationForm';
 import { OrganizationActionsMenu } from '@/components/admin/OrganizationActionsMenu';
 import { SubscriptionStatusBadge } from '@/components/admin/SubscriptionStatusBadge';
 import { SubscriptionEditModal } from '@/components/admin/SubscriptionEditModal';
+import { UserManagementSection } from '@/components/admin/UserManagementSection';
 import { Header } from '@/components/layout/Header';
 import { Organization } from '@/types/organization';
 
@@ -485,19 +486,7 @@ export default function OrganisationsAdminPage() {
           </TabsContent>
 
           <TabsContent value="users">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestion des utilisateurs</CardTitle>
-                <CardDescription>
-                  Fonctionnalité à venir
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-500">
-                  La gestion des utilisateurs sera disponible prochainement.
-                </p>
-              </CardContent>
-            </Card>
+            <UserManagementSection />
           </TabsContent>
         </Tabs>
 
