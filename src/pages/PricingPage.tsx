@@ -11,9 +11,9 @@ const PricingPage = () => {
   const plans = [
     {
       name: "Plan Essentiel",
-      price: "29 DT",
+      price: "35 DT",
       period: "/ mois",
-      yearlyPrice: "348 DT HT",
+      yearlyPrice: "420 DT HT",
       description: "Pour les indépendants, microentreprises et petites structures.",
       features: [
         "Création illimitée de devis et de factures",

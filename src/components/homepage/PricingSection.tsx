@@ -49,8 +49,8 @@ export function PricingSection() {
             <CardHeader className="text-center pt-8">
               <CardTitle className="text-2xl text-gray-900 mb-2">Plan Essentiel</CardTitle>
               <div className="space-y-2">
-                <div className="text-4xl font-bold text-[#6A9C89]">29 DT/mois</div>
-                <div className="text-lg text-gray-600">Payable par an : 348 DT HT/an</div>
+                <div className="text-4xl font-bold text-[#6A9C89]">35 DT/mois</div>
+                <div className="text-lg text-gray-600">Payable par an : 420 DT HT/an</div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
