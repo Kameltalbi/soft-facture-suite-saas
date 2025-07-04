@@ -1,15 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Upload, Download } from 'lucide-react';
 
 interface ClientsHeaderProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onAddClient: () => void;
+  onImportClients: () => void;
+  onExportClients: () => void;
 }
 
-export function ClientsHeader({ searchTerm, onSearchChange, onAddClient }: ClientsHeaderProps) {
+export function ClientsHeader({ searchTerm, onSearchChange, onAddClient, onImportClients, onExportClients }: ClientsHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
@@ -30,13 +32,35 @@ export function ClientsHeader({ searchTerm, onSearchChange, onAddClient }: Clien
           />
         </div>
 
-        <Button 
-          onClick={onAddClient}
-          className="bg-[#6A9C89] hover:bg-[#5a8473]"
-        >
-          <Plus size={16} className="mr-2" />
-          Ajouter un client
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={onImportClients}
+            className="text-muted-foreground"
+          >
+            <Upload size={14} className="mr-1" />
+            Importer
+          </Button>
+          
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={onExportClients}
+            className="text-muted-foreground"
+          >
+            <Download size={14} className="mr-1" />
+            Exporter
+          </Button>
+          
+          <Button 
+            onClick={onAddClient}
+            className="bg-[#6A9C89] hover:bg-[#5a8473]"
+          >
+            <Plus size={16} className="mr-2" />
+            Ajouter un client
+          </Button>
+        </div>
       </div>
     </div>
   );
