@@ -1,7 +1,10 @@
 
 import { useState } from 'react';
 import { CategoryModal } from '@/components/modals/CategoryModal';
+import { ImportCategoriesModal } from '@/components/modals/ImportCategoriesModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useCategories } from '@/hooks/useCategories';
+import { useToast } from '@/hooks/use-toast';
 import { CategoriesHeader } from './Categories/CategoriesHeader';
 import { CategoryStats } from './Categories/CategoryStats';
 import { CategoriesTable } from './Categories/CategoriesTable';
@@ -20,8 +23,11 @@ interface Category {
 const Categories = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const { categories, loading, createCategory, updateCategory, deleteCategory } = useCategories();
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const { categories, loading, createCategory, updateCategory, deleteCategory, fetchCategories } = useCategories();
+  const { toast } = useToast();
 
   console.log('Categories loaded:', categories);
 
@@ -60,17 +66,79 @@ const Categories = () => {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')) {
-      console.log('Deleting category:', id);
-      const result = await deleteCategory(id);
-      if (result.error) {
-        console.error('Error deleting category:', result.error);
-      }
+    const category = categories.find(c => c.id === id);
+    if (category) {
+      setCategoryToDelete(category);
     }
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    
+    const result = await deleteCategory(categoryToDelete.id);
+    if (result.error) {
+      console.error('Error deleting category:', result.error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression de la catégorie",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Succès",
+        description: `La catégorie "${categoryToDelete.name}" a été supprimée avec succès`
+      });
+    }
+    setCategoryToDelete(null);
   };
 
   const handleViewCategory = (category: Category) => {
     console.log('Viewing category:', category);
+  };
+
+  const handleImportCategories = () => {
+    setShowImportModal(true);
+  };
+
+  const handleExportCategories = () => {
+    if (categories.length === 0) {
+      toast({
+        title: "Aucune catégorie à exporter",
+        description: "Vous n'avez aucune catégorie dans votre liste",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Créer le CSV
+    const headers = ['name', 'description', 'color', 'active'];
+    const csvContent = [
+      headers.join(','),
+      ...categories.map(category => [
+        `"${category.name || ''}"`,
+        `"${category.description || ''}"`,
+        `"${category.color || '#3B82F6'}"`,
+        `"${category.active ? 'true' : 'false'}"`
+      ].join(','))
+    ].join('\n');
+
+    // Télécharger le fichier
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `categories_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export réussi",
+      description: `${categories.length} catégorie(s) exportée(s) avec succès`
+    });
+  };
+
+  const handleImportComplete = () => {
+    fetchCategories();
   };
 
   const stats = {
@@ -102,6 +170,8 @@ const Categories = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         onAddCategory={handleAddCategory}
+        onImportCategories={handleImportCategories}
+        onExportCategories={handleExportCategories}
       />
 
       <CategoryStats
@@ -125,6 +195,34 @@ const Categories = () => {
         category={editingCategory}
         onDelete={editingCategory ? () => handleDeleteCategory(editingCategory.id) : undefined}
       />
+
+      <ImportCategoriesModal
+        open={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportComplete={handleImportComplete}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!categoryToDelete} onOpenChange={() => setCategoryToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer la catégorie <strong>"{categoryToDelete?.name}"</strong> ? 
+              Cette action est irréversible et pourrait affecter les produits associés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteCategory}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

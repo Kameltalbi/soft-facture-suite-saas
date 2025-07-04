@@ -1,15 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Upload, Download } from 'lucide-react';
 
 interface CategoriesHeaderProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onAddCategory: () => void;
+  onImportCategories: () => void;
+  onExportCategories: () => void;
 }
 
-export function CategoriesHeader({ searchTerm, onSearchChange, onAddCategory }: CategoriesHeaderProps) {
+export function CategoriesHeader({ searchTerm, onSearchChange, onAddCategory, onImportCategories, onExportCategories }: CategoriesHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
@@ -30,13 +32,33 @@ export function CategoriesHeader({ searchTerm, onSearchChange, onAddCategory }: 
           />
         </div>
 
-        <Button 
-          onClick={onAddCategory}
-          className="bg-[#6A9C89] hover:bg-[#5a8473]"
-        >
-          <Plus size={16} className="mr-2" />
-          Ajouter une catégorie
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={onExportCategories}
+            variant="outline"
+            className="border-neutral-200"
+          >
+            <Download size={16} className="mr-2" />
+            Exporter
+          </Button>
+          
+          <Button 
+            onClick={onImportCategories}
+            variant="outline"
+            className="border-neutral-200"
+          >
+            <Upload size={16} className="mr-2" />
+            Importer
+          </Button>
+
+          <Button 
+            onClick={onAddCategory}
+            className="bg-[#6A9C89] hover:bg-[#5a8473]"
+          >
+            <Plus size={16} className="mr-2" />
+            Ajouter une catégorie
+          </Button>
+        </div>
       </div>
     </div>
   );
