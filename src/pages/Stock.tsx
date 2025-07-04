@@ -182,6 +182,14 @@ const Stock = () => {
           
           <div className="flex gap-2">
             <Button 
+              onClick={() => setShowEntryModal(true)}
+              className="bg-[#6A9C89] hover:bg-[#5A8B7A]"
+            >
+              <Plus size={16} className="mr-2" />
+              Ajouter une entrée
+            </Button>
+            
+            <Button 
               onClick={handleExportStock}
               variant="outline"
               className="border-neutral-200"
