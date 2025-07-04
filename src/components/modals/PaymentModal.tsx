@@ -11,7 +11,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 interface PaymentModalProps {
   open: boolean;
   onClose: () => void;
-  invoice: {
+  invoice?: {
     id: string;
     number: string;
     amount: number;
@@ -22,7 +22,7 @@ interface PaymentModalProps {
 
 export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalProps) {
   const { currency } = useCurrency();
-  const remainingAmount = invoice.amount - (invoice.paidAmount || 0);
+  const remainingAmount = invoice ? invoice.amount - (invoice.paidAmount || 0) : 0;
 
   const [paymentData, setPaymentData] = useState({
     amount: remainingAmount,
@@ -33,9 +33,10 @@ export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalPro
   });
 
   const handleSave = () => {
+    if (!invoice) return;
     onSave({
       ...paymentData,
-      invoiceId: invoice.id
+      invoice_id: invoice.id
     });
     onClose();
   };
@@ -51,15 +52,17 @@ export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalPro
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="bg-neutral-50 p-3 rounded-lg">
-            <p className="text-sm text-neutral-600">Facture: {invoice.number}</p>
-            <p className="text-sm">
-              Montant total: <span className="font-semibold">{invoice.amount.toFixed(2)} {currency.symbol}</span>
-            </p>
-            <p className="text-sm">
-              Montant restant: <span className="font-semibold text-primary">{remainingAmount.toFixed(2)} {currency.symbol}</span>
-            </p>
-          </div>
+          {invoice && (
+            <div className="bg-neutral-50 p-3 rounded-lg">
+              <p className="text-sm text-neutral-600">Facture: {invoice.number}</p>
+              <p className="text-sm">
+                Montant total: <span className="font-semibold">{invoice.amount.toFixed(2)} {currency.symbol}</span>
+              </p>
+              <p className="text-sm">
+                Montant restant: <span className="font-semibold text-primary">{remainingAmount.toFixed(2)} {currency.symbol}</span>
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>

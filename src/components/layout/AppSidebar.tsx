@@ -11,7 +11,8 @@ import {
   Receipt, 
   Settings2,
   BarChart3,
-  Building2
+  Building2,
+  CreditCard
 } from 'lucide-react';
 
 import {
@@ -58,6 +59,11 @@ const menuItems = [
     id: 'credits', 
     label: 'Avoirs', 
     icon: Receipt 
+  },
+  { 
+    id: 'recouvrement', 
+    label: 'Recouvrement', 
+    icon: CreditCard 
   },
   { 
     id: 'clients', 

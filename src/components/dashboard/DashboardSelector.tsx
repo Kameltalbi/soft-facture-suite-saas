@@ -19,6 +19,7 @@ import Avoirs from '@/pages/Avoirs';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import BonsCommandePage from '@/pages/BonsCommandePage';
 import OrganisationsAdminPage from '@/pages/OrganisationsAdminPage';
+import Recouvrement from '@/pages/Recouvrement';
 
 export const DashboardSelector = () => {
   const { profile, user, loading } = useAuth();
@@ -90,6 +91,8 @@ export const DashboardSelector = () => {
         return <Fournisseurs />;
       case 'credits':
         return <Avoirs />;
+      case 'recouvrement':
+        return <Recouvrement />;
       case 'reports':
         return <Reports />;
       case 'settings':
