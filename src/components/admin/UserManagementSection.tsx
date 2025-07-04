@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Users, Mail, Shield, Calendar, Eye, Edit2, Trash2 } from 'lucide-react';
+import { Users, Mail, Shield, Calendar, Eye, Edit2, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,6 +49,11 @@ interface AuthUser {
   email: string;
 }
 
+interface Organization {
+  id: string;
+  name: string;
+}
+
 interface UserManagementSectionProps {
   organizationId?: string;
 }
@@ -57,10 +63,37 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
   const [loading, setLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newRole, setNewRole] = useState('');
+  
+  // États pour la création d'utilisateur
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [createForm, setCreateForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    organizationId: '',
+    role: 'user'
+  });
 
   const { toast } = useToast();
+
+  // Charger les organisations
+  const loadOrganizations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .select('id, name')
+        .order('name');
+
+      if (error) throw error;
+      setOrganizations(data || []);
+    } catch (error) {
+      console.error('Error loading organizations:', error);
+    }
+  };
 
   // Charger les utilisateurs
   const loadUsers = async () => {
@@ -181,8 +214,69 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
     }
   };
 
+  // Créer un utilisateur
+  const createUser = async () => {
+    if (!createForm.email || !createForm.password || !createForm.organizationId) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Créer l'utilisateur dans auth.users
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: createForm.email,
+        password: createForm.password,
+        email_confirm: true
+      });
+
+      if (authError) throw authError;
+
+      // Créer le profil utilisateur
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: authData.user.id,
+          email: createForm.email,
+          first_name: createForm.firstName || null,
+          last_name: createForm.lastName || null,
+          organization_id: createForm.organizationId,
+          role: createForm.role
+        });
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Succès",
+        description: "Utilisateur créé avec succès"
+      });
+
+      setCreateModalOpen(false);
+      setCreateForm({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        organizationId: '',
+        role: 'user'
+      });
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de créer l'utilisateur",
+        variant: "destructive"
+      });
+    }
+  };
+
   useEffect(() => {
     loadUsers();
+    loadOrganizations();
   }, [organizationId]);
 
   // Badge pour le rôle
@@ -222,14 +316,22 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Gestion des Utilisateurs
-            {organizationId && ` - Organisation spécifique`}
-          </CardTitle>
-          <CardDescription>
-            {users.length} utilisateur(s) {organizationId ? 'dans cette organisation' : 'au total'}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Gestion des Utilisateurs
+                {organizationId && ` - Organisation spécifique`}
+              </CardTitle>
+              <CardDescription>
+                {users.length} utilisateur(s) {organizationId ? 'dans cette organisation' : 'au total'}
+              </CardDescription>
+            </div>
+            <Button onClick={() => setCreateModalOpen(true)}>
+              <Users className="h-4 w-4 mr-2" />
+              Ajouter utilisateur
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -364,6 +466,104 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
             </Button>
             <Button variant="destructive" onClick={deleteUser}>
               Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de création d'utilisateur */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajouter un utilisateur</DialogTitle>
+            <DialogDescription>
+              Créer un nouvel utilisateur et l'assigner à une organisation
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">Prénom</Label>
+                <Input
+                  id="firstName"
+                  value={createForm.firstName}
+                  onChange={(e) => setCreateForm({...createForm, firstName: e.target.value})}
+                  placeholder="Prénom"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Nom</Label>
+                <Input
+                  id="lastName"
+                  value={createForm.lastName}
+                  onChange={(e) => setCreateForm({...createForm, lastName: e.target.value})}
+                  placeholder="Nom"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={createForm.email}
+                onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
+                placeholder="email@example.com"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Mot de passe *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={createForm.password}
+                onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
+                placeholder="Mot de passe"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="organization">Organisation *</Label>
+              <Select 
+                value={createForm.organizationId} 
+                onValueChange={(value) => setCreateForm({...createForm, organizationId: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une organisation" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="role">Rôle</Label>
+              <Select 
+                value={createForm.role} 
+                onValueChange={(value) => setCreateForm({...createForm, role: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un rôle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Utilisateur</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="superadmin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={createUser}>
+              Créer l'utilisateur
             </Button>
           </DialogFooter>
         </DialogContent>
