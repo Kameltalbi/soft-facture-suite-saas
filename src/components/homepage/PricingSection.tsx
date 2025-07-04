@@ -7,28 +7,21 @@ import { Check, X } from 'lucide-react';
 
 export function PricingSection() {
   const features = [
-    { name: "Devis", essential: true, pro: true },
-    { name: "Factures", essential: true, pro: true },
-    { name: "Avoirs", essential: true, pro: true },
-    { name: "Envoi des documents en PDF", essential: true, pro: true },
-    { name: "Statuts automatiques", essential: true, pro: true },
-    { name: "Gestion clients, produits, services", essential: true, pro: true },
-    { name: "TVA standard", essential: true, pro: true },
-    { name: "Remises (ligne ou globale)", essential: true, pro: true },
-    { name: "Totaux automatiques (HT, TVA, TTC)", essential: true, pro: true },
-    { name: "Template PDF standard (avec logo)", essential: true, pro: true },
-    { name: "Pied de page personnalisable", essential: true, pro: true },
-    { name: "Tableau de bord avec statistiques", essential: true, pro: true },
-    { name: "Archivage illimité", essential: true, pro: true },
-    { name: "Interface responsive", essential: true, pro: true },
-    { name: "Bons de livraison", essential: false, pro: true },
+    { name: "Devis, factures, avoirs", essential: true, pro: true },
+    { name: "Paiements partiels et recouvrement", essential: true, pro: true },
+    { name: "Bons de livraison", essential: true, pro: true },
+    { name: "Gestion du stock", essential: true, pro: true },
+    { name: "Fiches clients, produits, services", essential: true, pro: true },
+    { name: "Rapports : CA par mois et par client", essential: true, pro: true },
+    { name: "TVA et taxes personnalisées (%) ou VA", essential: true, pro: true },
+    { name: "Mentions et pied de page", essential: true, pro: true },
+    { name: "Archivage des documents", essential: "12 mois après la fin de l'année", pro: "Illimité" },
+    { name: "Fiches fournisseurs", essential: false, pro: true },
     { name: "Bons de commande fournisseurs", essential: false, pro: true },
-    { name: "Gestion des stocks", essential: false, pro: true },
-    { name: "Gestion des fournisseurs", essential: false, pro: true },
-    { name: "Rapports avancés", essential: false, pro: true },
-    { name: "Taxes personnalisées", essential: true, pro: true },
-    { name: "Gestion des devises", essential: true, pro: true },
-    { name: "Modèles PDF professionnels", essential: false, pro: true },
+    { name: "Templates PDF personnalisés", essential: false, pro: true },
+    { name: "Rapports avancés (produits, impayés, etc.)", essential: false, pro: true },
+    { name: "Export groupé de documents PDF", essential: false, pro: true },
+    { name: "Support prioritaire (WhatsApp, téléphone)", essential: false, pro: true },
   ];
 
   return (
@@ -56,15 +49,19 @@ export function PricingSection() {
             <CardContent className="space-y-4">
               <div className="text-center mb-6">
                 <p className="text-gray-600">2 utilisateurs inclus</p>
-                <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT HT/an</p>
+                <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT/mois</p>
               </div>
               
               <div className="space-y-2">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm text-gray-700">{feature.name}</span>
-                    {feature.essential ? (
-                      <Check className="w-4 h-4 text-[#6A9C89]" />
+                    {feature.essential === true || typeof feature.essential === "string" ? (
+                      typeof feature.essential === "string" ? (
+                        <span className="text-xs text-gray-600">{feature.essential}</span>
+                      ) : (
+                        <Check className="w-4 h-4 text-[#6A9C89]" />
+                      )
                     ) : (
                       <X className="w-4 h-4 text-red-500" />
                     )}
@@ -99,15 +96,19 @@ export function PricingSection() {
             <CardContent className="space-y-4">
               <div className="text-center mb-6">
                 <p className="text-gray-600">3 utilisateurs inclus</p>
-                <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT HT/an</p>
+                <p className="text-sm text-gray-500">Utilisateur supplémentaire : 20 DT/mois</p>
               </div>
               
               <div className="space-y-2">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm text-gray-700">{feature.name}</span>
-                    {feature.pro ? (
-                      <Check className="w-4 h-4 text-[#6A9C89]" />
+                    {feature.pro === true || typeof feature.pro === "string" ? (
+                      typeof feature.pro === "string" ? (
+                        <span className="text-xs text-gray-600">{feature.pro}</span>
+                      ) : (
+                        <Check className="w-4 h-4 text-[#6A9C89]" />
+                      )
                     ) : (
                       <X className="w-4 h-4 text-red-500" />
                     )}

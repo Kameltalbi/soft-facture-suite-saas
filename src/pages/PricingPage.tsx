@@ -16,34 +16,45 @@ const PricingPage = () => {
       yearlyPrice: "420 DT HT",
       description: "Pour les indépendants, microentreprises et petites structures.",
       features: [
-        "Création illimitée de devis et de factures",
-        "Pieds de page et mentions légales personnalisables",
-        "Gestion des clients et produits",
-        "Suivi des paiements",
-        "Gestion des taxes personnalisées (% ou VA)",
-        "Statistiques de ventes mensuelles",
+        "Devis, factures, avoirs",
+        "Paiements partiels et recouvrement",
+        "Bons de livraison",
+        "Gestion du stock",
+        "Fiches clients, produits, services",
+        "Rapports : CA par mois et par client",
+        "TVA et taxes personnalisées (%) ou VA",
+        "Mentions et pied de page",
+        "Archivage des documents : 12 mois après la fin de l'année",
         "Jusqu'à 2 utilisateurs inclus",
-        "Utilisateur supplémentaire : 20 DT HT / an"
+        "Utilisateur supplémentaire : 20 DT/mois"
       ],
       excluded: [
+        "Fiches fournisseurs",
         "Bons de commande fournisseurs",
-        "Bons de livraison"
+        "Templates PDF personnalisés",
+        "Rapports avancés (produits, impayés, etc.)",
+        "Export groupé de documents PDF",
+        "Support prioritaire (WhatsApp, téléphone)"
       ],
       popular: false
     },
     {
-      name: "Plan Avancé",
+      name: "Plan Pro",
       price: "45 DT",
       period: "/ mois",
       yearlyPrice: "540 DT HT",
       description: "Pour les entreprises structurées avec plusieurs documents commerciaux.",
       features: [
         "Toutes les fonctionnalités du Plan Essentiel",
-        "Gestion des bons de commande fournisseurs",
-        "Gestion des bons de livraison",
-        "Export comptable avancé",
+        "Archivage des documents : Illimité", 
+        "Fiches fournisseurs",
+        "Bons de commande fournisseurs",
+        "Templates PDF personnalisés",
+        "Rapports avancés (produits, impayés, etc.)",
+        "Export groupé de documents PDF",
+        "Support prioritaire (WhatsApp, téléphone)",
         "Jusqu'à 3 utilisateurs inclus",
-        "Utilisateur supplémentaire : 20 DT HT / an"
+        "Utilisateur supplémentaire : 20 DT/mois"
       ],
       excluded: [],
       popular: true
