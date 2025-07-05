@@ -216,51 +216,38 @@ export default function Settings() {
         organization_id: profile.organization_id
       });
 
-      // Utiliser admin.createUser pour éviter les problèmes avec le trigger
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Utiliser signUp avec les métadonnées pour déclencher le trigger
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: firstName,
-          last_name: lastName,
-          organization_id: profile.organization_id,
-          role: role
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            organization_id: profile.organization_id,
+            organization_name: organization?.name,
+            role: role
+          }
         }
       });
 
-      console.log('📝 Résultat createUser:', { authData, authError });
+      console.log('📝 Résultat signUp:', { authData, authError });
 
       if (authError) throw authError;
 
       if (authData.user) {
         console.log('✅ Utilisateur créé dans auth, ID:', authData.user.id);
         
-        // Créer le profil directement
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: authData.user.id,
-            email: email,
-            first_name: firstName || null,
-            last_name: lastName || null,
-            organization_id: profile.organization_id,
-            role: role
-          });
-
-        if (profileError) {
-          console.error('❌ Erreur création profil:', profileError);
-          throw profileError;
-        }
-
-        console.log('✅ Profil créé avec succès');
-
-        // Recharger immédiatement la liste
-        await loadUsers();
+        // Attendre que le trigger s'exécute puis recharger
+        setTimeout(async () => {
+          console.log('🔄 Recharger la liste des collaborateurs...');
+          await loadUsers();
+        }, 3000); // 3 secondes pour s'assurer que le trigger s'exécute
 
         toast({
           title: 'Succès',
-          description: 'Collaborateur créé avec succès.',
+          description: 'Collaborateur créé avec succès. Il recevra un email de confirmation.',
         });
       }
     } catch (error) {
