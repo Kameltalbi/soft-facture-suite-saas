@@ -35,7 +35,11 @@ export function PaymentModal({ open, onClose, invoice, onSave }: PaymentModalPro
   const handleSave = () => {
     if (!invoice) return;
     onSave({
-      ...paymentData,
+      amount: paymentData.amount,
+      payment_date: paymentData.date,
+      payment_method: paymentData.method,
+      reference: paymentData.reference,
+      notes: paymentData.notes,
       invoice_id: invoice.id
     });
     onClose();

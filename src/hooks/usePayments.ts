@@ -128,11 +128,22 @@ export const usePayments = () => {
     notes?: string;
   }) => {
     try {
+      // Récupérer l'organization_id depuis le profil utilisateur
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('organization_id')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+
+      if (!profile?.organization_id) {
+        throw new Error('Organization ID not found');
+      }
+
       const { error } = await supabase
         .from('payments')
         .insert([{
           ...paymentData,
-          organization_id: (await supabase.auth.getUser()).data.user?.user_metadata?.organization_id
+          organization_id: profile.organization_id
         }]);
 
       if (error) throw error;
