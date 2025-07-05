@@ -198,56 +198,76 @@ export default function Settings() {
 
   // User management handlers - Updated approach
   const handleCreateUser = async (email: string, password: string, firstName: string, lastName: string, role: string) => {
+    if (!profile?.organization_id) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de trouver l\'organisation',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
-      console.log('🔄 Création utilisateur:', {
+      console.log('🔄 Création collaborateur:', {
         email,
         firstName,
         lastName,
         role,
-        organization_id: profile?.organization_id,
-        organization_name: organization?.name
+        organization_id: profile.organization_id
       });
 
-      // Utiliser signUp avec les métadonnées appropriées
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Utiliser admin.createUser pour éviter les problèmes avec le trigger
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            organization_id: profile?.organization_id,
-            organization_name: organization?.name,
-            role: role
-          }
+        email_confirm: true,
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+          organization_id: profile.organization_id,
+          role: role
         }
       });
 
-      console.log('📝 Résultat signUp:', { authData, authError });
+      console.log('📝 Résultat createUser:', { authData, authError });
 
       if (authError) throw authError;
 
       if (authData.user) {
         console.log('✅ Utilisateur créé dans auth, ID:', authData.user.id);
         
-        // Le profil sera créé automatiquement par le trigger handle_new_user
-        // On attend un peu pour que le trigger s'exécute
-        setTimeout(async () => {
-          console.log('🔄 Recharger la liste des utilisateurs...');
-          await loadUsers();
-        }, 2000); // Augmenter le délai à 2 secondes
+        // Créer le profil directement
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            email: email,
+            first_name: firstName || null,
+            last_name: lastName || null,
+            organization_id: profile.organization_id,
+            role: role
+          });
+
+        if (profileError) {
+          console.error('❌ Erreur création profil:', profileError);
+          throw profileError;
+        }
+
+        console.log('✅ Profil créé avec succès');
+
+        // Recharger immédiatement la liste
+        await loadUsers();
 
         toast({
           title: 'Succès',
-          description: 'Utilisateur créé avec succès. L\'utilisateur recevra un email de confirmation.',
+          description: 'Collaborateur créé avec succès.',
         });
       }
     } catch (error) {
       console.error('❌ Error creating user:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la création de l\'utilisateur. Vérifiez que l\'email n\'est pas déjà utilisé.',
+        description: 'Erreur lors de la création du collaborateur. Vérifiez que l\'email n\'est pas déjà utilisé.',
         variant: 'destructive',
       });
     }
