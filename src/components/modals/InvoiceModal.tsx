@@ -633,9 +633,23 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                      {/* Avance perçue et solde à payer */}
                      {invoiceSettings.hasAdvance && (
                        <>
-                         <div className="flex justify-between text-purple-600 mt-2">
+                         <div className="flex justify-between items-center text-purple-600 mt-2">
                            <span>Avance perçue:</span>
-                           <span className="font-medium">-{formatCurrency(advanceAmount)}</span>
+                           <div className="flex items-center gap-2">
+                             <Input
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               value={invoiceSettings.advanceAmount}
+                               onChange={(e) => setInvoiceSettings(prev => ({
+                                 ...prev,
+                                 advanceAmount: parseFloat(e.target.value) || 0
+                               }))}
+                               className="w-24 h-8 text-right text-sm"
+                               placeholder="0.00"
+                             />
+                             <span className="font-medium">TND</span>
+                           </div>
                          </div>
                          <div className="flex justify-between text-xl font-bold text-red-600 border-t mt-2 pt-2">
                            <span>Solde à payer:</span>
