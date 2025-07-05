@@ -327,7 +327,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       variant="outline"
                       size="sm"
                       onClick={() => setShowSettingsPopup(true)}
-                      className="ml-4"
+                      className="ml-4 bg-red-600 text-white border-red-600 hover:bg-red-700 hover:border-red-700"
                     >
                       <Settings className="h-4 w-4 mr-1" />
                       Paramètres
