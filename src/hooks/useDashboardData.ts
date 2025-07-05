@@ -258,31 +258,13 @@ export const useDashboardData = (selectedYear: number) => {
 
     // 1. CA par catégorie
     const categoryMap = new Map<string, number>();
-    console.log('📊 Debug - Processing invoices for categories:', invoicesWithItems?.length);
-    
     invoicesWithItems?.forEach(invoice => {
       invoice.invoice_items?.forEach(item => {
-        // Récupérer la catégorie du produit lié ou utiliser une catégorie par défaut
-        let category = 'Non catégorisé';
-        
-        if (item.products?.category && item.products.category.trim() !== '') {
-          category = item.products.category;
-        }
-        
+        const category = item.products?.category || 'Non catégorisé';
         const current = categoryMap.get(category) || 0;
         categoryMap.set(category, current + (item.total_price || 0));
-        
-        console.log('📊 Debug - Item category:', {
-          itemDescription: item.description,
-          productName: item.products?.name,
-          productCategory: item.products?.category,
-          finalCategory: category,
-          amount: item.total_price
-        });
       });
     });
-    
-    console.log('📊 Debug - Category totals:', Array.from(categoryMap.entries()));
     const caByCategory = Array.from(categoryMap.entries()).map(([category, amount]) => ({ category, amount }));
 
     // 2. CA par produit
