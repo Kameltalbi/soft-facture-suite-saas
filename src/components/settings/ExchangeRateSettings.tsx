@@ -35,8 +35,8 @@ export function ExchangeRateSettings() {
     if (isNaN(rate) || rate <= 0) return;
 
     // Trouver l'ID de la devise par défaut
-    const defaultCurrencyId = currencies.find(c => c.code === defaultCurrency.code)?.id;
-    if (!defaultCurrencyId) return;
+    const defaultCurrencyObj = currencies.find(c => c.code === defaultCurrency.code);
+    if (!defaultCurrencyObj?.id) return;
 
     try {
       if (editingRate) {
@@ -47,7 +47,7 @@ export function ExchangeRateSettings() {
       } else {
         await createExchangeRate.mutateAsync({
           from_currency_id: formData.from_currency_id,
-          to_currency_id: defaultCurrencyId,
+          to_currency_id: defaultCurrencyObj.id,
           rate
         });
       }

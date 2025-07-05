@@ -80,21 +80,22 @@ export const useDashboardData = (selectedYear: number) => {
   }, [profile?.organization_id, selectedYear, exchangeRates]);
 
   const fetchOrganizationCurrency = async () => {
-    if (!profile?.organization_id) return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+    if (!profile?.organization_id) return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
 
     try {
       const { data, error } = await supabase
         .from('currencies')
-        .select('code, symbol, name, decimal_places')
+        .select('id, code, symbol, name, decimal_places')
         .eq('organization_id', profile.organization_id)
         .eq('is_primary', true)
         .single();
 
       if (error || !data) {
-        return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+        return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
       }
 
       return {
+        id: data.id,
         code: data.code,
         symbol: data.symbol,
         name: data.name,
@@ -102,7 +103,7 @@ export const useDashboardData = (selectedYear: number) => {
       };
     } catch (error) {
       console.error('Erreur lors de la récupération de la devise:', error);
-      return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+      return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
     }
   };
 
@@ -200,8 +201,8 @@ export const useDashboardData = (selectedYear: number) => {
     const totalRevenue = invoices?.reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
         inv.total_amount || 0,
-        inv.currency_id || currency.code,
-        currency.code,
+        inv.currency_id || currency.id,
+        currency.id,
         exchangeRates
       );
       return sum + convertedAmount;
@@ -210,8 +211,8 @@ export const useDashboardData = (selectedYear: number) => {
     const totalEncaisse = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
         inv.total_amount || 0,
-        inv.currency_id || currency.code,
-        currency.code,
+        inv.currency_id || currency.id,
+        currency.id,
         exchangeRates
       );
       return sum + convertedAmount;
@@ -220,8 +221,8 @@ export const useDashboardData = (selectedYear: number) => {
     const totalVat = invoices?.reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
         inv.tax_amount || 0,
-        inv.currency_id || currency.code,
-        currency.code,
+        inv.currency_id || currency.id,
+        currency.id,
         exchangeRates
       );
       return sum + convertedAmount;
@@ -328,8 +329,8 @@ export const useDashboardData = (selectedYear: number) => {
         // Convertir le montant vers la devise par défaut
         const convertedAmount = convertToDefaultCurrency(
           item.total_price || 0,
-          invoice.currency_id || currency.code,
-          currency.code,
+          invoice.currency_id || currency.id,
+          currency.id,
           exchangeRates
         );
         
@@ -348,8 +349,8 @@ export const useDashboardData = (selectedYear: number) => {
         // Convertir le montant vers la devise par défaut
         const convertedAmount = convertToDefaultCurrency(
           item.total_price || 0,
-          invoice.currency_id || currency.code,
-          currency.code,
+          invoice.currency_id || currency.id,
+          currency.id,
           exchangeRates
         );
         
@@ -388,8 +389,8 @@ export const useDashboardData = (selectedYear: number) => {
       const currentYear = currentYearInvoices?.reduce((sum, inv) => {
         const convertedAmount = convertToDefaultCurrency(
           inv.total_amount || 0,
-          inv.currency_id || currency.code,
-          currency.code,
+          inv.currency_id || currency.id,
+          currency.id,
           exchangeRates
         );
         return sum + convertedAmount;
@@ -398,8 +399,8 @@ export const useDashboardData = (selectedYear: number) => {
       const previousYear = prevYearInvoices?.reduce((sum, inv) => {
         const convertedAmount = convertToDefaultCurrency(
           inv.total_amount || 0,
-          inv.currency_id || currency.code,
-          currency.code,
+          inv.currency_id || currency.id,
+          currency.id,
           exchangeRates
         );
         return sum + convertedAmount;
@@ -433,8 +434,8 @@ export const useDashboardData = (selectedYear: number) => {
       // Convertir le montant vers la devise par défaut
       const convertedAmount = convertToDefaultCurrency(
         invoice.total_amount || 0,
-        invoice.currency_id || currency.code,
-        currency.code,
+        invoice.currency_id || currency.id,
+        currency.id,
         exchangeRates
       );
       
