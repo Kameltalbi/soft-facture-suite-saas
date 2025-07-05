@@ -440,7 +440,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     <TableHead className="w-[12%] text-center">Quantité</TableHead>
                     <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
                     <TableHead className="w-[10%] text-center">Remise %</TableHead>
-                    <TableHead className="w-[10%] text-center">TVA</TableHead>
+                    {invoiceSettings.useVat && <TableHead className="w-[10%] text-center">TVA</TableHead>}
                     <TableHead className="w-[12%] text-right">Total HT</TableHead>
                     <TableHead className="w-[5%]"></TableHead>
                   </TableRow>
@@ -555,16 +555,18 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           max="100"
                         />
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.vatRate}
-                          onChange={(e) => updateInvoiceItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          max="100"
-                        />
-                      </TableCell>
+                      {invoiceSettings.useVat && (
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.vatRate}
+                            onChange={(e) => updateInvoiceItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                            className="text-center"
+                            min="0"
+                            max="100"
+                          />
+                        </TableCell>
+                      )}
                       <TableCell className="text-right font-medium">
                         {formatCurrency(item.total)}
                       </TableCell>
