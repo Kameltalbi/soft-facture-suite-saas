@@ -126,20 +126,20 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
           </CardContent>
         </Card>
 
-        {/* 2. CA par produit (Top 10) */}
+        {/* 2. CA par mois */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 10 Produits</CardTitle>
+            <CardTitle>CA par mois ({selectedYear})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.caByProduct.slice(0, 10)}>
+                <BarChart data={data.monthlyComparison}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                  <XAxis dataKey="month" />
                   <YAxis tickFormatter={formatNumber} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="revenue" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="currentYear" fill="#82ca9d" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
