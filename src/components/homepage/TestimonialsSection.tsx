@@ -5,21 +5,21 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 const testimonials = [
   {
     quote: "Soft Facture m'a fait gagner un temps précieux. Mes factures sont maintenant professionnelles et je peux me concentrer sur mon métier d'artisan.",
-    name: "Marie Dubois",
+    name: "Amira Ben Salem",
     role: "Artisan Menuisière",
-    avatar: "MD"
+    avatar: "AB"
   },
   {
     quote: "Interface simple et intuitive. Perfect pour mon activité de coaching. Les devis se transforment en factures en un clic !",
-    name: "Thomas Martin",
+    name: "Youssef Trabelsi",
     role: "Coach Professionnel",
-    avatar: "TM"
+    avatar: "YT"
   },
   {
     quote: "Excellente solution pour ma boutique. La gestion du stock Pro est un vrai plus pour suivre mes ventes et réapprovisionnements.",
-    name: "Sophie Laurent",
+    name: "Sarra Gharbi",
     role: "Gérante Boutique",
-    avatar: "SL"
+    avatar: "SG"
   }
 ];
 
