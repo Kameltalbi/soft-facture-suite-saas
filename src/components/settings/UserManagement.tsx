@@ -116,7 +116,7 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
         <div className="flex justify-between items-center">
           <div>
             <p className={`text-sm ${hasReachedLimit ? 'text-red-600' : 'text-gray-600'}`}>
-              {activeUsers} collaborateur(s) actif(s) sur {userLimit} autorisé{userLimit > 1 ? 's' : ''} ({currentPlan || 'Essential'})
+              {activeUsers} collaborateur(s) actif(s) sur {userLimit} autorisé{userLimit > 1 ? 's' : ''} ({currentPlan === 'pro' ? 'Pro' : 'Essential'})
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
