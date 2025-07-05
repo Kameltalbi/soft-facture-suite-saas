@@ -193,7 +193,7 @@ export default function Settings() {
   // User management handlers - Updated approach
   const handleCreateUser = async (email: string, password: string, firstName: string, lastName: string, role: string) => {
     try {
-      // Utiliser signUp au lieu de admin.createUser
+      // Utiliser signUp avec les métadonnées appropriées
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -203,6 +203,7 @@ export default function Settings() {
             first_name: firstName,
             last_name: lastName,
             organization_id: profile?.organization_id,
+            organization_name: organization?.name,
             role: role
           }
         }
@@ -211,25 +212,11 @@ export default function Settings() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Créer le profil utilisateur directement avec l'email
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: authData.user.id,
-            organization_id: profile?.organization_id,
-            first_name: firstName,
-            last_name: lastName,
-            email: email, // Ajouter l'email explicitement
-            role: role
-          });
-
-        if (profileError) {
-          console.warn('Profile creation error:', profileError);
-          // Continue même si l'insertion du profil échoue car le trigger pourrait l'avoir créé
-        }
-
-        // Recharger la liste des utilisateurs
-        await loadUsers();
+        // Le profil sera créé automatiquement par le trigger handle_new_user
+        // On attend un peu pour que le trigger s'exécute
+        setTimeout(async () => {
+          await loadUsers();
+        }, 1000);
 
         toast({
           title: 'Succès',
