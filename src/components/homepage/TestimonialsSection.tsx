@@ -4,9 +4,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const testimonials = [
   {
-    quote: "Soft Facture m'a fait gagner un temps précieux. Mes factures sont maintenant professionnelles et je peux me concentrer sur mon métier d'artisan.",
+    quote: "Soft Facture m'a fait gagner un temps précieux. Mes factures sont maintenant professionnelles et je peux me concentrer sur mon atelier de couture.",
     name: "Amira Ben Salem",
-    role: "Artisan Menuisière",
+    role: "Couturière",
     avatar: "AB"
   },
   {
