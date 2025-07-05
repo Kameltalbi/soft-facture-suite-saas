@@ -237,8 +237,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [dueDate]);
   
-  // Handle save action
-  const handleSave = async () => {
+  // Handle save as draft action
+  const handleSaveAsDraft = async () => {
     // If new invoice and number not modified, generate new unique number
     let finalInvoiceNumber = invoiceNumber;
     if (!invoice && (!invoiceNumber || invoiceNumber === nextInvoiceNumber)) {
@@ -254,7 +254,32 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       items: invoiceItems,
       notes,
       totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
-      customTaxes: customTaxCalculations
+      customTaxes: customTaxCalculations,
+      status: 'draft'
+    };
+    onSave(invoiceData);
+    onClose();
+  };
+
+  // Handle validate action (finalize invoice)
+  const handleValidate = async () => {
+    // If new invoice and number not modified, generate new unique number
+    let finalInvoiceNumber = invoiceNumber;
+    if (!invoice && (!invoiceNumber || invoiceNumber === nextInvoiceNumber)) {
+      finalInvoiceNumber = await generateNextInvoiceNumber();
+    }
+
+    const invoiceData = {
+      number: finalInvoiceNumber,
+      date: invoiceDate,
+      dueDate,
+      client: selectedClient,
+      subject,
+      items: invoiceItems,
+      notes,
+      totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
+      customTaxes: customTaxCalculations,
+      status: 'sent'
     };
     onSave(invoiceData);
     onClose();
@@ -692,8 +717,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-              {invoice ? 'Mettre à jour' : 'Créer la facture'}
+            <Button variant="ghost" onClick={handleSaveAsDraft}>
+              Enregistrer (comme brouillon)
+            </Button>
+            <Button onClick={handleValidate} className="bg-blue-600 hover:bg-blue-700">
+              Valider (générer la facture)
             </Button>
           </div>
         </div>
