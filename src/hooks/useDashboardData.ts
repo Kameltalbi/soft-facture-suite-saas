@@ -330,7 +330,7 @@ export const useDashboardData = (selectedYear: number) => {
     // 5. Top 20 clients par CA
     const clientRevenueMap = new Map<string, number>();
     invoicesWithItems?.forEach(invoice => {
-      const clientName = invoice.clients?.name || 'Client inconnu';
+      const clientName = invoice.clients?.company || invoice.clients?.name || 'Client inconnu';
       const current = clientRevenueMap.get(clientName) || 0;
       clientRevenueMap.set(clientName, current + (invoice.total_amount || 0));
     });
