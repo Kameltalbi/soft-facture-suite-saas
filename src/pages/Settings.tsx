@@ -51,7 +51,9 @@ export default function Settings() {
     }
 
     try {
-      // Get users from profiles table with email
+      console.log('🔄 Chargement des utilisateurs pour organisation:', profile.organization_id);
+
+      // Get users from profiles table 
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -68,41 +70,45 @@ export default function Settings() {
 
       if (profilesError) throw profilesError;
 
-      // For users without email in profiles, try to get it from auth metadata
-      const transformedUsers: User[] = [];
-      
-      for (const user of profilesData || []) {
-        let userEmail = user.email;
-        
-        // Si pas d'email dans le profil, essayer de le récupérer depuis les métadonnées
-        if (!userEmail) {
-          try {
-            const { data: { user: authUser } } = await supabase.auth.getUser();
-            if (authUser?.id === user.user_id) {
-              userEmail = authUser.email || 'Email non disponible';
-            } else {
-              userEmail = 'Email non disponible';
-            }
-          } catch {
-            userEmail = 'Email non disponible';
-          }
-        }
+      console.log('📋 Profils trouvés:', profilesData);
 
-        transformedUsers.push({
+      if (!profilesData || profilesData.length === 0) {
+        console.log('⚠️ Aucun profil trouvé pour cette organisation');
+        setUsers([]);
+        return;
+      }
+
+      // Récupérer les emails depuis auth.users via la fonction RPC
+      const userIds = profilesData.map(u => u.user_id);
+      const { data: authData, error: authError } = await supabase.rpc('get_user_emails', {
+        user_ids: userIds
+      });
+
+      console.log('📧 Emails récupérés:', authData);
+
+      if (authError) {
+        console.error('Erreur lors de la récupération des emails:', authError);
+      }
+
+      const transformedUsers: User[] = profilesData.map(user => {
+        const authUser = authData?.find((au: any) => au.id === user.user_id);
+        const email = user.email || authUser?.email || 'Email non disponible';
+        
+        return {
           id: user.user_id,
-          email: userEmail,
+          email: email,
           full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur',
           role: user.role || 'user',
           status: 'active' as const,
           created_at: user.created_at,
           tenant_id: user.organization_id
-        });
-      }
+        };
+      });
 
-      console.log('Loaded users:', transformedUsers);
+      console.log('✅ Utilisateurs transformés:', transformedUsers);
       setUsers(transformedUsers);
     } catch (error) {
-      console.error('Error loading users:', error);
+      console.error('❌ Error loading users:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les utilisateurs',
