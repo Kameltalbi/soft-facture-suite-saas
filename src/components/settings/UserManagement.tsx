@@ -75,7 +75,7 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
       case 'admin':
         return <Badge className="bg-blue-100 text-blue-800">Admin</Badge>;
       case 'user':
-        return <Badge className="bg-gray-100 text-gray-800">Utilisateur</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">Collaborateur</Badge>;
       default:
         return <Badge variant="outline">{role}</Badge>;
     }
@@ -106,10 +106,10 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Utilisateurs de l'organisation
+          Collaborateurs de l'organisation
         </CardTitle>
         <CardDescription>
-          Créez et gérez les utilisateurs et leurs rôles dans votre organisation
+          Créez et gérez les collaborateurs et leurs rôles dans votre organisation
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -117,8 +117,8 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Vous avez atteint le nombre total d'utilisateurs autorisés dans le cadre de votre plan {currentPlan || 'Essential'} ({userLimit} utilisateur{userLimit > 1 ? 's' : ''} maximum). 
-              {currentPlan === 'essential' && ' Passez au plan Pro pour ajouter plus d\'utilisateurs.'}
+              Vous avez atteint le nombre total de collaborateurs autorisés dans le cadre de votre plan {currentPlan || 'Essential'} ({userLimit} collaborateur{userLimit > 1 ? 's' : ''} maximum). 
+              {currentPlan === 'essential' && ' Passez au plan Pro pour ajouter plus de collaborateurs.'}
             </AlertDescription>
           </Alert>
         )}
@@ -126,19 +126,19 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm text-gray-600">
-              {activeUsers} utilisateur(s) actif(s) sur {userLimit} autorisé{userLimit > 1 ? 's' : ''} ({currentPlan || 'Essential'})
+              {activeUsers} collaborateur(s) actif(s) sur {userLimit} autorisé{userLimit > 1 ? 's' : ''} ({currentPlan || 'Essential'})
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button disabled={hasReachedLimit}>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Créer un utilisateur
+                Ajouter collaborateur
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+                <DialogTitle>Ajouter un collaborateur</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -200,7 +200,7 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
                         <SelectItem key={role} value={role}>
                           {role === 'superadmin' ? 'Super Admin' : 
                            role === 'admin' ? 'Admin' : 
-                           role === 'user' ? 'Utilisateur' : role}
+                           role === 'user' ? 'Collaborateur' : role}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -210,10 +210,10 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Annuler
                   </Button>
-                  <Button type="submit">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Créer l'utilisateur
-                  </Button>
+                    <Button type="submit">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter le collaborateur
+                    </Button>
                 </div>
               </form>
             </DialogContent>
@@ -251,7 +251,7 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
                           <SelectItem key={role} value={role}>
                             {role === 'superadmin' ? 'Super Admin' : 
                              role === 'admin' ? 'Admin' : 
-                             role === 'user' ? 'Utilisateur' : role}
+                             role === 'user' ? 'Collaborateur' : role}
                           </SelectItem>
                         ))}
                       </SelectContent>

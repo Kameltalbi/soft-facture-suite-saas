@@ -290,7 +290,7 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
     const labels = {
       superadmin: 'Super Admin',
       admin: 'Admin',
-      user: 'Utilisateur'
+      user: 'Collaborateur'
     };
 
     return (
@@ -329,7 +329,7 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
             </div>
             <Button onClick={() => setCreateModalOpen(true)}>
               <Users className="h-4 w-4 mr-2" />
-              Ajouter utilisateur
+              Ajouter collaborateur
             </Button>
           </div>
         </CardHeader>
@@ -432,7 +432,7 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
                   <SelectValue placeholder="Sélectionner un rôle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">Utilisateur</SelectItem>
+                  <SelectItem value="user">Collaborateur</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="superadmin">Super Admin</SelectItem>
                 </SelectContent>
@@ -475,9 +475,9 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Ajouter un utilisateur</DialogTitle>
+            <DialogTitle>Ajouter un collaborateur</DialogTitle>
             <DialogDescription>
-              Créer un nouvel utilisateur et l'assigner à une organisation
+              Créer un nouveau collaborateur et l'assigner à une organisation
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -551,7 +551,7 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
                   <SelectValue placeholder="Sélectionner un rôle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">Utilisateur</SelectItem>
+                  <SelectItem value="user">Collaborateur</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="superadmin">Super Admin</SelectItem>
                 </SelectContent>
@@ -563,7 +563,7 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
               Annuler
             </Button>
             <Button onClick={createUser}>
-              Créer l'utilisateur
+              Créer le collaborateur
             </Button>
           </DialogFooter>
         </DialogContent>

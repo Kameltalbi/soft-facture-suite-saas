@@ -338,7 +338,7 @@ export default function Settings() {
           {settingsAccess.templates && <TabsTrigger value="templates">Templates PDF</TabsTrigger>}
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="numbering">Numérotation</TabsTrigger>
-          <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+          <TabsTrigger value="users">Collaborateurs</TabsTrigger>
           <TabsTrigger value="roles">Rôles</TabsTrigger>
         </TabsList>
 
