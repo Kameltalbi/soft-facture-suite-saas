@@ -98,6 +98,8 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
                     paddingAngle={2}
                     dataKey="amount"
                     nameKey="category"
+                    label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                    labelLine={false}
                   >
                     {data.caByCategory.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
