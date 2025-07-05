@@ -234,7 +234,10 @@ export default function Settings() {
 
       console.log('📝 Résultat signUp:', { authData, authError });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('❌ Erreur signUp:', authError);
+        throw authError;
+      }
 
       if (authData.user) {
         console.log('✅ Utilisateur créé dans auth, ID:', authData.user.id);
@@ -248,6 +251,13 @@ export default function Settings() {
         toast({
           title: 'Succès',
           description: 'Collaborateur créé avec succès. Il recevra un email de confirmation.',
+        });
+      } else {
+        console.warn('⚠️ Aucun utilisateur retourné par signUp');
+        toast({
+          title: 'Attention',
+          description: 'L\'utilisateur existe peut-être déjà. Vérifiez l\'email.',
+          variant: 'destructive',
         });
       }
     } catch (error) {
