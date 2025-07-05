@@ -256,6 +256,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
       customTaxes: customTaxCalculations,
       invoiceSettings,
+      currencyId: invoiceSettings.currencyId,
       status: 'draft'
     };
     onSave(invoiceData);
@@ -281,6 +282,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
       customTaxes: customTaxCalculations,
       invoiceSettings,
+      currencyId: invoiceSettings.currencyId,
       status: 'sent'
     };
     onSave(invoiceData);

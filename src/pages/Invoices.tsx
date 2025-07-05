@@ -95,7 +95,12 @@ export default function Invoices() {
             email,
             vat_number
           ),
-          invoice_items (*)
+          invoice_items (*),
+          currencies (
+            code,
+            symbol,
+            decimal_places
+          )
         `)
         .eq('organization_id', organization.id)
         .order('created_at', { ascending: false });
@@ -186,7 +191,7 @@ export default function Invoices() {
             custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
             has_advance: invoiceData.settings?.hasAdvance,
             advance_amount: invoiceData.settings?.advanceAmount || 0,
-            currency_id: invoiceData.settings?.currencyId,
+            currency_id: invoiceData.currencyId,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingInvoice.id);
@@ -234,7 +239,7 @@ export default function Invoices() {
             custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
             has_advance: invoiceData.settings?.hasAdvance,
             advance_amount: invoiceData.settings?.advanceAmount || 0,
-            currency_id: invoiceData.settings?.currencyId
+            currency_id: invoiceData.currencyId
           })
           .select()
           .single();
@@ -453,11 +458,12 @@ export default function Invoices() {
     });
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount, invoiceCurrency = null) => {
+    const currencyToUse = invoiceCurrency || currency;
     return `${amount.toLocaleString('fr-FR', { 
-      minimumFractionDigits: currency.decimal_places, 
-      maximumFractionDigits: currency.decimal_places 
-    })} ${currency.symbol}`;
+      minimumFractionDigits: currencyToUse.decimal_places, 
+      maximumFractionDigits: currencyToUse.decimal_places 
+    })} ${currencyToUse.symbol}`;
   };
 
   const getPDFData = (invoice: any) => {
@@ -725,7 +731,7 @@ export default function Invoices() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {formatCurrency(invoice.total_amount)}
+                    {formatCurrency(invoice.total_amount, invoice.currencies)}
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusLabels[invoice.status as InvoiceStatus]?.variant || 'secondary'}>
