@@ -216,7 +216,7 @@ export default function Settings() {
         organization_id: profile.organization_id
       });
 
-      // Utiliser signUp avec les métadonnées pour déclencher le trigger
+      // Étape 1: Créer l'utilisateur dans Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -242,15 +242,31 @@ export default function Settings() {
       if (authData.user) {
         console.log('✅ Utilisateur créé dans auth, ID:', authData.user.id);
         
-        // Attendre que le trigger s'exécute puis recharger
-        setTimeout(async () => {
-          console.log('🔄 Recharger la liste des collaborateurs...');
-          await loadUsers();
-        }, 3000); // 3 secondes pour s'assurer que le trigger s'exécute
+        // Étape 2: Créer le profil directement (ne pas compter sur le trigger)
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            email: email,
+            first_name: firstName || null,
+            last_name: lastName || null,
+            organization_id: profile.organization_id,
+            role: role
+          });
+
+        if (profileError) {
+          console.error('❌ Erreur création profil:', profileError);
+          throw profileError;
+        }
+
+        console.log('✅ Profil créé avec succès');
+
+        // Étape 3: Recharger immédiatement la liste
+        await loadUsers();
 
         toast({
           title: 'Succès',
-          description: 'Collaborateur créé avec succès. Il recevra un email de confirmation.',
+          description: 'Collaborateur créé avec succès.',
         });
       } else {
         console.warn('⚠️ Aucun utilisateur retourné par signUp');
@@ -264,7 +280,7 @@ export default function Settings() {
       console.error('❌ Error creating user:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la création du collaborateur. Vérifiez que l\'email n\'est pas déjà utilisé.',
+        description: `Erreur lors de la création du collaborateur: ${error.message || 'Vérifiez que l\'email n\'est pas déjà utilisé.'}`,
         variant: 'destructive',
       });
     }
