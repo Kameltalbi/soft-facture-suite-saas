@@ -485,6 +485,39 @@ export type Database = {
           },
         ]
       }
+      exchange_rates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          from_currency_id: string
+          id: string
+          organization_id: string
+          rate: number
+          to_currency_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          from_currency_id: string
+          id?: string
+          organization_id: string
+          rate: number
+          to_currency_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          from_currency_id?: string
+          id?: string
+          organization_id?: string
+          rate?: number
+          to_currency_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       global_settings: {
         Row: {
           created_at: string
