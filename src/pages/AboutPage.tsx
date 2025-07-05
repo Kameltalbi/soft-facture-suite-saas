@@ -11,38 +11,53 @@ const AboutPage = () => {
   const values = [
     {
       icon: <Target className="h-8 w-8 text-[#6A9C89]" />,
-      title: "Simplicité",
-      description: "Une interface claire, rapide et sans jargon"
+      title: "Accessibilité",
+      description: "Une solution intuitive, sans jargon technique, adaptée aux non-spécialistes"
     },
     {
       icon: <Shield className="h-8 w-8 text-[#6A9C89]" />,
       title: "Fiabilité",
-      description: "Des données sécurisées et sauvegardées"
-    },
-    {
-      icon: <Settings className="h-8 w-8 text-[#6A9C89]" />,
-      title: "Adaptabilité",
-      description: "Des fonctionnalités activables selon les besoins"
+      description: "Des données sécurisées, une infrastructure robuste"
     },
     {
       icon: <Heart className="h-8 w-8 text-[#6A9C89]" />,
-      title: "Accompagnement",
-      description: "Une équipe disponible pour vous guider"
+      title: "Proximité",
+      description: "Un support humain, basé en Tunisie, à l'écoute de vos besoins"
+    },
+    {
+      icon: <Settings className="h-8 w-8 text-[#6A9C89]" />,
+      title: "Évolution continue",
+      description: "De nouvelles fonctionnalités sont régulièrement déployées selon les retours utilisateurs"
     }
   ];
 
-  const products = [
+  const expertiseAreas = [
+    "La transformation digitale",
+    "Le développement commercial", 
+    "La transition climatique"
+  ];
+
+  const features = [
+    "Créer et envoyer des factures, devis, avoirs, bons de commande et bons de livraison en quelques clics",
+    "Suivre les paiements et gérer les recouvrements",
+    "Organiser ses produits et services",
+    "Gérer ses clients et catégories d'articles",
+    "Générer des rapports pour piloter son activité",
+    "Personnaliser les documents (mentions, logos, taxes, devises, templates PDF...)"
+  ];
+
+  const targetUsers = [
     {
-      name: "Trezo",
-      description: "Application de gestion de trésorerie"
+      title: "Aux entrepreneurs",
+      description: "qui veulent garder le contrôle facilement"
     },
     {
-      name: "VoxCRM",
-      description: "Outil de gestion de la relation client"
+      title: "Aux commerciaux", 
+      description: "qui souhaitent gagner du temps dans le suivi client"
     },
     {
-      name: "SoftFacture",
-      description: "Plateforme de facturation moderne et conforme"
+      title: "Aux dirigeants",
+      description: "qui ont besoin d'indicateurs fiables pour piloter"
     }
   ];
 
@@ -54,28 +69,37 @@ const AboutPage = () => {
       <section className="bg-gradient-to-br from-[#6A9C89]/10 to-background py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            SoftFacture, la solution de facturation pensée pour les entrepreneurs exigeants
+            À propos de SoftFacture
           </h1>
           <div className="max-w-4xl mx-auto space-y-6 text-lg text-muted-foreground">
             <p>
-              SoftFacture est une application de facturation en ligne conçue pour répondre aux besoins spécifiques des entrepreneurs, TPE, PME et indépendants en Tunisie et ailleurs. Notre solution allie simplicité d'utilisation, puissance fonctionnelle et conformité, tout en offrant une expérience moderne et intuitive.
+              SoftFacture est une solution de facturation et de gestion commerciale conçue et développée par <strong className="text-[#6A9C89]">KT Consulting & Co</strong>, une société tunisienne de conseil aux entreprises spécialisée dans trois domaines clés :
             </p>
-            <p>
-              SoftFacture est développée par <strong className="text-[#6A9C89]">Archibat Digital</strong>, l'agence digitale de la revue tunisienne <strong className="text-[#6A9C89]">Archibat</strong>, référence dans l'univers de l'architecture et de la construction depuis 1997.
-            </p>
+            <div className="grid md:grid-cols-3 gap-4 my-8">
+              {expertiseAreas.map((area, index) => (
+                <Card key={index} className="text-center">
+                  <CardContent className="p-4">
+                    <p className="text-[#6A9C89] font-medium">{area}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Notre origine */}
+      {/* Notre expertise */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Notre origine</h2>
+            <h2 className="text-3xl font-bold text-center mb-12">Notre expertise au service des entreprises</h2>
             <Card>
               <CardContent className="p-8">
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  La revue Archibat accompagne depuis plus de 25 ans les acteurs du bâtiment et de la ville en Tunisie. Face aux besoins croissants de digitalisation dans les métiers de la construction, Archibat a fondé <strong className="text-[#6A9C89]">Archibat Digital</strong> en 2017. Cette agence est dédiée à la création de solutions numériques adaptées aux professionnels : sites web, campagnes digitales, et désormais des applications métier innovantes.
+                  Depuis sa création, KT Consulting & Co accompagne les TPE, PME et organisations dans la modernisation de leurs outils, la structuration de leurs processus commerciaux, et la mise en œuvre de solutions durables, efficaces et conformes aux standards actuels.
+                </p>
+                <p className="text-lg text-muted-foreground leading-relaxed mt-4">
+                  SoftFacture est née de cette expérience terrain, avec pour objectif de fournir une application simple, robuste et performante pour aider les entreprises à mieux gérer leur activité quotidienne.
                 </p>
               </CardContent>
             </Card>
@@ -83,44 +107,75 @@ const AboutPage = () => {
         </div>
       </section>
 
-      {/* Suite logicielle */}
+      {/* Qu'est-ce que SoftFacture */}
       <section className="py-20 bg-gradient-to-br from-[#6A9C89]/5 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Une suite logicielle dédiée aux besoins réels</h2>
-            <p className="text-lg text-muted-foreground text-center mb-12">
-              SoftFacture fait partie d'une gamme d'outils métiers développés par Archibat Digital pour faciliter la gestion quotidienne des entreprises :
+            <h2 className="text-3xl font-bold text-center mb-12">Qu'est-ce que SoftFacture ?</h2>
+            <p className="text-lg text-muted-foreground text-center mb-8">
+              SoftFacture est une application SaaS de gestion de facturation pensée pour les entreprises de toutes tailles. Elle permet de :
             </p>
+            <div className="space-y-4">
+              {features.map((feature, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <p className="text-muted-foreground">• {feature}</p>
+                  </CardContent>
+                </Card>
+              ))}
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-muted-foreground">• Et bien plus encore…</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pourquoi SoftFacture */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12">Pourquoi SoftFacture ?</h2>
+            <Card className="mb-8">
+              <CardContent className="p-8">
+                <p className="text-lg text-muted-foreground leading-relaxed text-center">
+                  Parce que nous savons que la gestion administrative est souvent chronophage, SoftFacture automatise les tâches répétitives et améliore la visibilité financière. Elle s'adresse :
+                </p>
+              </CardContent>
+            </Card>
             <div className="grid md:grid-cols-3 gap-6">
-              {products.map((product, index) => (
+              {targetUsers.map((user, index) => (
                 <Card key={index} className="text-center">
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold text-[#6A9C89] mb-2">{product.name}</h3>
-                    <p className="text-muted-foreground">{product.description}</p>
+                    <h3 className="text-xl font-semibold text-[#6A9C89] mb-2">{user.title}</h3>
+                    <p className="text-muted-foreground">{user.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            <p className="text-center text-muted-foreground mt-8">
-              Chaque solution a été pensée en lien direct avec le terrain, en collaboration avec des utilisateurs issus de différents secteurs (bâtiment, industrie, services...).
-            </p>
+            <Card className="mt-8">
+              <CardContent className="p-8">
+                <p className="text-lg text-muted-foreground leading-relaxed text-center">
+                  Accessible en ligne, sans installation, SoftFacture est pensée pour fonctionner partout, en toute sécurité, et pour s'adapter aux besoins concrets du tissu économique tunisien et africain.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Mission */}
-      <section className="py-20">
+      <section className="py-20 bg-gradient-to-br from-[#6A9C89]/5 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-8">Notre mission</h2>
             <Card>
               <CardContent className="p-8">
                 <blockquote className="text-2xl text-[#6A9C89] font-medium mb-6">
-                  "Aider les entreprises à structurer leur activité, à mieux gérer leurs revenus et à rester conformes aux exigences comptables locales et internationales."
+                  "Aider les entreprises à structurer leur activité commerciale, à gagner en efficacité, et à préparer l'avenir grâce à des outils numériques simples, adaptés et évolutifs."
                 </blockquote>
-                <p className="text-lg text-muted-foreground">
-                  SoftFacture permet de gagner du temps, de réduire les erreurs manuelles et d'améliorer la traçabilité et la fiabilité des documents financiers.
-                </p>
               </CardContent>
             </Card>
           </div>
