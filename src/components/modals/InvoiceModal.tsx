@@ -68,7 +68,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     customTaxesUsed: invoice?.custom_taxes_used || [],
     hasAdvance: invoice?.has_advance ?? false,
     advanceAmount: invoice?.advance_amount || 0,
-    currencyId: invoice?.currency_id || (currencies.length > 0 ? currencies[0].id : '')
+    currencyId: invoice?.currency_id || (currencies.length > 0 ? currencies[0].id : ''),
+    useDiscount: true // Nouveau paramètre pour les remises
   });
   
   // Invoice items
@@ -188,10 +189,14 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   // Calculate totals including custom taxes
   const calculateTotals = () => {
     const subtotalHT = invoiceItems.reduce((sum, item) => sum + item.total, 0);
-    const totalDiscount = invoiceItems.reduce((sum, item) => {
-      const subtotal = item.quantity * item.unitPrice;
-      return sum + (subtotal * item.discount / 100);
-    }, 0);
+    
+    // Calculate discount only if enabled
+    const totalDiscount = invoiceSettings.useDiscount 
+      ? invoiceItems.reduce((sum, item) => {
+          const subtotal = item.quantity * item.unitPrice;
+          return sum + (subtotal * item.discount / 100);
+        }, 0)
+      : 0;
     
     // Apply VAT only if enabled
     const totalVAT = invoiceSettings.useVat 
@@ -439,7 +444,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     <TableHead className="w-[35%]">Description</TableHead>
                     <TableHead className="w-[12%] text-center">Quantité</TableHead>
                     <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
-                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
+                    {invoiceSettings.useDiscount && <TableHead className="w-[10%] text-center">Remise %</TableHead>}
                     {invoiceSettings.useVat && <TableHead className="w-[10%] text-center">TVA</TableHead>}
                     <TableHead className="w-[12%] text-right">Total HT</TableHead>
                     <TableHead className="w-[5%]"></TableHead>
@@ -545,16 +550,18 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                           step="0.01"
                         />
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.discount}
-                          onChange={(e) => updateInvoiceItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          max="100"
-                        />
-                      </TableCell>
+                      {invoiceSettings.useDiscount && (
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.discount}
+                            onChange={(e) => updateInvoiceItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                            className="text-center"
+                            min="0"
+                            max="100"
+                          />
+                        </TableCell>
+                      )}
                       {invoiceSettings.useVat && (
                         <TableCell>
                           <Input
@@ -599,12 +606,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     <span>Sous-total HT:</span>
                     <span className="font-medium">{formatCurrency(subtotalHT + totalDiscount)}</span>
                   </div>
-                  {totalDiscount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Remise totale:</span>
-                      <span className="font-medium">-{formatCurrency(totalDiscount)}</span>
-                    </div>
-                  )}
+                   {invoiceSettings.useDiscount && totalDiscount > 0 && (
+                     <div className="flex justify-between text-green-600">
+                       <span>Remise totale:</span>
+                       <span className="font-medium">-{formatCurrency(totalDiscount)}</span>
+                     </div>
+                   )}
                    <div className="flex justify-between">
                      <span>Net HT:</span>
                      <span className="font-medium">{formatCurrency(subtotalHT)}</span>

@@ -15,6 +15,7 @@ interface InvoiceSettings {
   hasAdvance: boolean;
   advanceAmount: number;
   currencyId: string;
+  useDiscount: boolean;
 }
 
 interface InvoiceSettingsPopupProps {
@@ -175,6 +176,26 @@ export function InvoiceSettingsPopup({
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Section Remises */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Remises</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="use-discount"
+                  checked={settings.useDiscount}
+                  onCheckedChange={(checked) => setSettings(prev => ({ ...prev, useDiscount: checked }))}
+                />
+                <Label htmlFor="use-discount">Activer les remises</Label>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Si désactivée, la colonne "Remise %" n'apparaîtra pas dans le tableau
+              </p>
             </CardContent>
           </Card>
 
