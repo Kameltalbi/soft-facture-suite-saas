@@ -654,13 +654,13 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                      </div>
                    )}
                   
-                  {/* Display custom taxes */}
-                  {customTaxCalculations.map((tax) => (
-                    <div key={tax.id} className="flex justify-between text-orange-600">
-                      <span>{tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currency.symbol}`}):</span>
-                      <span className="font-medium">{formatCurrency(tax.amount)}</span>
-                    </div>
-                  ))}
+                   {/* Display custom taxes */}
+                   {customTaxCalculations.map((tax) => (
+                     <div key={tax.id} className="flex justify-between text-orange-600">
+                       <span>{tax.name}:</span>
+                       <span className="font-medium">{formatCurrency(tax.amount)}</span>
+                     </div>
+                   ))}
                   
                    <div className="border-t pt-2">
                      <div className="flex justify-between text-lg font-bold">
