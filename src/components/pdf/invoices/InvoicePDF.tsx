@@ -140,12 +140,12 @@ const styles = StyleSheet.create({
   },
   customTaxLabel: {
     fontSize: 10,
-    color: '#D96C4F',
+    color: '#333333',
   },
   customTaxValue: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#D96C4F',
+    color: '#333333',
   },
   grandTotal: {
     flexDirection: 'row',

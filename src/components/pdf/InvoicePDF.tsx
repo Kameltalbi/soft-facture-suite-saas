@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: 250,
     paddingVertical: 3,
-    color: '#D96C4F',
+    color: '#333333',
   },
   footer: {
     position: 'absolute',
