@@ -193,6 +193,15 @@ export default function Settings() {
   // User management handlers - Updated approach
   const handleCreateUser = async (email: string, password: string, firstName: string, lastName: string, role: string) => {
     try {
+      console.log('🔄 Création utilisateur:', {
+        email,
+        firstName,
+        lastName,
+        role,
+        organization_id: profile?.organization_id,
+        organization_name: organization?.name
+      });
+
       // Utiliser signUp avec les métadonnées appropriées
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -209,14 +218,19 @@ export default function Settings() {
         }
       });
 
+      console.log('📝 Résultat signUp:', { authData, authError });
+
       if (authError) throw authError;
 
       if (authData.user) {
+        console.log('✅ Utilisateur créé dans auth, ID:', authData.user.id);
+        
         // Le profil sera créé automatiquement par le trigger handle_new_user
         // On attend un peu pour que le trigger s'exécute
         setTimeout(async () => {
+          console.log('🔄 Recharger la liste des utilisateurs...');
           await loadUsers();
-        }, 1000);
+        }, 2000); // Augmenter le délai à 2 secondes
 
         toast({
           title: 'Succès',
@@ -224,7 +238,7 @@ export default function Settings() {
         });
       }
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('❌ Error creating user:', error);
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la création de l\'utilisateur. Vérifiez que l\'email n\'est pas déjà utilisé.',
@@ -232,7 +246,6 @@ export default function Settings() {
       });
     }
   };
-
   const handleUpdateUserRole = async (userId: string, role: string) => {
     try {
       const { error } = await supabase
