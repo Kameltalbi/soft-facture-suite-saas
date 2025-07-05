@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { Upload, Eye, EyeOff } from 'lucide-react';
 import { resizeImage, validateImageFile } from '@/utils/imageUtils';
@@ -31,6 +32,7 @@ const RegisterPage = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [processingLogo, setProcessingLogo] = useState(false);
   const { toast } = useToast();
+  const { signUp } = useAuth();
 
   const form = useForm<RegisterFormData>({
     defaultValues: {
@@ -106,7 +108,7 @@ const RegisterPage = () => {
     }
   };
 
-  const onSubmit = (data: RegisterFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     if (data.password !== data.confirmPassword) {
       toast({
         title: "Erreur",
@@ -125,12 +127,40 @@ const RegisterPage = () => {
       return;
     }
 
-    // Simuler l'inscription avec le logo optimisé
-    console.log('Données d\'inscription:', { ...data, optimizedLogo: logoFile });
-    toast({
-      title: "Compte créé avec succès !",
-      description: "Bienvenue dans Soft Facture",
-    });
+    try {
+      const { error } = await signUp(
+        data.email,
+        data.password,
+        data.firstName,
+        data.lastName,
+        data.organizationName,
+        { 
+          organization_address: '',
+          organization_email: data.email,
+          plan: 'essential',
+        },
+        logoFile || undefined
+      );
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: error.message || "Une erreur est survenue lors de l'inscription",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "🎉 Merci pour votre inscription !",
+          description: "Un e-mail de confirmation vient de vous être envoyé à votre adresse.\n\n👉 Veuillez cliquer sur le lien de validation contenu dans cet e-mail pour activer votre compte.\n\n⏳ Si vous ne voyez pas l'e-mail dans votre boîte de réception, pensez à vérifier vos courriers indésirables ou spams.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue lors de l'inscription",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
