@@ -383,6 +383,7 @@ export default function Settings() {
             users={users}
             roles={['user', 'admin', 'superadmin']}
             currentUserRole={profile?.role}
+            currentPlan={organization?.plan}
             onCreateUser={handleCreateUser}
             onUpdateUserRole={handleUpdateUserRole}
             onDeleteUser={handleDeleteUser}

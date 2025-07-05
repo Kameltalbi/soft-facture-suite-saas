@@ -8,19 +8,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Plus, Trash2, UserPlus, Edit } from 'lucide-react';
+import { Users, Plus, Trash2, UserPlus, Edit, AlertCircle } from 'lucide-react';
 import { User } from '@/types/settings';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface UserManagementProps {
   users: User[];
   roles: string[];
   currentUserRole?: string;
+  currentPlan?: string;
   onCreateUser: (email: string, password: string, firstName: string, lastName: string, role: string) => void;
   onUpdateUserRole: (userId: string, role: string) => void;
   onDeleteUser: (userId: string) => void;
 }
 
-export function UserManagement({ users, roles, currentUserRole, onCreateUser, onUpdateUserRole, onDeleteUser }: UserManagementProps) {
+export function UserManagement({ users, roles, currentUserRole, currentPlan, onCreateUser, onUpdateUserRole, onDeleteUser }: UserManagementProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [userData, setUserData] = useState({
     email: '',
@@ -29,6 +31,22 @@ export function UserManagement({ users, roles, currentUserRole, onCreateUser, on
     lastName: '',
     role: '',
   });
+
+  // Plan limits
+  const getUserLimit = (plan: string) => {
+    switch (plan) {
+      case 'essential':
+        return 1;
+      case 'pro':
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
+  const userLimit = getUserLimit(currentPlan || 'essential');
+  const activeUsers = users.filter(u => u.status === 'active').length;
+  const hasReachedLimit = activeUsers >= userLimit;
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,15 +113,25 @@ export function UserManagement({ users, roles, currentUserRole, onCreateUser, on
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {hasReachedLimit && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Vous avez atteint le nombre total d'utilisateurs autorisés dans le cadre de votre plan {currentPlan || 'Essential'} ({userLimit} utilisateur{userLimit > 1 ? 's' : ''} maximum). 
+              {currentPlan === 'essential' && ' Passez au plan Pro pour ajouter plus d\'utilisateurs.'}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex justify-between items-center">
           <div>
             <p className="text-sm text-gray-600">
-              {users.filter(u => u.status === 'active').length} utilisateur(s) actif(s) sur {users.length} total
+              {activeUsers} utilisateur(s) actif(s) sur {userLimit} autorisé{userLimit > 1 ? 's' : ''} ({currentPlan || 'Essential'})
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button disabled={hasReachedLimit}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Créer un utilisateur
               </Button>
