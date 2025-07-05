@@ -188,7 +188,8 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     );
   };
   
-  const handleSave = () => {
+  // Handle save as draft action
+  const handleSaveAsDraft = () => {
     const deliveryData = {
       number: deliveryNumber,
       date: deliveryDate,
@@ -196,7 +197,24 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
       client: selectedClient,
       deliveryAddress,
       items: deliveryItems,
-      notes
+      notes,
+      status: 'pending'
+    };
+    onSave(deliveryData);
+    onClose();
+  };
+
+  // Handle validate action (finalize delivery note)
+  const handleValidate = () => {
+    const deliveryData = {
+      number: deliveryNumber,
+      date: deliveryDate,
+      expectedDeliveryDate,
+      client: selectedClient,
+      deliveryAddress,
+      items: deliveryItems,
+      notes,
+      status: 'sent'
     };
     onSave(deliveryData);
     onClose();
@@ -584,8 +602,11 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
             <Button variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
-              {deliveryNote ? 'Mettre à jour' : 'Créer le bon de livraison'}
+            <Button variant="ghost" onClick={handleSaveAsDraft}>
+              Enregistrer (comme brouillon)
+            </Button>
+            <Button onClick={handleValidate} className="bg-green-600 hover:bg-green-700">
+              Valider (générer le bon de livraison)
             </Button>
           </div>
         </div>
