@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useExchangeRates } from '@/hooks/useExchangeRates';
+import { convertToDefaultCurrency, convertMultipleToDefaultCurrency } from '@/utils/currencyConverter';
 
 interface DashboardKpiData {
   totalRevenue: number;
@@ -49,6 +51,7 @@ interface DashboardChartData {
 
 export const useDashboardData = (selectedYear: number) => {
   const { profile } = useAuth();
+  const { exchangeRates } = useExchangeRates();
   const [loading, setLoading] = useState(true);
   const [kpiData, setKpiData] = useState<DashboardKpiData>({
     totalRevenue: 0,
@@ -70,11 +73,11 @@ export const useDashboardData = (selectedYear: number) => {
   });
 
   useEffect(() => {
-    if (profile?.organization_id) {
+    if (profile?.organization_id && exchangeRates.length >= 0) { // Allow empty array
       console.log('🔍 Dashboard - Fetching yearly data for organization:', profile.organization_id, 'Year:', selectedYear);
       fetchDashboardData();
     }
-  }, [profile?.organization_id, selectedYear]);
+  }, [profile?.organization_id, selectedYear, exchangeRates]);
 
   const fetchOrganizationCurrency = async () => {
     if (!profile?.organization_id) return { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
@@ -148,6 +151,9 @@ export const useDashboardData = (selectedYear: number) => {
       };
     }
 
+    // Récupérer la devise par défaut
+    const currency = await fetchOrganizationCurrency();
+
     const startDate = new Date(selectedYear, 0, 1);
     const endDate = new Date(selectedYear, 11, 31);
 
@@ -160,7 +166,11 @@ export const useDashboardData = (selectedYear: number) => {
     // Factures de l'année complète
     const { data: invoices, error: invoicesError } = await supabase
       .from('invoices')
-      .select('*, clients(*)')
+      .select(`
+        *, 
+        clients(*),
+        currencies(id, code, symbol, name, decimal_places)
+      `)
       .eq('organization_id', orgId)
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
@@ -183,11 +193,39 @@ export const useDashboardData = (selectedYear: number) => {
       console.error('❌ KPI - Error fetching quotes:', quotesError);
     }
 
-    // Calculs des KPI
+    // Calculs des KPI avec conversion de devises
     const totalInvoices = invoices?.length || 0;
-    const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
-    const totalEncaisse = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
-    const totalVat = invoices?.reduce((sum, inv) => sum + (inv.tax_amount || 0), 0) || 0;
+    
+    // Convertir tous les montants vers la devise par défaut
+    const totalRevenue = invoices?.reduce((sum, inv) => {
+      const convertedAmount = convertToDefaultCurrency(
+        inv.total_amount || 0,
+        inv.currency_id || currency.code,
+        currency.code,
+        exchangeRates
+      );
+      return sum + convertedAmount;
+    }, 0) || 0;
+    
+    const totalEncaisse = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => {
+      const convertedAmount = convertToDefaultCurrency(
+        inv.total_amount || 0,
+        inv.currency_id || currency.code,
+        currency.code,
+        exchangeRates
+      );
+      return sum + convertedAmount;
+    }, 0) || 0;
+    
+    const totalVat = invoices?.reduce((sum, inv) => {
+      const convertedAmount = convertToDefaultCurrency(
+        inv.tax_amount || 0,
+        inv.currency_id || currency.code,
+        currency.code,
+        exchangeRates
+      );
+      return sum + convertedAmount;
+    }, 0) || 0;
     const totalQuotes = quotes?.length || 0;
     
     // Clients actifs (ayant généré du CA)
@@ -234,6 +272,9 @@ export const useDashboardData = (selectedYear: number) => {
       };
     }
 
+    // Récupérer la devise par défaut
+    const currency = await fetchOrganizationCurrency();
+
     console.log('📊 Charts - Fetching data for org:', orgId, 'Year:', selectedYear);
 
     const startDate = new Date(selectedYear, 0, 1);
@@ -245,7 +286,8 @@ export const useDashboardData = (selectedYear: number) => {
       .select(`
         *,
         clients(*),
-        invoice_items(*, products(*))
+        invoice_items(*, products(*)),
+        currencies(id, code, symbol, name, decimal_places)
       `)
       .eq('organization_id', orgId)
       .gte('date', startDate.toISOString().split('T')[0])
@@ -264,7 +306,7 @@ export const useDashboardData = (selectedYear: number) => {
       };
     }
 
-    // 1. CA par catégorie
+    // 1. CA par catégorie avec conversion
     const categoryMap = new Map<string, number>();
     invoicesWithItems?.forEach(invoice => {
       invoice.invoice_items?.forEach(item => {
@@ -283,19 +325,36 @@ export const useDashboardData = (selectedYear: number) => {
           }
         }
         
+        // Convertir le montant vers la devise par défaut
+        const convertedAmount = convertToDefaultCurrency(
+          item.total_price || 0,
+          invoice.currency_id || currency.code,
+          currency.code,
+          exchangeRates
+        );
+        
         const current = categoryMap.get(category) || 0;
-        categoryMap.set(category, current + (item.total_price || 0));
+        categoryMap.set(category, current + convertedAmount);
       });
     });
     const caByCategory = Array.from(categoryMap.entries()).map(([category, amount]) => ({ category, amount }));
 
-    // 2. CA par produit
+    // 2. CA par produit avec conversion
     const productMap = new Map<string, number>();
     invoicesWithItems?.forEach(invoice => {
       invoice.invoice_items?.forEach(item => {
         const productName = item.products?.name || item.description;
+        
+        // Convertir le montant vers la devise par défaut
+        const convertedAmount = convertToDefaultCurrency(
+          item.total_price || 0,
+          invoice.currency_id || currency.code,
+          currency.code,
+          exchangeRates
+        );
+        
         const current = productMap.get(productName) || 0;
-        productMap.set(productName, current + (item.total_price || 0));
+        productMap.set(productName, current + convertedAmount);
       });
     });
     const caByProduct = Array.from(productMap.entries())
@@ -314,20 +373,37 @@ export const useDashboardData = (selectedYear: number) => {
 
       const { data: currentYearInvoices } = await supabase
         .from('invoices')
-        .select('total_amount')
+        .select('total_amount, currency_id, currencies(code)')
         .eq('organization_id', orgId)
         .gte('date', currentYearStart.toISOString().split('T')[0])
         .lte('date', currentYearEnd.toISOString().split('T')[0]);
 
       const { data: prevYearInvoices } = await supabase
         .from('invoices')
-        .select('total_amount')
+        .select('total_amount, currency_id, currencies(code)')
         .eq('organization_id', orgId)
         .gte('date', prevYearStart.toISOString().split('T')[0])
         .lte('date', prevYearEnd.toISOString().split('T')[0]);
 
-      const currentYear = currentYearInvoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
-      const previousYear = prevYearInvoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0;
+      const currentYear = currentYearInvoices?.reduce((sum, inv) => {
+        const convertedAmount = convertToDefaultCurrency(
+          inv.total_amount || 0,
+          inv.currency_id || currency.code,
+          currency.code,
+          exchangeRates
+        );
+        return sum + convertedAmount;
+      }, 0) || 0;
+      
+      const previousYear = prevYearInvoices?.reduce((sum, inv) => {
+        const convertedAmount = convertToDefaultCurrency(
+          inv.total_amount || 0,
+          inv.currency_id || currency.code,
+          currency.code,
+          exchangeRates
+        );
+        return sum + convertedAmount;
+      }, 0) || 0;
 
       monthlyComparison.push({
         month: months[month],
@@ -349,12 +425,21 @@ export const useDashboardData = (selectedYear: number) => {
       count: invoicesPerMonthMap.get(month) || 0
     }));
 
-    // 5. Top 20 clients par CA
+    // 5. Top 20 clients par CA avec conversion
     const clientRevenueMap = new Map<string, number>();
     invoicesWithItems?.forEach(invoice => {
       const clientName = invoice.clients?.company || invoice.clients?.name || 'Client inconnu';
+      
+      // Convertir le montant vers la devise par défaut
+      const convertedAmount = convertToDefaultCurrency(
+        invoice.total_amount || 0,
+        invoice.currency_id || currency.code,
+        currency.code,
+        exchangeRates
+      );
+      
       const current = clientRevenueMap.get(clientName) || 0;
-      clientRevenueMap.set(clientName, current + (invoice.total_amount || 0));
+      clientRevenueMap.set(clientName, current + convertedAmount);
     });
     const top20Clients = Array.from(clientRevenueMap.entries())
       .map(([name, revenue]) => ({ name, revenue }))

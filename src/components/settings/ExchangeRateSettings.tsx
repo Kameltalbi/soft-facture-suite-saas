@@ -24,7 +24,7 @@ export function ExchangeRateSettings() {
   });
 
   // Filtrer les devises pour exclure la devise par défaut des devises "from"
-  const nonDefaultCurrencies = currencies.filter(c => c.id !== defaultCurrency?.code);
+  const nonDefaultCurrencies = currencies.filter(c => c.code !== defaultCurrency.code);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +35,7 @@ export function ExchangeRateSettings() {
     if (isNaN(rate) || rate <= 0) return;
 
     // Trouver l'ID de la devise par défaut
-    const defaultCurrencyId = currencies.find(c => c.code === defaultCurrency?.code)?.id;
+    const defaultCurrencyId = currencies.find(c => c.code === defaultCurrency.code)?.id;
     if (!defaultCurrencyId) return;
 
     try {
@@ -102,7 +102,7 @@ export function ExchangeRateSettings() {
             <div>
               <CardTitle>Taux de Change</CardTitle>
               <CardDescription>
-                Gérez les taux de change fixes par rapport à votre devise par défaut ({defaultCurrency?.name})
+                Gérez les taux de change fixes par rapport à votre devise par défaut ({defaultCurrency.name})
               </CardDescription>
             </div>
             {!showForm && (
@@ -139,7 +139,7 @@ export function ExchangeRateSettings() {
                   </div>
                   <div>
                     <Label htmlFor="rate">
-                      Taux (1 {currencies.find(c => c.id === formData.from_currency_id)?.code || 'XXX'} = ? {defaultCurrency?.code})
+                      Taux (1 {currencies.find(c => c.id === formData.from_currency_id)?.code || 'XXX'} = ? {defaultCurrency.code})
                     </Label>
                     <Input
                       id="rate"

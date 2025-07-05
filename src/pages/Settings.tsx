@@ -9,6 +9,7 @@ import { NumberingSettings } from '@/components/settings/NumberingSettings';
 import { UserManagement } from '@/components/settings/UserManagement';
 import { RolePermissions } from '@/components/settings/RolePermissions';
 import { PdfTemplateSettings } from '@/components/settings/PdfTemplateSettings';
+import { ExchangeRateSettings } from '@/components/settings/ExchangeRateSettings';
 import { CustomTaxSettings } from '@/components/settings/CustomTaxSettings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -364,9 +365,10 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full ${settingsAccess.templates ? 'grid-cols-8' : 'grid-cols-7'}`}>
+        <TabsList className={`grid w-full ${settingsAccess.templates ? 'grid-cols-9' : 'grid-cols-8'}`}>
           <TabsTrigger value="organization">Organisation</TabsTrigger>
           <TabsTrigger value="currencies">Devises</TabsTrigger>
+          <TabsTrigger value="exchange-rates">Taux de Change</TabsTrigger>
           <TabsTrigger value="footer">Pied de page</TabsTrigger>
           {settingsAccess.templates && <TabsTrigger value="templates">Templates PDF</TabsTrigger>}
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
@@ -396,6 +398,10 @@ export default function Settings() {
             onUpdateCurrency={updateCurrency}
             onDeleteCurrency={deleteCurrency}
           />
+        </TabsContent>
+
+        <TabsContent value="exchange-rates">
+          <ExchangeRateSettings />
         </TabsContent>
 
         <TabsContent value="footer">
