@@ -516,7 +516,7 @@ export default function Invoices() {
         footer_content: globalSettings?.footer_content || '',
         footer_display: globalSettings?.footer_display || 'all'
       },
-      currency: currency,
+      currency: invoice.currencies || currency,
       customTaxes: customTaxCalculations
     };
   };
