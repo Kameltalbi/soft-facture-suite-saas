@@ -113,19 +113,9 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {hasReachedLimit && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Vous avez atteint le nombre total de collaborateurs autorisés dans le cadre de votre plan {currentPlan || 'Essential'} ({userLimit} collaborateur{userLimit > 1 ? 's' : ''} maximum). 
-              {currentPlan === 'essential' && ' Passez au plan Pro pour ajouter plus de collaborateurs.'}
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-600">
+            <p className={`text-sm ${hasReachedLimit ? 'text-red-600' : 'text-gray-600'}`}>
               {activeUsers} collaborateur(s) actif(s) sur {userLimit} autorisé{userLimit > 1 ? 's' : ''} ({currentPlan || 'Essential'})
             </p>
           </div>
