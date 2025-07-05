@@ -182,6 +182,11 @@ export default function Invoices() {
             tax_amount: invoiceData.totals.totalVAT,
             total_amount: invoiceData.totals.totalTTC,
             notes: invoiceData.notes,
+            use_vat: invoiceData.settings?.useVat,
+            custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
+            has_advance: invoiceData.settings?.hasAdvance,
+            advance_amount: invoiceData.settings?.advanceAmount || 0,
+            currency_id: invoiceData.settings?.currencyId,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingInvoice.id);
@@ -224,7 +229,12 @@ export default function Invoices() {
             subtotal: invoiceData.totals.subtotalHT,
             tax_amount: invoiceData.totals.totalVAT,
             total_amount: invoiceData.totals.totalTTC,
-            notes: invoiceData.notes
+            notes: invoiceData.notes,
+            use_vat: invoiceData.settings?.useVat,
+            custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
+            has_advance: invoiceData.settings?.hasAdvance,
+            advance_amount: invoiceData.settings?.advanceAmount || 0,
+            currency_id: invoiceData.settings?.currencyId
           })
           .select()
           .single();
@@ -477,9 +487,12 @@ export default function Invoices() {
       vat_number: invoice.clients?.vat_number || ''
     };
 
-    // Calcul des taxes personnalisées
+    // Calcul des taxes personnalisées - Filtrer seulement celles qui ont été sélectionnées
     const subtotal = mockLineItems.reduce((sum, item) => sum + (item.total || 0), 0);
-    const customTaxCalculations = calculateCustomTaxes(subtotal, customTaxes, 'invoice');
+    const activeCustomTaxes = invoice.custom_taxes_used 
+      ? customTaxes.filter(tax => invoice.custom_taxes_used.includes(tax.id))
+      : [];
+    const customTaxCalculations = calculateCustomTaxes(subtotal, activeCustomTaxes, 'invoice');
 
     return {
       invoiceData: {
