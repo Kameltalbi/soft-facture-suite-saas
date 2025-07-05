@@ -204,9 +204,6 @@ export const InvoicePDF = ({
   const currencyCode = currency?.code || 'EUR';
   
   const calculateTotals = () => {
-    console.log('🔍 DEBUG InvoicePDF - Line items reçus:', lineItems);
-    console.log('🔍 DEBUG InvoicePDF - Custom taxes reçues:', customTaxes);
-    
     const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
     const totalVAT = lineItems.reduce((sum, item) => {
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
@@ -216,13 +213,6 @@ export const InvoicePDF = ({
     const totalCustomTaxes = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
     
     const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
-
-    console.log('🔍 DEBUG InvoicePDF - Calculs:', {
-      subtotalHT,
-      totalVAT,
-      totalCustomTaxes,
-      totalTTC
-    });
 
     return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC };
   };

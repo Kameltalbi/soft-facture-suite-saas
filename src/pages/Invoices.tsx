@@ -451,13 +451,6 @@ export default function Invoices() {
   };
 
   const getPDFData = (invoice: any) => {
-    console.log('🔍 DEBUG getPDFData - Invoice reçue:', {
-      id: invoice.id,
-      number: invoice.invoice_number,
-      total_amount: invoice.total_amount,
-      invoice_items: invoice.invoice_items
-    });
-
     const mockLineItems = invoice.invoice_items?.map(item => ({
       id: item.id,
       description: item.description,
@@ -467,8 +460,6 @@ export default function Invoices() {
       discount: 0,
       total: item.total_price
     })) || [];
-
-    console.log('🔍 DEBUG getPDFData - Line items transformés:', mockLineItems);
 
     const company = {
       name: organization?.name || 'Mon Entreprise',
