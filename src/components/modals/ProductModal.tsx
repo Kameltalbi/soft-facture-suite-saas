@@ -30,7 +30,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
     stock_quantity: 0,
     sku: '',
     active: true,
-    track_stock: true
+    track_stock: true,
+    tax_rate: 20 // TVA par défaut à 20%
   });
 
   // État séparé pour gérer l'affichage du prix comme string
@@ -54,7 +55,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         stock_quantity: product.stock_quantity || 0,
         sku: product.sku || '',
         active: product.active ?? true,
-        track_stock: product.track_stock ?? true
+        track_stock: product.track_stock ?? true,
+        tax_rate: product.tax_rate ?? 20
       });
       setPriceDisplay(priceStr);
     } else {
@@ -67,7 +69,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
         stock_quantity: 0,
         sku: '',
         active: true,
-        track_stock: true
+        track_stock: true,
+        tax_rate: 20
       });
       setPriceDisplay('0');
     }
@@ -246,6 +249,20 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
                   value={formData.stock_quantity}
                   onChange={(e) => setFormData({...formData, stock_quantity: parseInt(e.target.value) || 0})}
                   disabled={!formData.track_stock}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tax_rate">Taux de TVA (%)</Label>
+                <Input
+                  id="tax_rate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={formData.tax_rate}
+                  onChange={(e) => setFormData({...formData, tax_rate: parseFloat(e.target.value) || 0})}
+                  placeholder="20"
                 />
               </div>
             </div>
