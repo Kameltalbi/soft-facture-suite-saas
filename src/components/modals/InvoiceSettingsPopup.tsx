@@ -52,9 +52,8 @@ export function InvoiceSettingsPopup({
 
   const handleAdvanceAmountChange = (value: string) => {
     const amount = parseFloat(value) || 0;
-    if (amount <= totalAmount) {
-      setSettings(prev => ({ ...prev, advanceAmount: amount }));
-    }
+    // Permettre la saisie libre, la validation se fait juste visuellement
+    setSettings(prev => ({ ...prev, advanceAmount: amount }));
   };
 
   const handleApply = () => {
@@ -166,8 +165,13 @@ export function InvoiceSettingsPopup({
                     placeholder="0.00"
                     className="mt-1"
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Maximum : {totalAmount.toFixed(2)} DT
+                  <p className={`text-sm mt-1 ${settings.advanceAmount > totalAmount ? 'text-red-500' : 'text-muted-foreground'}`}>
+                    Maximum recommandé : {totalAmount.toFixed(2)} DT
+                    {settings.advanceAmount > totalAmount && (
+                      <span className="block text-red-500 font-medium">
+                        ⚠️ L'avance dépasse le total de la facture
+                      </span>
+                    )}
                   </p>
                 </div>
               )}
