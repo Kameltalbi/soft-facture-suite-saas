@@ -192,18 +192,36 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       const subtotal = item.quantity * item.unitPrice;
       return sum + (subtotal * item.discount / 100);
     }, 0);
-    const totalVAT = invoiceItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0);
     
-    // Calculate custom taxes based on subtotal
-    const customTaxCalculations = calculateCustomTaxes(subtotalHT, customTaxes, 'invoice');
+    // Apply VAT only if enabled
+    const totalVAT = invoiceSettings.useVat 
+      ? invoiceItems.reduce((sum, item) => sum + (item.total * item.vatRate / 100), 0)
+      : 0;
+    
+    // Calculate custom taxes based on subtotal (only active ones)
+    const activeCustomTaxes = customTaxes.filter(tax => invoiceSettings.customTaxesUsed.includes(tax.id));
+    const customTaxCalculations = calculateCustomTaxes(subtotalHT, activeCustomTaxes, 'invoice');
     const totalCustomTaxes = getTotalCustomTaxAmount(customTaxCalculations);
     
     const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
     
-    return { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC, customTaxCalculations };
+    // Calculate advance and balance due
+    const advanceAmount = invoiceSettings.hasAdvance ? invoiceSettings.advanceAmount : 0;
+    const balanceDue = totalTTC - advanceAmount;
+    
+    return { 
+      subtotalHT, 
+      totalDiscount, 
+      totalVAT, 
+      totalCustomTaxes, 
+      totalTTC, 
+      customTaxCalculations,
+      advanceAmount,
+      balanceDue
+    };
   };
   
-  const { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC, customTaxCalculations } = calculateTotals();
+  const { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC, customTaxCalculations, advanceAmount, balanceDue } = calculateTotals();
   
   // Set default due date (30 days from now) if not set
   React.useEffect(() => {
@@ -585,14 +603,18 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                       <span className="font-medium">-{formatCurrency(totalDiscount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span>Net HT:</span>
-                    <span className="font-medium">{formatCurrency(subtotalHT)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>TVA:</span>
-                    <span className="font-medium">{formatCurrency(totalVAT)}</span>
-                  </div>
+                   <div className="flex justify-between">
+                     <span>Net HT:</span>
+                     <span className="font-medium">{formatCurrency(subtotalHT)}</span>
+                   </div>
+                   
+                   {/* Afficher la TVA seulement si elle est activée */}
+                   {invoiceSettings.useVat && (
+                     <div className="flex justify-between">
+                       <span>TVA:</span>
+                       <span className="font-medium">{formatCurrency(totalVAT)}</span>
+                     </div>
+                   )}
                   
                   {/* Display custom taxes */}
                   {customTaxCalculations.map((tax) => (
@@ -602,12 +624,26 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                     </div>
                   ))}
                   
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total TTC:</span>
-                      <span className="text-blue-600">{formatCurrency(totalTTC)}</span>
-                    </div>
-                  </div>
+                   <div className="border-t pt-2">
+                     <div className="flex justify-between text-lg font-bold">
+                       <span>Total TTC:</span>
+                       <span className="text-blue-600">{formatCurrency(totalTTC)}</span>
+                     </div>
+                     
+                     {/* Avance perçue et solde à payer */}
+                     {invoiceSettings.hasAdvance && (
+                       <>
+                         <div className="flex justify-between text-purple-600 mt-2">
+                           <span>Avance perçue:</span>
+                           <span className="font-medium">-{formatCurrency(advanceAmount)}</span>
+                         </div>
+                         <div className="flex justify-between text-xl font-bold text-red-600 border-t mt-2 pt-2">
+                           <span>Solde à payer:</span>
+                           <span>{formatCurrency(balanceDue)}</span>
+                         </div>
+                       </>
+                     )}
+                   </div>
                 </div>
               </CardContent>
             </Card>
