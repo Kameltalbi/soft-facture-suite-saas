@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useExchangeRates } from '@/hooks/useExchangeRates';
@@ -72,15 +72,36 @@ export const useDashboardData = (selectedYear: number) => {
     invoiceStatusDistribution: []
   });
 
+  // Cache de la devise pour éviter les requêtes multiples
+  const [organizationCurrency, setOrganizationCurrency] = useState<{
+    id: string;
+    code: string;
+    symbol: string;
+    name: string;
+    decimal_places: number;
+  } | null>(null);
+
+  // Mémorisation des taux de change pour éviter les recalculs inutiles
+  const memoizedExchangeRates = useMemo(() => exchangeRates, [exchangeRates]);
+
   useEffect(() => {
-    if (profile?.organization_id && exchangeRates.length >= 0) { // Allow empty array
+    if (profile?.organization_id && memoizedExchangeRates.length >= 0) {
       console.log('🔍 Dashboard - Fetching yearly data for organization:', profile.organization_id, 'Year:', selectedYear);
       fetchDashboardData();
     }
-  }, [profile?.organization_id, selectedYear, exchangeRates]);
+  }, [profile?.organization_id, selectedYear, memoizedExchangeRates]);
 
-  const fetchOrganizationCurrency = async () => {
-    if (!profile?.organization_id) return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+  const fetchOrganizationCurrency = useCallback(async () => {
+    // Utiliser le cache si disponible
+    if (organizationCurrency && profile?.organization_id) {
+      return organizationCurrency;
+    }
+
+    if (!profile?.organization_id) {
+      const defaultCurrency = { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+      setOrganizationCurrency(defaultCurrency);
+      return defaultCurrency;
+    }
 
     try {
       const { data, error } = await supabase
@@ -90,22 +111,25 @@ export const useDashboardData = (selectedYear: number) => {
         .eq('is_primary', true)
         .single();
 
-      if (error || !data) {
-        return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
-      }
+      const currency = error || !data 
+        ? { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 }
+        : {
+            id: data.id,
+            code: data.code,
+            symbol: data.symbol,
+            name: data.name,
+            decimal_places: data.decimal_places
+          };
 
-      return {
-        id: data.id,
-        code: data.code,
-        symbol: data.symbol,
-        name: data.name,
-        decimal_places: data.decimal_places
-      };
+      setOrganizationCurrency(currency);
+      return currency;
     } catch (error) {
       console.error('Erreur lors de la récupération de la devise:', error);
-      return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+      const defaultCurrency = { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+      setOrganizationCurrency(defaultCurrency);
+      return defaultCurrency;
     }
-  };
+  }, [organizationCurrency, profile?.organization_id]);
 
   const fetchDashboardData = async () => {
     if (!profile?.organization_id) {
@@ -362,56 +386,60 @@ export const useDashboardData = (selectedYear: number) => {
       .map(([name, revenue]) => ({ name, revenue }))
       .sort((a, b) => b.revenue - a.revenue);
 
-    // 3. Comparaison mensuelle avec année précédente
-    const monthlyComparison = [];
+    // 3. Comparaison mensuelle avec année précédente (UNE SEULE REQUÊTE OPTIMISÉE)
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+    
+    const currentYearStart = new Date(selectedYear, 0, 1);
+    const currentYearEnd = new Date(selectedYear, 11, 31);
+    const prevYearStart = new Date(selectedYear - 1, 0, 1);
+    const prevYearEnd = new Date(selectedYear - 1, 11, 31);
 
-    for (let month = 0; month < 12; month++) {
-      const currentYearStart = new Date(selectedYear, month, 1);
-      const currentYearEnd = new Date(selectedYear, month + 1, 0);
-      const prevYearStart = new Date(selectedYear - 1, month, 1);
-      const prevYearEnd = new Date(selectedYear - 1, month + 1, 0);
+    // Une seule requête pour les deux années
+    const { data: allYearInvoices } = await supabase
+      .from('invoices')
+      .select('total_amount, currency_id, date, currencies(code)')
+      .eq('organization_id', orgId)
+      .gte('date', prevYearStart.toISOString().split('T')[0])
+      .lte('date', currentYearEnd.toISOString().split('T')[0]);
 
-      const { data: currentYearInvoices } = await supabase
-        .from('invoices')
-        .select('total_amount, currency_id, currencies(code)')
-        .eq('organization_id', orgId)
-        .gte('date', currentYearStart.toISOString().split('T')[0])
-        .lte('date', currentYearEnd.toISOString().split('T')[0]);
+    // Organiser les données par mois et année
+    const monthlyComparison = months.map((month, monthIndex) => {
+      const currentYearAmount = allYearInvoices
+        ?.filter(inv => {
+          const invDate = new Date(inv.date);
+          return invDate.getFullYear() === selectedYear && invDate.getMonth() === monthIndex;
+        })
+        .reduce((sum, inv) => {
+          const convertedAmount = convertToDefaultCurrency(
+            inv.total_amount || 0,
+            inv.currency_id || currency.id,
+            currency.id,
+            exchangeRates
+          );
+          return sum + convertedAmount;
+        }, 0) || 0;
 
-      const { data: prevYearInvoices } = await supabase
-        .from('invoices')
-        .select('total_amount, currency_id, currencies(code)')
-        .eq('organization_id', orgId)
-        .gte('date', prevYearStart.toISOString().split('T')[0])
-        .lte('date', prevYearEnd.toISOString().split('T')[0]);
+      const previousYearAmount = allYearInvoices
+        ?.filter(inv => {
+          const invDate = new Date(inv.date);
+          return invDate.getFullYear() === selectedYear - 1 && invDate.getMonth() === monthIndex;
+        })
+        .reduce((sum, inv) => {
+          const convertedAmount = convertToDefaultCurrency(
+            inv.total_amount || 0,
+            inv.currency_id || currency.id,
+            currency.id,
+            exchangeRates
+          );
+          return sum + convertedAmount;
+        }, 0) || 0;
 
-      const currentYear = currentYearInvoices?.reduce((sum, inv) => {
-        const convertedAmount = convertToDefaultCurrency(
-          inv.total_amount || 0,
-          inv.currency_id || currency.id,
-          currency.id,
-          exchangeRates
-        );
-        return sum + convertedAmount;
-      }, 0) || 0;
-      
-      const previousYear = prevYearInvoices?.reduce((sum, inv) => {
-        const convertedAmount = convertToDefaultCurrency(
-          inv.total_amount || 0,
-          inv.currency_id || currency.id,
-          currency.id,
-          exchangeRates
-        );
-        return sum + convertedAmount;
-      }, 0) || 0;
-
-      monthlyComparison.push({
-        month: months[month],
-        currentYear,
-        previousYear
-      });
-    }
+      return {
+        month,
+        currentYear: currentYearAmount,
+        previousYear: previousYearAmount
+      };
+    });
 
     // 4. Nombre de factures par mois
     const invoicesPerMonthMap = new Map<string, number>();
