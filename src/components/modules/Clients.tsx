@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ClientModal } from '@/components/modals/ClientModal';
 import { ClientsHeader } from './Clients/ClientsHeader';
 import { ClientStats } from './Clients/ClientStats';
@@ -16,11 +16,13 @@ const Clients = () => {
   const { clients, loading, deleteClient, fetchClients } = useClients();
   const { toast } = useToast();
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.company?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClients = useMemo(() => {
+    return clients.filter(client =>
+      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.company?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [clients, searchTerm]);
 
   const handleAddClient = () => {
     setEditingClient(null);
