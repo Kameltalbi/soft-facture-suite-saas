@@ -604,11 +604,16 @@ export type Database = {
       }
       invoices: {
         Row: {
+          advance_amount: number | null
           amount_paid: number | null
+          balance_due: number | null
           client_id: string
           created_at: string | null
+          currency_id: string | null
+          custom_taxes_used: string[] | null
           date: string
           due_date: string | null
+          has_advance: boolean | null
           id: string
           invoice_number: string
           notes: string | null
@@ -618,13 +623,19 @@ export type Database = {
           tax_amount: number
           total_amount: number
           updated_at: string | null
+          use_vat: boolean | null
         }
         Insert: {
+          advance_amount?: number | null
           amount_paid?: number | null
+          balance_due?: number | null
           client_id: string
           created_at?: string | null
+          currency_id?: string | null
+          custom_taxes_used?: string[] | null
           date?: string
           due_date?: string | null
+          has_advance?: boolean | null
           id?: string
           invoice_number: string
           notes?: string | null
@@ -634,13 +645,19 @@ export type Database = {
           tax_amount?: number
           total_amount?: number
           updated_at?: string | null
+          use_vat?: boolean | null
         }
         Update: {
+          advance_amount?: number | null
           amount_paid?: number | null
+          balance_due?: number | null
           client_id?: string
           created_at?: string | null
+          currency_id?: string | null
+          custom_taxes_used?: string[] | null
           date?: string
           due_date?: string | null
+          has_advance?: boolean | null
           id?: string
           invoice_number?: string
           notes?: string | null
@@ -650,6 +667,7 @@ export type Database = {
           tax_amount?: number
           total_amount?: number
           updated_at?: string | null
+          use_vat?: boolean | null
         }
         Relationships: [
           {
@@ -657,6 +675,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
             referencedColumns: ["id"]
           },
           {

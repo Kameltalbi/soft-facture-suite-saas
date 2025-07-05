@@ -5,14 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
+import { Search, Plus, Trash2, FileText, User, Calendar, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useInvoiceNumber } from '@/hooks/useInvoiceNumber';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useCurrencies } from '@/hooks/useCurrencies';
 import { calculateCustomTaxes, getTotalCustomTaxAmount } from '@/utils/customTaxCalculations';
+import { InvoiceSettingsPopup } from '@/components/modals/InvoiceSettingsPopup';
 
 interface InvoiceItem {
   id: string;
@@ -48,6 +50,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { nextInvoiceNumber, generateNextInvoiceNumber, isLoading: numberLoading } = useInvoiceNumber();
   const { customTaxes } = useCustomTaxes();
   const { currency } = useCurrency();
+  const { currencies } = useCurrencies();
   
   // Form state variables
   const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || '');
@@ -57,6 +60,16 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const [selectedClient, setSelectedClient] = useState(invoice?.client || null);
   const [subject, setSubject] = useState(invoice?.subject || '');
   const [notes, setNotes] = useState(invoice?.notes || '');
+  
+  // Invoice settings popup
+  const [showSettingsPopup, setShowSettingsPopup] = useState(false);
+  const [invoiceSettings, setInvoiceSettings] = useState({
+    useVat: invoice?.use_vat ?? true,
+    customTaxesUsed: invoice?.custom_taxes_used || [],
+    hasAdvance: invoice?.has_advance ?? false,
+    advanceAmount: invoice?.advance_amount || 0,
+    currencyId: invoice?.currency_id || (currencies.length > 0 ? currencies[0].id : '')
+  });
   
   // Invoice items
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>(invoice?.items || [
@@ -260,7 +273,18 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                   </div>
                 </div>
                 <div className="text-right">
-                  <h2 className="text-2xl font-bold text-blue-600">FACTURE</h2>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-2xl font-bold text-blue-600">FACTURE</h2>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowSettingsPopup(true)}
+                      className="ml-4"
+                    >
+                      <Settings className="h-4 w-4 mr-1" />
+                      Paramètres
+                    </Button>
+                  </div>
                   <div className="space-y-2 mt-2">
                     <div>
                       <Label htmlFor="invoiceNumber">Numéro</Label>
@@ -614,6 +638,15 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
             </Button>
           </div>
         </div>
+
+        {/* Settings Popup */}
+        <InvoiceSettingsPopup
+          isOpen={showSettingsPopup}
+          onClose={() => setShowSettingsPopup(false)}
+          onApply={(settings) => setInvoiceSettings(settings)}
+          currentSettings={invoiceSettings}
+          totalAmount={totalTTC}
+        />
       </DialogContent>
     </Dialog>
   );
