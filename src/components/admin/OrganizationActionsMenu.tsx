@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { MoreHorizontal, Edit, Pause, Play, Check, Calendar, CalendarDays, ArrowUp, History, Users, Trash2, CalendarX } from 'lucide-react';
+import { MoreHorizontal, Edit, Pause, Play, Check, Calendar, CalendarDays, ArrowUp, ArrowDown, History, Users, Trash2, CalendarX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -149,6 +149,66 @@ export function OrganizationActionsMenu({
     setIsOpen(false);
   };
 
+  const handleDowngrade = async () => {
+    if (confirm(`Êtes-vous sûr de vouloir rétrograder l'organisation "${organization.name}" vers le plan Essential ? Cette action supprimera automatiquement les collaborateurs en excès.`)) {
+      try {
+        // D'abord, récupérer les utilisateurs de l'organisation
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('organization_id', organization.id)
+          .order('created_at', { ascending: true }); // Le plus ancien reste
+
+        if (profilesError) throw profilesError;
+
+        // Le plan Essential autorise seulement 1 utilisateur
+        const maxUsers = 1;
+        
+        if (profiles && profiles.length > maxUsers) {
+          // Garder le plus ancien utilisateur (premier créé) et supprimer les autres
+          const usersToDelete = profiles.slice(maxUsers);
+          
+          for (const userToDelete of usersToDelete) {
+            const { error: deleteError } = await supabase
+              .from('profiles')
+              .delete()
+              .eq('id', userToDelete.id);
+
+            if (deleteError) {
+              console.error('Erreur lors de la suppression d\'un utilisateur:', deleteError);
+            }
+          }
+
+          toast({
+            title: "Information",
+            description: `${usersToDelete.length} collaborateur(s) supprimé(s) automatiquement`
+          });
+        }
+
+        // Ensuite, changer le plan
+        await updateOrganization(organization.id, { plan: 'essential' });
+        await logAction(organization.id, 'plan_downgraded', { 
+          from: organization.plan, 
+          to: 'essential',
+          users_removed: profiles ? Math.max(0, profiles.length - maxUsers) : 0
+        });
+
+        toast({
+          title: "Succès",
+          description: "Organisation rétrogradée vers le plan Essential"
+        });
+      } catch (error) {
+        console.error('Error downgrading organization:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de rétrograder l'organisation",
+          variant: "destructive"
+        });
+      }
+    }
+    setIsOpen(false);
+  };
+
   const handleDelete = async () => {
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'organisation "${organization.name}" ? Cette action est irréversible.`)) {
       try {
@@ -251,6 +311,11 @@ export function OrganizationActionsMenu({
         <DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer" disabled={organization.plan === 'pro'}>
           <ArrowUp className="h-4 w-4 mr-2" />
           Améliorer le plan
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={handleDowngrade} className="cursor-pointer" disabled={organization.plan === 'essential'}>
+          <ArrowDown className="h-4 w-4 mr-2" />
+          Rétrograder le plan
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
