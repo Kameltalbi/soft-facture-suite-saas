@@ -30,9 +30,9 @@ const MentionsLegalesPage = () => {
                   <h2 className="text-2xl font-bold">Éditeur du site</h2>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  SoftFacture est une solution de facturation en ligne éditée par la société <strong>ABC Archibat</strong>, 
-                  société à responsabilité limitée (SARL) au capital de 50 000 DT, immatriculée au Registre de Commerce 
-                  de Tunis sous le numéro <strong>B1234562024</strong>.
+                  SoftFacture est une solution de facturation en ligne éditée par la société <strong>KT Consulting & Co</strong>, 
+                  société de conseil aux entreprises spécialisée dans le marketing digital, le développement commercial 
+                  et la transition climatique.
                 </p>
               </CardContent>
             </Card>
@@ -111,7 +111,7 @@ const MentionsLegalesPage = () => {
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
                   Tous les éléments présents sur le site softfacture.com, y compris les textes, visuels, logos, 
-                  interfaces et codes, sont la propriété exclusive de ABC Archibat, sauf mention contraire. 
+                  interfaces et codes, sont la propriété exclusive de KT Consulting & Co, sauf mention contraire. 
                   Toute reproduction, distribution ou usage non autorisé est strictement interdit.
                 </p>
               </CardContent>
