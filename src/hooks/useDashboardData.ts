@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useExchangeRates } from '@/hooks/useExchangeRates';
@@ -72,36 +72,15 @@ export const useDashboardData = (selectedYear: number) => {
     invoiceStatusDistribution: []
   });
 
-  // Cache de la devise pour éviter les requêtes multiples
-  const [organizationCurrency, setOrganizationCurrency] = useState<{
-    id: string;
-    code: string;
-    symbol: string;
-    name: string;
-    decimal_places: number;
-  } | null>(null);
-
-  // Mémorisation des taux de change pour éviter les recalculs inutiles
-  const memoizedExchangeRates = useMemo(() => exchangeRates, [exchangeRates]);
-
   useEffect(() => {
-    if (profile?.organization_id && memoizedExchangeRates.length >= 0) {
+    if (profile?.organization_id && exchangeRates.length >= 0) {
       console.log('🔍 Dashboard - Fetching yearly data for organization:', profile.organization_id, 'Year:', selectedYear);
       fetchDashboardData();
     }
-  }, [profile?.organization_id, selectedYear, memoizedExchangeRates]);
+  }, [profile?.organization_id, selectedYear, exchangeRates]);
 
-  const fetchOrganizationCurrency = useCallback(async () => {
-    // Utiliser le cache si disponible
-    if (organizationCurrency && profile?.organization_id) {
-      return organizationCurrency;
-    }
-
-    if (!profile?.organization_id) {
-      const defaultCurrency = { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
-      setOrganizationCurrency(defaultCurrency);
-      return defaultCurrency;
-    }
+  const fetchOrganizationCurrency = async () => {
+    if (!profile?.organization_id) return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
 
     try {
       const { data, error } = await supabase
@@ -111,25 +90,22 @@ export const useDashboardData = (selectedYear: number) => {
         .eq('is_primary', true)
         .single();
 
-      const currency = error || !data 
-        ? { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 }
-        : {
-            id: data.id,
-            code: data.code,
-            symbol: data.symbol,
-            name: data.name,
-            decimal_places: data.decimal_places
-          };
+      if (error || !data) {
+        return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
+      }
 
-      setOrganizationCurrency(currency);
-      return currency;
+      return {
+        id: data.id,
+        code: data.code,
+        symbol: data.symbol,
+        name: data.name,
+        decimal_places: data.decimal_places
+      };
     } catch (error) {
       console.error('Erreur lors de la récupération de la devise:', error);
-      const defaultCurrency = { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
-      setOrganizationCurrency(defaultCurrency);
-      return defaultCurrency;
+      return { id: '', code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 };
     }
-  }, [organizationCurrency, profile?.organization_id]);
+  };
 
   const fetchDashboardData = async () => {
     if (!profile?.organization_id) {
