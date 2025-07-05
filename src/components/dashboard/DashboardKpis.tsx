@@ -55,48 +55,60 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       value: formatCurrency(data.totalRevenue),
       description: "CA cumulé de l'année (HT)",
       icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
+      iconColor: "text-emerald-600",
+      iconBgColor: "bg-emerald-50",
+      titleColor: "text-emerald-700",
+      cardBgColor: "bg-emerald-25"
     },
     {
       title: "Montant encaissé",
       value: formatCurrency(data.totalEncaisse),
       description: "Paiements reçus",
       icon: CheckCircle,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
+      iconColor: "text-blue-600",
+      iconBgColor: "bg-blue-50",
+      titleColor: "text-blue-700",
+      cardBgColor: "bg-blue-25"
     },
     {
       title: "TVA collectée",
       value: formatCurrency(data.totalVat),
       description: "Montant total de TVA",
       icon: Calculator,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
+      iconColor: "text-purple-600",
+      iconBgColor: "bg-purple-50",
+      titleColor: "text-purple-700",
+      cardBgColor: "bg-purple-25"
     },
     {
       title: "Nombre de factures",
       value: data.totalInvoices.toString(),
       description: "Total des factures émises",
       icon: FileText,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
+      iconColor: "text-orange-600",
+      iconBgColor: "bg-orange-50",
+      titleColor: "text-orange-700",
+      cardBgColor: "bg-orange-25"
     },
     {
       title: "Nombre de devis",
       value: data.totalQuotes.toString(),
       description: "Total des devis émis",
       icon: FileCheck,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50"
+      iconColor: "text-indigo-600",
+      iconBgColor: "bg-indigo-50",
+      titleColor: "text-indigo-700",
+      cardBgColor: "bg-indigo-25"
     },
     {
       title: "Clients actifs",
       value: data.activeClients.toString(),
       description: "Clients ayant généré du CA",
       icon: Users,
-      color: "text-red-600",
-      bgColor: "bg-red-50"
+      iconColor: "text-rose-600",
+      iconBgColor: "bg-rose-50",
+      titleColor: "text-rose-700",
+      cardBgColor: "bg-rose-25"
     }
   ];
 
@@ -105,17 +117,17 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       {kpis.map((kpi, index) => {
         const Icon = kpi.icon;
         return (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
+          <Card key={index} className={`hover:shadow-lg transition-shadow ${kpi.cardBgColor} border-0`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className={`text-sm font-medium ${kpi.titleColor}`}>
                 {kpi.title}
               </CardTitle>
-              <div className={`p-2 rounded-lg ${kpi.bgColor}`}>
-                <Icon className={`h-4 w-4 ${kpi.color}`} />
+              <div className={`p-2 rounded-lg ${kpi.iconBgColor}`}>
+                <Icon className={`h-4 w-4 ${kpi.iconColor}`} />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900 mb-1">
+              <div className="text-2xl font-bold text-gray-700 mb-1">
                 {kpi.value}
               </div>
               <p className="text-xs text-gray-500">

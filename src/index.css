@@ -36,6 +36,20 @@
 
     --radius: 0.5rem;
 
+    /* KPI Cards Colors */
+    --emerald-25: 148 42% 97%;
+    --emerald-700: 158 64% 52%;
+    --blue-25: 213 100% 97%;
+    --blue-700: 213 94% 68%;
+    --purple-25: 268 100% 97%;
+    --purple-700: 268 83% 58%;
+    --orange-25: 33 100% 97%;
+    --orange-700: 33 100% 50%;
+    --indigo-25: 239 100% 97%;
+    --indigo-700: 239 84% 67%;
+    --rose-25: 351 100% 97%;
+    --rose-700: 351 77% 65%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -81,6 +95,21 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    
+    /* KPI Cards Colors - Dark Mode */
+    --emerald-25: 158 28% 15%;
+    --emerald-700: 158 64% 52%;
+    --blue-25: 213 35% 15%;
+    --blue-700: 213 94% 68%;
+    --purple-25: 268 35% 15%;
+    --purple-700: 268 83% 58%;
+    --orange-25: 33 35% 15%;
+    --orange-700: 33 100% 50%;
+    --indigo-25: 239 35% 15%;
+    --indigo-700: 239 84% 67%;
+    --rose-25: 351 35% 15%;
+    --rose-700: 351 77% 65%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
