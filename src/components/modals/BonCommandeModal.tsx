@@ -143,33 +143,28 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
     };
   };
 
-  const handleSubmit = async () => {
+  // Handle save as draft action
+  const handleSaveAsDraft = async () => {
     const totaux = calculerTotaux();
     const fournisseurSelectionne = fournisseurs.find(f => f.id === formData.fournisseurId);
     
+    // Set status to draft for save as draft
+    const draftFormData = { ...formData, statut: 'brouillon' as const };
+    
     if (!bonCommande) {
-      // Créer un nouveau bon de commande
+      // Créer un nouveau bon de commande en brouillon
       const purchaseOrderData = {
-        purchase_order_number: formData.numero,
-        supplier_id: formData.fournisseurId,
+        purchase_order_number: draftFormData.numero,
+        supplier_id: draftFormData.fournisseurId,
         date: selectedDate?.toISOString().split('T')[0] || '',
         expected_delivery_date: null,
-        status: (() => {
-          const statusMap = {
-            'brouillon': 'draft',
-            'en_attente': 'pending',
-            'validee': 'confirmed',
-            'livree': 'delivered',
-            'annulee': 'cancelled'
-          };
-          return statusMap[formData.statut] || 'draft';
-        })(),
+        status: 'draft',
         subtotal: totaux.totalHTApresRemise,
         tax_amount: totaux.totalTVA,
         total_amount: totaux.totalTTC,
-        discount: formData.remise,
+        discount: draftFormData.remise,
         delivery_address: null,
-        notes: formData.remarques || null
+        notes: draftFormData.remarques || null
       };
 
       const purchaseOrderItems = lignes.map(ligne => ({
@@ -189,13 +184,73 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
         return;
       }
 
-      toast.success('Bon de commande créé avec succès');
+      toast.success('Bon de commande enregistré comme brouillon');
       onSave(data);
       onClose();
     } else {
-      // Mode édition - pour l'instant, juste fermer la modal
+      // Mode édition - enregistrer comme brouillon
       const bonCommandeData = {
-        ...formData,
+        ...draftFormData,
+        fournisseurNom: fournisseurSelectionne?.nom || '',
+        dateCommande: selectedDate?.toISOString().split('T')[0] || '',
+        montantHT: totaux.totalHTApresRemise,
+        montantTTC: totaux.totalTTC,
+        lignes,
+      };
+
+      onSave(bonCommandeData);
+      onClose();
+    }
+  };
+
+  // Handle validate action (finalize purchase order)
+  const handleValidate = async () => {
+    const totaux = calculerTotaux();
+    const fournisseurSelectionne = fournisseurs.find(f => f.id === formData.fournisseurId);
+    
+    // Set status to pending for validation
+    const validatedFormData = { ...formData, statut: 'en_attente' as const };
+    
+    if (!bonCommande) {
+      // Créer un nouveau bon de commande validé
+      const purchaseOrderData = {
+        purchase_order_number: validatedFormData.numero,
+        supplier_id: validatedFormData.fournisseurId,
+        date: selectedDate?.toISOString().split('T')[0] || '',
+        expected_delivery_date: null,
+        status: 'pending',
+        subtotal: totaux.totalHTApresRemise,
+        tax_amount: totaux.totalTVA,
+        total_amount: totaux.totalTTC,
+        discount: validatedFormData.remise,
+        delivery_address: null,
+        notes: validatedFormData.remarques || null
+      };
+
+      const purchaseOrderItems = lignes.map(ligne => ({
+        description: ligne.designation,
+        quantity: ligne.quantite,
+        unit_price: ligne.prixUnitaireHT,
+        tax_rate: ligne.tva,
+        total_price: ligne.totalHT,
+        received_quantity: null,
+        product_id: null
+      }));
+
+      const { data, error } = await createPurchaseOrder(purchaseOrderData, purchaseOrderItems);
+      
+      if (error) {
+        toast.error('Erreur lors de la création du bon de commande: ' + error);
+        return;
+      }
+
+      toast.success('Bon de commande validé avec succès');
+      onSave(data);
+      onClose();
+    } else {
+      // Mode édition - valider
+      const bonCommandeData = {
+        ...validatedFormData,
         fournisseurNom: fournisseurSelectionne?.nom || '',
         dateCommande: selectedDate?.toISOString().split('T')[0] || '',
         montantHT: totaux.totalHTApresRemise,
@@ -469,16 +524,23 @@ export const BonCommandeModal = ({ isOpen, onClose, bonCommande, onSave }: BonCo
               Aperçu PDF
             </Button>
             
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Button variant="outline" onClick={onClose}>
                 Annuler
               </Button>
               <Button 
-                onClick={handleSubmit}
+                variant="ghost" 
+                onClick={handleSaveAsDraft}
+                disabled={!formData.fournisseurId || lignes.length === 0}
+              >
+                Enregistrer (comme brouillon)
+              </Button>
+              <Button 
+                onClick={handleValidate}
                 className="bg-[#6A9C89] hover:bg-[#5A8B7A]"
                 disabled={!formData.fournisseurId || lignes.length === 0}
               >
-                {bonCommande ? 'Modifier' : 'Créer'} le bon de commande
+                Valider (générer le bon de commande)
               </Button>
             </div>
           </div>
