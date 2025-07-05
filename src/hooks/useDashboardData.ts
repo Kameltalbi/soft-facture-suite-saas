@@ -260,7 +260,21 @@ export const useDashboardData = (selectedYear: number) => {
     const categoryMap = new Map<string, number>();
     invoicesWithItems?.forEach(invoice => {
       invoice.invoice_items?.forEach(item => {
-        const category = item.products?.category || 'Non catégorisé';
+        let category = 'Non catégorisé';
+        
+        // Si le produit est lié directement
+        if (item.products?.category && item.products.category.trim() !== '') {
+          category = item.products.category;
+        } else {
+          // Sinon, essayer de deviner la catégorie à partir de la description
+          const description = item.description.toLowerCase();
+          if (description.includes('vidéo') || description.includes('creation') || description.includes('capsule')) {
+            category = 'Publicité Digitale';
+          } else if (description.includes('page') || description.includes('magazine') || description.includes('publicitaire')) {
+            category = 'Publicité Magazine';
+          }
+        }
+        
         const current = categoryMap.get(category) || 0;
         categoryMap.set(category, current + (item.total_price || 0));
       });
