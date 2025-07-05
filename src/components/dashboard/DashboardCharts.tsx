@@ -88,14 +88,38 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.caByCategory} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis type="number" tickFormatter={formatNumber} />
-                  <YAxis type="category" dataKey="category" width={80} />
+                <PieChart>
+                  <Pie
+                    data={data.caByCategory}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="amount"
+                    nameKey="category"
+                  >
+                    {data.caByCategory.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="amount" fill="#8884d8" radius={[0, 4, 4, 0]} />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
+            </div>
+            <div className="mt-4 space-y-1 max-h-32 overflow-y-auto">
+              {data.caByCategory.map((category, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="truncate max-w-32">{category.category}</span>
+                  </div>
+                  <span className="font-medium">{formatCurrency(category.amount)}</span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
