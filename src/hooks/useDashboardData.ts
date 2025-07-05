@@ -40,6 +40,11 @@ interface DashboardChartData {
     value: number;
     color: string;
   }>;
+  invoiceStatusDistribution: Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>;
 }
 
 export const useDashboardData = (selectedYear: number) => {
@@ -60,7 +65,8 @@ export const useDashboardData = (selectedYear: number) => {
     monthlyComparison: [],
     invoicesPerMonth: [],
     top20Clients: [],
-    clientDistribution: []
+    clientDistribution: [],
+    invoiceStatusDistribution: []
   });
 
   useEffect(() => {
@@ -223,7 +229,8 @@ export const useDashboardData = (selectedYear: number) => {
         monthlyComparison: [],
         invoicesPerMonth: [],
         top20Clients: [],
-        clientDistribution: []
+        clientDistribution: [],
+        invoiceStatusDistribution: []
       };
     }
 
@@ -252,7 +259,8 @@ export const useDashboardData = (selectedYear: number) => {
         monthlyComparison: [],
         invoicesPerMonth: [],
         top20Clients: [],
-        clientDistribution: []
+        clientDistribution: [],
+        invoiceStatusDistribution: []
       };
     }
 
@@ -360,13 +368,30 @@ export const useDashboardData = (selectedYear: number) => {
       color: `#${Math.floor(Math.random()*16777215).toString(16)}`
     }));
 
+    // 7. Répartition factures payées vs non payées
+    const paidInvoices = invoicesWithItems?.filter(inv => inv.status === 'paid').length || 0;
+    const unpaidInvoices = invoicesWithItems?.filter(inv => inv.status !== 'paid').length || 0;
+    const invoiceStatusDistribution = [
+      {
+        name: 'Payées',
+        value: paidInvoices,
+        color: '#22c55e'
+      },
+      {
+        name: 'Non payées',
+        value: unpaidInvoices,
+        color: '#ef4444'
+      }
+    ].filter(item => item.value > 0);
+
     console.log('📊 Charts - Final data for full year:', {
       caByCategory: caByCategory.length,
       caByProduct: caByProduct.length,
       monthlyComparison: monthlyComparison.length,
       invoicesPerMonth: invoicesPerMonth.length,
       top20Clients: top20Clients.length,
-      clientDistribution: clientDistribution.length
+      clientDistribution: clientDistribution.length,
+      invoiceStatusDistribution: invoiceStatusDistribution.length
     });
 
     return {
@@ -375,7 +400,8 @@ export const useDashboardData = (selectedYear: number) => {
       monthlyComparison,
       invoicesPerMonth,
       top20Clients,
-      clientDistribution
+      clientDistribution,
+      invoiceStatusDistribution
     };
   };
 

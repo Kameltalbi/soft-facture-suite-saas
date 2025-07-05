@@ -27,6 +27,11 @@ interface DashboardChartsProps {
       name: string;
       revenue: number;
     }>;
+    invoiceStatusDistribution: Array<{
+      name: string;
+      value: number;
+      color: string;
+    }>;
     clientDistribution: Array<{
       name: string;
       value: number;
@@ -202,22 +207,48 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
           </CardContent>
         </Card>
 
-        {/* 5. Top 20 clients par CA */}
+        {/* 5. Factures payées vs non payées */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 20 Clients</CardTitle>
+            <CardTitle>Factures payées vs non payées</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 overflow-y-auto">
-              <ResponsiveContainer width="100%" height={data.top20Clients.length * 25}>
-                <BarChart data={data.top20Clients.slice(0, 20)} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis type="number" tickFormatter={formatNumber} />
-                  <YAxis type="category" dataKey="name" width={100} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="revenue" fill="#ff00ff" radius={[0, 4, 4, 0]} />
-                </BarChart>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.invoiceStatusDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                    labelLine={false}
+                  >
+                    {data.invoiceStatusDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
               </ResponsiveContainer>
+            </div>
+            <div className="mt-4 space-y-1 max-h-32 overflow-y-auto">
+              {data.invoiceStatusDistribution.map((status, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: status.color }}
+                    />
+                    <span className="truncate max-w-32">{status.name}</span>
+                  </div>
+                  <span className="font-medium">{status.value} factures</span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
