@@ -64,12 +64,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   // Invoice settings popup
   const [showSettingsPopup, setShowSettingsPopup] = useState(false);
   const [invoiceSettings, setInvoiceSettings] = useState({
-    useVat: invoice?.use_vat ?? true,
-    customTaxesUsed: invoice?.custom_taxes_used || [],
-    hasAdvance: invoice?.has_advance ?? false,
-    advanceAmount: invoice?.advance_amount || 0,
-    currencyId: invoice?.currency_id || (currencies.length > 0 ? currencies[0].id : ''),
-    useDiscount: true // Nouveau paramètre pour les remises
+    useVat: invoice?.invoiceSettings?.useVat ?? (invoice?.use_vat ?? true),
+    customTaxesUsed: invoice?.invoiceSettings?.customTaxesUsed ?? (invoice?.custom_taxes_used || []),
+    hasAdvance: invoice?.invoiceSettings?.hasAdvance ?? (invoice?.has_advance ?? false),
+    advanceAmount: invoice?.invoiceSettings?.advanceAmount ?? (invoice?.advance_amount || 0),
+    currencyId: invoice?.invoiceSettings?.currencyId ?? (invoice?.currency_id ?? (currencies.length > 0 ? currencies[0].id : '')),
+    useDiscount: invoice?.invoiceSettings?.useDiscount ?? true
   });
   
   // Invoice items
@@ -255,6 +255,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       notes,
       totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
       customTaxes: customTaxCalculations,
+      invoiceSettings,
       status: 'draft'
     };
     onSave(invoiceData);
@@ -279,6 +280,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       notes,
       totals: { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC },
       customTaxes: customTaxCalculations,
+      invoiceSettings,
       status: 'sent'
     };
     onSave(invoiceData);
@@ -287,9 +289,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
 
   // Format currency display
   const formatCurrency = (amount: number) => {
+    // Utiliser la devise sélectionnée pour cette facture, ou la devise par défaut
+    const selectedCurrency = currencies.find(c => c.id === invoiceSettings.currencyId) || currency;
     return amount.toLocaleString('fr-FR', { 
       style: 'currency', 
-      currency: currency.code,
+      currency: selectedCurrency.code,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
