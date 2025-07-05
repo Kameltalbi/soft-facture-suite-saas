@@ -62,7 +62,7 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i}>
             <CardHeader>
@@ -79,7 +79,7 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 1. CA par catégorie */}
         <Card>
           <CardHeader>
