@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Search, Plus, Trash2, FileText, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface CreditNoteItem {
   id: string;
@@ -19,6 +20,16 @@ interface CreditNoteItem {
   vatRate: number;
   discount: number;
   total: number;
+  productId?: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  unit: string | null;
+  tax_rate?: number;
 }
 
 interface CreditNoteModalProps {
@@ -32,6 +43,7 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
+  const { currency } = useCurrency();
   
   // Form state
   const [creditNoteNumber, setCreditNoteNumber] = useState(creditNote?.number || 'AV-2025-001');
@@ -47,18 +59,71 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
     { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
   
-  // Product search
-  const [productSearch, setProductSearch] = useState('');
+  // Product search inline
+  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fonction de nettoyage des timeouts
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
   
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (client.company && client.company.toLowerCase().includes(clientSearch.toLowerCase()))
   );
-  
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+
+  // Fonction de recherche de produits avec debounce
+  const handleProductSearch = (itemId: string, searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    setActiveItemId(itemId);
+    
+    if (searchTerm.length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => {
+        const filtered = products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        setSearchSuggestions(filtered.slice(0, 5));
+        setShowSuggestions(true);
+      }, 300);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Sélectionner un produit depuis les suggestions
+  const selectProduct = (itemId: string, product: Product) => {
+    const taxRate = product.tax_rate || 0;
+    const unitPrice = product.price;
+    
+    setCreditNoteItems(creditNoteItems.map(item => {
+      if (item.id === itemId) {
+        return {
+          ...item,
+          description: product.name,
+          unitPrice: unitPrice,
+          vatRate: taxRate,
+          total: unitPrice,
+          productId: product.id
+        };
+      }
+      return item;
+    }));
+    setShowSuggestions(false);
+    setActiveItemId(null);
+    setSearchSuggestions([]);
+  };
   
   const addCreditNoteItem = () => {
     const newItem: CreditNoteItem = {
@@ -86,6 +151,16 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
       }
       return item;
     }));
+  };
+
+  // Format currency display
+  const formatCurrency = (amount: number) => {
+    return amount.toLocaleString('fr-FR', { 
+      style: 'currency', 
+      currency: currency.code,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
   };
   
   const removeCreditNoteItem = (id: string) => {
@@ -266,61 +341,18 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center">
-                  <FileText className="mr-2 h-5 w-5" />
-                  Éléments à créditer
-                </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Rechercher un produit..."
-                      value={productSearch}
-                      onChange={(e) => setProductSearch(e.target.value)}
-                      className="pl-10 w-64"
-                      disabled={productsLoading}
-                    />
-                    {productsLoading && <p className="text-xs text-gray-500 mt-1">Chargement...</p>}
-                  </div>
-                  <Button onClick={addCreditNoteItem} size="sm" className="bg-red-600 hover:bg-red-700">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
-                </div>
+                 <CardTitle className="flex items-center">
+                   <FileText className="mr-2 h-5 w-5" />
+                   Éléments à créditer
+                 </CardTitle>
+                 <Button onClick={addCreditNoteItem} size="sm" className="bg-red-600 hover:bg-red-700">
+                   <Plus className="h-4 w-4 mr-1" />
+                   Ajouter une ligne
+                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              {productSearch && (
-                <div className="mb-4 border rounded-lg max-h-32 overflow-y-auto">
-                  {filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex justify-between"
-                      onClick={() => {
-                        const newItem: CreditNoteItem = {
-                          id: Date.now().toString(),
-                          description: product.name,
-                          quantity: 1,
-                          unitPrice: product.price,
-                          vatRate: 20,
-                          discount: 0,
-                          total: product.price
-                        };
-                        setCreditNoteItems([...creditNoteItems, newItem]);
-                        setProductSearch('');
-                      }}
-                    >
-                      <div>
-                        <span className="font-medium">{product.name}</span>
-                        {product.description && <p className="text-xs text-gray-500">{product.description}</p>}
-                      </div>
-                      <span className="text-sm text-gray-500">{product.price}€</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <Table>
+             <CardContent>
+               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[35%]">Description</TableHead>
@@ -333,15 +365,85 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {creditNoteItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateCreditNoteItem(item.id, 'description', e.target.value)}
-                          placeholder="Description de l'élément à créditer"
-                        />
-                      </TableCell>
+                   {creditNoteItems.map((item) => (
+                     <TableRow key={item.id}>
+                       <TableCell className="relative">
+                         <Input
+                           value={item.description}
+                           onChange={(e) => {
+                             updateCreditNoteItem(item.id, 'description', e.target.value);
+                             handleProductSearch(item.id, e.target.value);
+                           }}
+                           placeholder="Tapez pour rechercher un produit..."
+                           onFocus={() => {
+                             setActiveItemId(item.id);
+                             if (item.description.length >= 2) {
+                               handleProductSearch(item.id, item.description);
+                             }
+                           }}
+                           onBlur={(e) => {
+                             // Délai pour permettre le clic sur une suggestion
+                             setTimeout(() => {
+                               const currentTarget = e.currentTarget;
+                               const activeElement = document.activeElement;
+                               if (!currentTarget || !activeElement || !currentTarget.contains(activeElement)) {
+                                 setShowSuggestions(false);
+                                 setActiveItemId(null);
+                               }
+                             }, 200);
+                           }}
+                           onKeyDown={(e) => {
+                             if (e.key === 'Escape') {
+                               setShowSuggestions(false);
+                               setActiveItemId(null);
+                             }
+                           }}
+                         />
+                         
+                         {/* Suggestions dropdown */}
+                         {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
+                           <div 
+                             className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
+                             style={{
+                               zIndex: 9999,
+                               top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
+                               left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
+                               width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
+                             }}
+                           >
+                             {searchSuggestions.map((product) => (
+                               <div
+                                 key={product.id}
+                                 className="p-3 hover:bg-red-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
+                                 onMouseDown={(e) => {
+                                   e.preventDefault(); // Empêche le blur de l'input
+                                   selectProduct(item.id, product);
+                                 }}
+                               >
+                                 <div className="flex-1">
+                                   <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                                   {product.description && (
+                                     <div className="text-xs text-gray-500 mt-1">{product.description}</div>
+                                   )}
+                                   <div className="text-xs text-gray-400 mt-1">
+                                     {product.unit && `Unité: ${product.unit}`}
+                                   </div>
+                                 </div>
+                                 <div className="text-sm font-medium text-red-600 ml-3">
+                                   {formatCurrency(product.price)}
+                                 </div>
+                               </div>
+                             ))}
+                           </div>
+                         )}
+                         
+                         {/* Message si aucun résultat */}
+                         {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                           <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
+                             Aucun produit trouvé pour "{item.description}"
+                           </div>
+                         )}
+                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
@@ -382,9 +484,9 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
                           max="100"
                         />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {item.total.toFixed(2)} €
-                      </TableCell>
+                       <TableCell className="text-right font-medium">
+                         {formatCurrency(item.total)}
+                       </TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -410,30 +512,30 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Sous-total HT:</span>
-                    <span className="font-medium">{(subtotalHT + totalDiscount).toFixed(2)} €</span>
-                  </div>
-                  {totalDiscount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Remise totale:</span>
-                      <span className="font-medium">-{totalDiscount.toFixed(2)} €</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>Net HT:</span>
-                    <span className="font-medium">{subtotalHT.toFixed(2)} €</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>TVA:</span>
-                    <span className="font-medium">{totalVAT.toFixed(2)} €</span>
-                  </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total TTC:</span>
-                      <span className="text-red-600">{totalTTC.toFixed(2)} €</span>
-                    </div>
-                  </div>
+                   <div className="flex justify-between">
+                     <span>Sous-total HT:</span>
+                     <span className="font-medium">{formatCurrency(subtotalHT + totalDiscount)}</span>
+                   </div>
+                   {totalDiscount > 0 && (
+                     <div className="flex justify-between text-green-600">
+                       <span>Remise totale:</span>
+                       <span className="font-medium">-{formatCurrency(totalDiscount)}</span>
+                     </div>
+                   )}
+                   <div className="flex justify-between">
+                     <span>Net HT:</span>
+                     <span className="font-medium">{formatCurrency(subtotalHT)}</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span>TVA:</span>
+                     <span className="font-medium">{formatCurrency(totalVAT)}</span>
+                   </div>
+                   <div className="border-t pt-2">
+                     <div className="flex justify-between text-lg font-bold">
+                       <span>Total TTC:</span>
+                       <span className="text-red-600">{formatCurrency(totalTTC)}</span>
+                     </div>
+                   </div>
                 </div>
               </CardContent>
             </Card>
@@ -454,15 +556,18 @@ export function CreditNoteModal({ open, onClose, creditNote, onSave }: CreditNot
             </CardContent>
           </Card>
 
-          {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button onClick={handleSave} className="bg-red-600 hover:bg-red-700">
-              {creditNote ? 'Mettre à jour' : 'Créer l\'avoir'}
-            </Button>
-          </div>
+           {/* Actions */}
+           <div className="flex justify-end space-x-3">
+             <Button variant="outline" onClick={onClose}>
+               Annuler
+             </Button>
+             <Button variant="ghost" onClick={handleSave}>
+               Enregistrer (comme brouillon)
+             </Button>
+             <Button onClick={handleSave} className="bg-red-600 hover:bg-red-700">
+               Valider (générer l'avoir)
+             </Button>
+           </div>
         </div>
       </DialogContent>
     </Dialog>
