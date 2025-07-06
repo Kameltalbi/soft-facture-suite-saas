@@ -805,7 +805,6 @@ export default function Invoices() {
                       onValidate={() => handleValidateInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}
-                      onMarkAsSent={() => handleMarkAsSent(invoice)}
                       onDelete={() => handleDeleteInvoice(invoice)}
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}

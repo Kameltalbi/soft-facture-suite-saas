@@ -27,7 +27,6 @@ import {
   CreditCard, 
   Edit, 
   Trash2,
-  Send,
   PenTool
 } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
@@ -48,7 +47,6 @@ interface InvoiceActionsMenuProps {
   onValidate: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
-  onMarkAsSent: () => void;
   onDelete: () => void;
   onPaymentRecorded: (paymentData: any) => void;
   onEmailSent: (emailData: any) => void;
@@ -62,7 +60,6 @@ export function InvoiceActionsMenu({
   onValidate,
   onEdit,
   onDuplicate,
-  onMarkAsSent,
   onDelete,
   onPaymentRecorded,
   onEmailSent,
@@ -75,7 +72,6 @@ export function InvoiceActionsMenu({
 
   const isFullyPaid = invoice.status === 'paid' || (invoice.paidAmount && invoice.paidAmount >= invoice.amount);
   const canRecordPayment = !isFullyPaid;
-  const canMarkAsSent = invoice.status === 'draft';
   const canValidate = invoice.status === 'draft' || invoice.status === 'sent';
   const canModify = invoice.status === 'draft';
   const canSign = hasSignature && invoice.status !== 'draft';
@@ -152,13 +148,6 @@ export function InvoiceActionsMenu({
             <DropdownMenuItem onClick={() => setShowPaymentModal(true)}>
               <CreditCard className="mr-2 h-4 w-4" />
               Enregistrer un paiement
-            </DropdownMenuItem>
-          )}
-
-          {canMarkAsSent && (
-            <DropdownMenuItem onClick={onMarkAsSent}>
-              <Send className="mr-2 h-4 w-4" />
-              Marquer comme envoyée
             </DropdownMenuItem>
           )}
 

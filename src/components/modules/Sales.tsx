@@ -416,7 +416,6 @@ export function Sales() {
                       onValidate={() => handleValidateDocument(document)}
                       onEdit={() => handleEditDocument(document)}
                       onDuplicate={() => handleDuplicateDocument(document)}
-                      onMarkAsSent={() => handleMarkAsSent(document)}
                       onDelete={() => handleDeleteDocument(document)}
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
