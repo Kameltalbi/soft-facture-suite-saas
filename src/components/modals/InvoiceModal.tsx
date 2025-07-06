@@ -680,10 +680,10 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                                    {product.description && (
                                      <div className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</div>
                                    )}
-                                   <div className="text-xs text-gray-400 mt-1">
-                                     {product.unit && `Unité: ${product.unit}`}
-                                     {product.tax_rate && ` • TVA: ${product.tax_rate}%`}
-                                   </div>
+                                    <div className="text-xs text-gray-400 mt-1">
+                                      {product.unit && `Unité: ${product.unit}`}
+                                      {(product.tax_rate !== null && product.tax_rate !== undefined) && ` • TVA: ${product.tax_rate}%`}
+                                    </div>
                                  </div>
                                  <div className="text-sm font-medium text-blue-600 ml-3">
                                    {formatCurrency(product.price)}
