@@ -44,6 +44,8 @@ interface InvoiceModalProps {
 }
 
 export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalProps) {
+  console.log('Modal InvoiceModal reçu les données suivantes:', invoice);
+  
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
@@ -53,24 +55,76 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { currencies } = useCurrencies();
   
   // Form state variables
-  const [invoiceNumber, setInvoiceNumber] = useState(invoice?.number || '');
-  const [invoiceDate, setInvoiceDate] = useState(invoice?.date || new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState(invoice?.dueDate || '');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dueDate, setDueDate] = useState('');
   const [clientSearch, setClientSearch] = useState('');
-  const [selectedClient, setSelectedClient] = useState(invoice?.client || null);
-  const [subject, setSubject] = useState(invoice?.subject || '');
-  const [notes, setNotes] = useState(invoice?.notes || '');
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [subject, setSubject] = useState('');
+  const [notes, setNotes] = useState('');
   
   // Invoice settings popup
   const [showSettingsPopup, setShowSettingsPopup] = useState(false);
   const [invoiceSettings, setInvoiceSettings] = useState({
-    useVat: invoice?.invoiceSettings?.useVat ?? (invoice?.use_vat ?? true),
-    customTaxesUsed: invoice?.invoiceSettings?.customTaxesUsed ?? (invoice?.custom_taxes_used || []),
-    hasAdvance: invoice?.invoiceSettings?.hasAdvance ?? (invoice?.has_advance ?? false),
-    advanceAmount: invoice?.invoiceSettings?.advanceAmount ?? (invoice?.advance_amount || 0),
-    currencyId: invoice?.invoiceSettings?.currencyId ?? (invoice?.currency_id ?? (currencies.length > 0 ? currencies[0].id : '')),
-    useDiscount: invoice?.invoiceSettings?.useDiscount ?? true
+    useVat: true,
+    customTaxesUsed: [],
+    hasAdvance: false,
+    advanceAmount: 0,
+    currencyId: currencies.length > 0 ? currencies[0].id : '',
+    useDiscount: true
   });
+
+  // Invoice items
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
+    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
+  ]);
+
+  // Mettre à jour les états quand l'invoice change
+  useEffect(() => {
+    if (invoice) {
+      console.log('Mise à jour des états avec les données de la facture:', invoice);
+      setInvoiceNumber(invoice.number || '');
+      setInvoiceDate(invoice.date || new Date().toISOString().split('T')[0]);
+      setDueDate(invoice.dueDate || '');
+      setSelectedClient(invoice.client || null);
+      setSubject(invoice.subject || '');
+      setNotes(invoice.notes || '');
+      
+      setInvoiceSettings({
+        useVat: invoice.invoiceSettings?.useVat ?? (invoice.use_vat ?? true),
+        customTaxesUsed: invoice.invoiceSettings?.customTaxesUsed ?? (invoice.custom_taxes_used || []),
+        hasAdvance: invoice.invoiceSettings?.hasAdvance ?? (invoice.has_advance ?? false),
+        advanceAmount: invoice.invoiceSettings?.advanceAmount ?? (invoice.advance_amount || 0),
+        currencyId: invoice.invoiceSettings?.currencyId ?? (invoice.currency_id ?? (currencies.length > 0 ? currencies[0].id : '')),
+        useDiscount: invoice.invoiceSettings?.useDiscount ?? true
+      });
+      
+      if (invoice.items && invoice.items.length > 0) {
+        setInvoiceItems(invoice.items);
+      }
+    } else {
+      // Réinitialiser pour une nouvelle facture
+      setInvoiceNumber('');
+      setInvoiceDate(new Date().toISOString().split('T')[0]);
+      setDueDate('');
+      setSelectedClient(null);
+      setSubject('');
+      setNotes('');
+      
+      setInvoiceSettings({
+        useVat: true,
+        customTaxesUsed: [],
+        hasAdvance: false,
+        advanceAmount: 0,
+        currencyId: currencies.length > 0 ? currencies[0].id : '',
+        useDiscount: true
+      });
+      
+      setInvoiceItems([
+        { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
+      ]);
+    }
+  }, [invoice, currencies]);
 
   // Auto-activate "timbre fiscal" for new invoices
   useEffect(() => {
@@ -87,11 +141,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       }
     }
   }, [customTaxes, invoice]);
-  
-  // Invoice items
-  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>(invoice?.items || [
-    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
-  ]);
   
   // Product search inline
   const [activeItemId, setActiveItemId] = useState<string | null>(null);

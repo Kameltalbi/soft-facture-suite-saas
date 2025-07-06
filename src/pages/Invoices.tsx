@@ -151,6 +151,8 @@ export default function Invoices() {
   };
 
   const handleEditInvoice = (invoice: any) => {
+    console.log('Données brutes de la facture:', invoice);
+    
     // Mapper les données de la facture pour correspondre à ce que le modal attend
     const mappedInvoice = {
       ...invoice,
@@ -177,6 +179,7 @@ export default function Invoices() {
       }
     };
     
+    console.log('Facture mappée pour le modal:', mappedInvoice);
     setEditingInvoice(mappedInvoice);
     setShowInvoiceModal(true);
   };
