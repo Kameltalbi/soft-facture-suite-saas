@@ -145,11 +145,11 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [customTaxes, invoice]);
   
-  // Product search inline
+  // Product search with flexible dropdown
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
-  const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(-1);
-  const [suggestionText, setSuggestionText] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fonction de nettoyage des timeouts
@@ -174,68 +174,88 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
 
-  // Fonction de recherche de produits avec debounce pour autocomplétion inline
+  // Fonction de recherche flexible avec dropdown intelligent
   const handleProductSearch = (itemId: string, searchTerm: string) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
     setActiveItemId(itemId);
-    setCurrentSuggestionIndex(-1);
-    setSuggestionText('');
+    setSelectedSuggestionIndex(-1);
     
-    if (searchTerm.length >= 2) {
+    // Recherche dès 1 caractère avec algorithme flexible
+    if (searchTerm.length >= 1) {
       searchTimeoutRef.current = setTimeout(() => {
-        const filtered = products.filter(product =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-        setSearchSuggestions(filtered.slice(0, 5));
+        const normalizedSearch = searchTerm.toLowerCase().trim();
         
-        // Mettre à jour la suggestion inline
-        if (filtered.length > 0) {
-          const firstMatch = filtered[0];
-          if (firstMatch.name.toLowerCase().startsWith(searchTerm.toLowerCase())) {
-            setSuggestionText(firstMatch.name);
-            setCurrentSuggestionIndex(0);
-          }
-        }
-      }, 300);
+        const filtered = products.filter(product => {
+          const productName = product.name.toLowerCase();
+          const productDesc = product.description?.toLowerCase() || '';
+          
+          // Recherche flexible :
+          // 1. Commence par le terme recherché
+          // 2. Contient le terme recherché
+          // 3. Recherche par mots (chaque mot séparément)
+          // 4. Recherche dans la description aussi
+          
+          return (
+            productName.startsWith(normalizedSearch) ||
+            productName.includes(normalizedSearch) ||
+            productDesc.includes(normalizedSearch) ||
+            // Recherche par mots séparés
+            normalizedSearch.split(' ').every(word => 
+              word.length > 0 && (productName.includes(word) || productDesc.includes(word))
+            )
+          );
+        });
+        
+        // Trier par pertinence : ceux qui commencent par le terme en premier
+        const sortedFiltered = filtered.sort((a, b) => {
+          const aName = a.name.toLowerCase();
+          const bName = b.name.toLowerCase();
+          
+          if (aName.startsWith(normalizedSearch) && !bName.startsWith(normalizedSearch)) return -1;
+          if (!aName.startsWith(normalizedSearch) && bName.startsWith(normalizedSearch)) return 1;
+          
+          return a.name.localeCompare(b.name);
+        });
+        
+        setSearchSuggestions(sortedFiltered.slice(0, 8)); // Montrer jusqu'à 8 résultats
+        setShowSuggestions(sortedFiltered.length > 0);
+      }, 150); // Réduit le délai pour plus de réactivité
     } else {
       setSearchSuggestions([]);
-      setSuggestionText('');
-      setCurrentSuggestionIndex(-1);
+      setShowSuggestions(false);
     }
   };
 
-  // Navigation avec les touches fléchées
+  // Navigation au clavier dans le dropdown
   const handleKeyNavigation = (e: React.KeyboardEvent, itemId: string) => {
-    if (searchSuggestions.length === 0) return;
+    if (!showSuggestions || searchSuggestions.length === 0) return;
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const nextIndex = Math.min(currentSuggestionIndex + 1, searchSuggestions.length - 1);
-      setCurrentSuggestionIndex(nextIndex);
-      setSuggestionText(searchSuggestions[nextIndex].name);
+      setSelectedSuggestionIndex(prev => 
+        prev < searchSuggestions.length - 1 ? prev + 1 : 0
+      );
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      const prevIndex = Math.max(currentSuggestionIndex - 1, 0);
-      setCurrentSuggestionIndex(prevIndex);
-      setSuggestionText(searchSuggestions[prevIndex].name);
-    } else if (e.key === 'Tab' || e.key === 'Enter') {
-      if (currentSuggestionIndex >= 0 && searchSuggestions[currentSuggestionIndex]) {
+      setSelectedSuggestionIndex(prev => 
+        prev > 0 ? prev - 1 : searchSuggestions.length - 1
+      );
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      if (selectedSuggestionIndex >= 0 && searchSuggestions[selectedSuggestionIndex]) {
         e.preventDefault();
-        selectProduct(itemId, searchSuggestions[currentSuggestionIndex]);
+        selectProduct(itemId, searchSuggestions[selectedSuggestionIndex]);
       }
     } else if (e.key === 'Escape') {
-      setSearchSuggestions([]);
-      setSuggestionText('');
-      setCurrentSuggestionIndex(-1);
+      setShowSuggestions(false);
+      setSelectedSuggestionIndex(-1);
       setActiveItemId(null);
     }
   };
 
-  // Sélectionner un produit depuis les suggestions
+  // Sélectionner un produit depuis les suggestions  
   const selectProduct = (itemId: string, product: Product) => {
     const taxRate = product.tax_rate || 0;
     const unitPrice = product.price;
@@ -255,9 +275,9 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }));
     
     // Nettoyer l'état de recherche
+    setShowSuggestions(false);
     setSearchSuggestions([]);
-    setSuggestionText('');
-    setCurrentSuggestionIndex(-1);
+    setSelectedSuggestionIndex(-1);
     setActiveItemId(null);
   };
   
@@ -595,66 +615,65 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                   {invoiceItems.map((item) => (
                     <TableRow key={item.id}>
                        <TableCell className="relative">
-                         <div className="relative">
-                           <Input
-                             value={item.description}
-                             onChange={(e) => {
-                               updateInvoiceItem(item.id, 'description', e.target.value);
-                               handleProductSearch(item.id, e.target.value);
-                             }}
-                             placeholder="Tapez pour rechercher un produit..."
-                             onFocus={() => {
-                               setActiveItemId(item.id);
-                               if (item.description.length >= 2) {
-                                 handleProductSearch(item.id, item.description);
-                               }
-                             }}
-                             onBlur={() => {
-                               setTimeout(() => {
-                                 setSearchSuggestions([]);
-                                 setSuggestionText('');
-                                 setCurrentSuggestionIndex(-1);
-                                 setActiveItemId(null);
-                               }, 200);
-                             }}
-                             onKeyDown={(e) => handleKeyNavigation(e, item.id)}
-                             className="relative z-10 bg-transparent"
-                           />
-                           
-                           {/* Texte d'autocomplétion en arrière-plan */}
-                           {activeItemId === item.id && suggestionText && suggestionText.toLowerCase().startsWith(item.description.toLowerCase()) && item.description.length > 0 && (
-                             <div className="absolute inset-0 pointer-events-none">
-                               <div className="flex items-center h-full px-3 text-gray-400">
-                                 <span className="invisible">{item.description}</span>
-                                 <span>{suggestionText.slice(item.description.length)}</span>
-                               </div>
-                             </div>
-                           )}
-                         </div>
+                         <Input
+                           value={item.description}
+                           onChange={(e) => {
+                             updateInvoiceItem(item.id, 'description', e.target.value);
+                             handleProductSearch(item.id, e.target.value);
+                           }}
+                           placeholder="Tapez pour rechercher un produit..."
+                           onFocus={() => {
+                             setActiveItemId(item.id);
+                             if (item.description.length >= 1) {
+                               handleProductSearch(item.id, item.description);
+                             }
+                           }}
+                           onBlur={() => {
+                             setTimeout(() => {
+                               setShowSuggestions(false);
+                               setSearchSuggestions([]);
+                               setSelectedSuggestionIndex(-1);
+                               setActiveItemId(null);
+                             }, 200);
+                           }}
+                           onKeyDown={(e) => handleKeyNavigation(e, item.id)}
+                         />
                          
-                         {/* Suggestions contextuelles */}
-                         {activeItemId === item.id && searchSuggestions.length > 1 && (
-                           <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-32 overflow-y-auto mt-1">
-                             {searchSuggestions.slice(1).map((product, index) => (
+                         {/* Dropdown intelligent avec suggestions */}
+                         {activeItemId === item.id && showSuggestions && searchSuggestions.length > 0 && (
+                           <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-64 overflow-y-auto mt-1">
+                             {searchSuggestions.map((product, index) => (
                                <div
                                  key={product.id}
-                                 className={`p-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm transition-colors ${
-                                   currentSuggestionIndex === index + 1 ? 'bg-blue-50' : ''
+                                 className={`p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors ${
+                                   selectedSuggestionIndex === index ? 'bg-blue-100' : ''
                                  }`}
                                  onMouseDown={(e) => {
                                    e.preventDefault();
                                    selectProduct(item.id, product);
                                  }}
+                                 onMouseEnter={() => setSelectedSuggestionIndex(index)}
                                >
-                                 <div className="font-medium text-gray-900">{product.name}</div>
-                                 <div className="text-xs text-blue-600">{formatCurrency(product.price)}</div>
+                                 <div className="flex-1">
+                                   <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                                   {product.description && (
+                                     <div className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</div>
+                                   )}
+                                   <div className="text-xs text-gray-400 mt-1">
+                                     {product.unit && `Unité: ${product.unit}`}
+                                     {product.tax_rate && ` • TVA: ${product.tax_rate}%`}
+                                   </div>
+                                 </div>
+                                 <div className="text-sm font-medium text-blue-600 ml-3">
+                                   {formatCurrency(product.price)}
+                                 </div>
                                </div>
                              ))}
                            </div>
                          )}
                          
                          {/* Message si aucun résultat */}
-                         {activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                         {activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 1 && (
                            <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
                              Aucun produit trouvé pour "{item.description}"
                            </div>
