@@ -24,6 +24,7 @@ import {
 import { Plus, Edit, Trash2, Receipt } from 'lucide-react';
 import { CustomTaxModal } from '@/components/modals/CustomTaxModal';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
+import { useCurrencies } from '@/hooks/useCurrencies';
 import { CustomTax, CreateCustomTaxData } from '@/types/customTax';
 
 const documentTypeLabels: Record<string, string> = {
@@ -35,6 +36,7 @@ const documentTypeLabels: Record<string, string> = {
 
 export function CustomTaxSettings() {
   const { customTaxes, loading, createCustomTax, updateCustomTax, deleteCustomTax } = useCustomTaxes();
+  const { currencies } = useCurrencies();
   const [showModal, setShowModal] = useState(false);
   const [editingTax, setEditingTax] = useState<CustomTax | null>(null);
   const [deletingTax, setDeletingTax] = useState<CustomTax | null>(null);
@@ -67,9 +69,12 @@ export function CustomTaxSettings() {
   };
 
   const formatValue = (tax: CustomTax) => {
-    return tax.type === 'percentage' 
-      ? `${tax.value}%` 
-      : `${tax.value} DT`;
+    if (tax.type === 'percentage') {
+      return `${tax.value}%`;
+    } else {
+      const currency = currencies.find(c => c.id === tax.currency_id);
+      return `${tax.value} ${currency?.symbol || 'DT'}`;
+    }
   };
 
   if (loading) {
