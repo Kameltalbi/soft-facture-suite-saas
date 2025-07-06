@@ -27,7 +27,7 @@ interface Document {
   date: string;
   client: string;
   amount: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated' | 'signed';
 }
 
 const mockDocuments: Document[] = [
@@ -82,7 +82,8 @@ const statusLabels = {
   paid: { label: 'Payé', variant: 'default' as const },
   overdue: { label: 'En retard', variant: 'destructive' as const },
   partially_paid: { label: 'Payé P.', variant: 'outline' as const },
-  validated: { label: 'Validée', variant: 'success' as const }
+  validated: { label: 'Validée', variant: 'success' as const },
+  signed: { label: 'Signée', variant: 'info' as const }
 };
 
 export function Sales() {

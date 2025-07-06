@@ -90,8 +90,15 @@ export function InvoicesTable({
                   {formatCurrency(invoice.total_amount, invoice.currencies)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusLabels[invoice.status as InvoiceStatus]?.variant || 'secondary'}>
-                    {statusLabels[invoice.status as InvoiceStatus]?.label || invoice.status}
+                  <Badge variant={
+                    invoice.is_signed 
+                      ? 'info' 
+                      : statusLabels[invoice.status as InvoiceStatus]?.variant || 'secondary'
+                  }>
+                    {invoice.is_signed 
+                      ? 'Signée' 
+                      : statusLabels[invoice.status as InvoiceStatus]?.label || invoice.status
+                    }
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

@@ -1,4 +1,4 @@
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated' | 'signed';
 
 export interface Invoice {
   id: string;
@@ -14,7 +14,8 @@ export const statusLabels = {
   paid: { label: 'Payé', variant: 'default' as const },
   overdue: { label: 'En retard', variant: 'destructive' as const },
   partially_paid: { label: 'Payé P.', variant: 'outline' as const },
-  validated: { label: 'Validée', variant: 'success' as const }
+  validated: { label: 'Validée', variant: 'success' as const },
+  signed: { label: 'Signée', variant: 'info' as const }
 };
 
 export const months = [
