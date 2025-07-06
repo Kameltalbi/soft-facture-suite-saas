@@ -191,7 +191,7 @@ export default function Invoices() {
             custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
             has_advance: invoiceData.settings?.hasAdvance,
             advance_amount: invoiceData.settings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId,
+            currency_id: invoiceData.currencyId || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingInvoice.id);
@@ -239,7 +239,7 @@ export default function Invoices() {
             custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
             has_advance: invoiceData.settings?.hasAdvance,
             advance_amount: invoiceData.settings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId
+            currency_id: invoiceData.currencyId || null
           })
           .select()
           .single();
