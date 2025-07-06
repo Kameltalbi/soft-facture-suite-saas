@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,17 +24,15 @@ export function Products() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productToDelete, setProductToDelete] = useState<any>(null);
 
-  const filteredProducts = useMemo(() => {
-    return products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  }, [products, searchTerm]);
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
-  const activeProducts = useMemo(() => products.filter(p => p.active), [products]);
-  const inactiveProducts = useMemo(() => products.filter(p => !p.active), [products]);
-  const lowStockProducts = useMemo(() => products.filter(p => p.track_stock && p.stock_quantity !== null && p.stock_quantity < 10), [products]);
+  const activeProducts = products.filter(p => p.active);
+  const inactiveProducts = products.filter(p => !p.active);
+  const lowStockProducts = products.filter(p => p.track_stock && p.stock_quantity !== null && p.stock_quantity < 10);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
