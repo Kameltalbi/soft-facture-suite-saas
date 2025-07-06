@@ -71,6 +71,22 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     currencyId: invoice?.invoiceSettings?.currencyId ?? (invoice?.currency_id ?? (currencies.length > 0 ? currencies[0].id : '')),
     useDiscount: invoice?.invoiceSettings?.useDiscount ?? true
   });
+
+  // Auto-activate "timbre fiscal" for new invoices
+  useEffect(() => {
+    if (!invoice && customTaxes.length > 0) {
+      const timbreFiscalTaxes = customTaxes
+        .filter(tax => tax.name.toLowerCase().includes('timbre'))
+        .map(tax => tax.id);
+      
+      if (timbreFiscalTaxes.length > 0) {
+        setInvoiceSettings(prev => ({
+          ...prev,
+          customTaxesUsed: [...prev.customTaxesUsed, ...timbreFiscalTaxes]
+        }));
+      }
+    }
+  }, [customTaxes, invoice]);
   
   // Invoice items
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>(invoice?.items || [
