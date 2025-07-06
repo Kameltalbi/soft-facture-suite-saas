@@ -26,10 +26,6 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
     email: organization?.email || '',
     phone: organization?.phone || '',
     website: organization?.website || '',
-    rib: organization?.rib || '',
-    iban: organization?.iban || '',
-    swift: organization?.swift || '',
-    bank: organization?.bank || '',
     siret: organization?.siret || '',
     fiscal_id: organization?.fiscal_id || '',
     vat_code: organization?.vat_code || '',
@@ -234,44 +230,6 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
             />
           </div>
 
-          {/* Banking Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Informations bancaires</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="rib">RIB</Label>
-                <Input
-                  id="rib"
-                  value={formData.rib}
-                  onChange={(e) => handleInputChange('rib', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="iban">IBAN</Label>
-                <Input
-                  id="iban"
-                  value={formData.iban}
-                  onChange={(e) => handleInputChange('iban', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="swift">Code SWIFT</Label>
-                <Input
-                  id="swift"
-                  value={formData.swift}
-                  onChange={(e) => handleInputChange('swift', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bank">Banque</Label>
-                <Input
-                  id="bank"
-                  value={formData.bank}
-                  onChange={(e) => handleInputChange('bank', e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Fiscal Information */}
           <div className="space-y-4">
