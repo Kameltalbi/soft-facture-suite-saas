@@ -37,6 +37,7 @@ export function useInvoicesActions() {
             has_advance: invoiceData.invoiceSettings?.hasAdvance,
             advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
             currency_id: invoiceData.currencyId || null,
+            sales_channel: invoiceData.invoiceSettings?.salesChannel || 'local',
             updated_at: new Date().toISOString()
           })
           .eq('id', editingInvoice.id);
@@ -84,7 +85,8 @@ export function useInvoicesActions() {
             custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
             has_advance: invoiceData.invoiceSettings?.hasAdvance,
             advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId || null
+            currency_id: invoiceData.currencyId || null,
+            sales_channel: invoiceData.invoiceSettings?.salesChannel || 'local'
           })
           .select()
           .single();
@@ -143,7 +145,8 @@ export function useInvoicesActions() {
           subtotal: invoice.subtotal,
           tax_amount: invoice.tax_amount,
           total_amount: invoice.total_amount,
-          notes: invoice.notes
+          notes: invoice.notes,
+          sales_channel: invoice.sales_channel || 'local'
         })
         .select()
         .single();

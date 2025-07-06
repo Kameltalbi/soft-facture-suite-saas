@@ -76,7 +76,8 @@ export default function Invoices() {
         hasAdvance: invoice.has_advance ?? false,
         advanceAmount: invoice.advance_amount || 0,
         currencyId: invoice.currency_id,
-        useDiscount: true
+        useDiscount: true,
+        salesChannel: invoice.sales_channel || 'local'
       }
     };
     

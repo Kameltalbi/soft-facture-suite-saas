@@ -16,6 +16,7 @@ interface InvoiceSettings {
   advanceAmount: number;
   currencyId: string;
   useDiscount: boolean;
+  salesChannel: string;
 }
 
 interface InvoiceSettingsPopupProps {
@@ -222,6 +223,33 @@ export function InvoiceSettingsPopup({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Section Canal de vente */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Canal de vente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <Label htmlFor="sales-channel-select">Type de vente</Label>
+                <Select 
+                  value={settings.salesChannel} 
+                  onValueChange={(value) => setSettings(prev => ({ ...prev, salesChannel: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Sélectionner le canal de vente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="local">Local</SelectItem>
+                    <SelectItem value="export">Export</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Classifie cette vente comme locale ou à l'export pour l'analyse des données
+                </p>
               </div>
             </CardContent>
           </Card>

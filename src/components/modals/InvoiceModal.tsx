@@ -71,7 +71,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     hasAdvance: false,
     advanceAmount: 0,
     currencyId: currencies.length > 0 ? currencies[0].id : '',
-    useDiscount: true
+    useDiscount: true,
+    salesChannel: 'local'
   });
 
   // Invoice items
@@ -96,7 +97,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
         hasAdvance: invoice.invoiceSettings?.hasAdvance ?? (invoice.has_advance ?? false),
         advanceAmount: invoice.invoiceSettings?.advanceAmount ?? (invoice.advance_amount || 0),
         currencyId: invoice.invoiceSettings?.currencyId ?? (invoice.currency_id ?? (currencies.length > 0 ? currencies[0].id : '')),
-        useDiscount: invoice.invoiceSettings?.useDiscount ?? true
+        useDiscount: invoice.invoiceSettings?.useDiscount ?? true,
+        salesChannel: invoice.invoiceSettings?.salesChannel ?? (invoice.sales_channel ?? 'local')
       });
       
       if (invoice.items && invoice.items.length > 0) {
@@ -117,7 +119,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
         hasAdvance: false,
         advanceAmount: 0,
         currencyId: currencies.length > 0 ? currencies[0].id : '',
-        useDiscount: true
+        useDiscount: true,
+        salesChannel: 'local'
       });
       
       setInvoiceItems([

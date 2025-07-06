@@ -680,6 +680,7 @@ export type Database = {
           is_signed: boolean | null
           notes: string | null
           organization_id: string
+          sales_channel: string | null
           status: string | null
           subtotal: number
           tax_amount: number
@@ -703,6 +704,7 @@ export type Database = {
           is_signed?: boolean | null
           notes?: string | null
           organization_id: string
+          sales_channel?: string | null
           status?: string | null
           subtotal?: number
           tax_amount?: number
@@ -726,6 +728,7 @@ export type Database = {
           is_signed?: boolean | null
           notes?: string | null
           organization_id?: string
+          sales_channel?: string | null
           status?: string | null
           subtotal?: number
           tax_amount?: number
