@@ -25,6 +25,7 @@ interface Organization {
   logo_url: string | null;
   signature_url: string | null;
   plan: 'essential' | 'pro';
+  status: string | null;
   created_at: string;
   updated_at: string;
 }

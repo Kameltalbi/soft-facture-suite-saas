@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, loading } = useAuth();
+  const { user, loading, organization } = useAuth();
 
   if (loading) {
     return (
@@ -19,6 +19,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Bloquer l'accès si l'organisation n'est pas validée par un superadmin
+  if (organization?.status !== 'active') {
+    return <Navigate to="/en-attente-validation" replace />;
   }
 
   return <>{children}</>;
