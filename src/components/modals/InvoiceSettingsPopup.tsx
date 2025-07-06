@@ -110,25 +110,27 @@ export function InvoiceSettingsPopup({
               <CardTitle className="text-base">Taxes personnalisées</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {customTaxes.length === 0 ? (
+              {customTaxes.filter(tax => tax.applicable_documents.includes('invoice')).length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Aucune taxe personnalisée définie. Rendez-vous dans Paramètres {'>'} Taxes personnalisées pour en créer.
+                  Aucune taxe personnalisée définie pour les factures. Rendez-vous dans Paramètres {'>'} Taxes personnalisées pour en créer.
                 </p>
               ) : (
-                customTaxes.map((tax) => (
-                  <div key={tax.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="font-medium">{tax.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} DT`}
+                customTaxes
+                  .filter(tax => tax.applicable_documents.includes('invoice'))
+                  .map((tax) => (
+                    <div key={tax.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="font-medium">{tax.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} DT`}
+                        </div>
                       </div>
+                      <Switch
+                        checked={settings.customTaxesUsed.includes(tax.id)}
+                        onCheckedChange={(checked) => handleCustomTaxToggle(tax.id, checked)}
+                      />
                     </div>
-                    <Switch
-                      checked={settings.customTaxesUsed.includes(tax.id)}
-                      onCheckedChange={(checked) => handleCustomTaxToggle(tax.id, checked)}
-                    />
-                  </div>
-                ))
+                  ))
               )}
             </CardContent>
           </Card>
