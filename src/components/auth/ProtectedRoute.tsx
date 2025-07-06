@@ -21,10 +21,8 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Bloquer l'accès si l'organisation n'est pas validée par un superadmin
-  if (organization?.status !== 'active') {
-    return <Navigate to="/en-attente-validation" replace />;
-  }
+  // Permettre l'accès même si l'organisation n'est pas encore active
+  // (suppression de la redirection vers en-attente-validation)
 
   return <>{children}</>;
 };

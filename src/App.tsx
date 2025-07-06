@@ -15,7 +15,7 @@ import PricingPage from "./pages/PricingPage";
 import DemoPage from "./pages/DemoPage";
 import AuthPage from "./pages/AuthPage";
 import CheckoutPage from "./pages/CheckoutPage";
-import EnAttenteValidationPage from "./pages/EnAttenteValidationPage";
+
 import ContactPage from "./pages/ContactPage";
 import MentionsLegalesPage from "./pages/MentionsLegalesPage";
 import CGUPage from "./pages/CGUPage";
@@ -50,7 +50,7 @@ const App = () => (
               <Route path="/cgu" element={<CGUPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/en-attente-validation" element={<EnAttenteValidationPage />} />
+              
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />

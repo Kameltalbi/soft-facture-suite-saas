@@ -104,10 +104,10 @@ const CheckoutPage = () => {
 
       toast({
         title: "Inscription réussie !",
-        description: "Votre compte a été créé. Vous allez être redirigé vers la page de validation.",
+        description: "Votre compte a été créé avec succès.",
       });
 
-      navigate('/en-attente-validation');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error during signup:', error);
       toast({
