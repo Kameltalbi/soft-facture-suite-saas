@@ -6,7 +6,7 @@ import {
   CheckCircle, 
   Calculator, 
   FileText, 
-  FileCheck, 
+  ArrowUpRight, 
   Users
 } from 'lucide-react';
 
@@ -15,7 +15,7 @@ interface DashboardKpiData {
   totalEncaisse: number;
   totalVat: number;
   totalInvoices: number;
-  totalQuotes: number;
+  totalExportRevenue: number;
   activeClients: number;
   currency: { code: string; symbol: string; name: string; decimal_places: number };
 }
@@ -91,10 +91,10 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       cardBgColor: "bg-orange-25"
     },
     {
-      title: "Nombre de devis",
-      value: data.totalQuotes.toString(),
-      description: "Total des devis émis",
-      icon: FileCheck,
+      title: "CA Export",
+      value: formatCurrency(data.totalExportRevenue),
+      description: "Chiffre d'affaires à l'export",
+      icon: ArrowUpRight,
       iconColor: "text-indigo-600",
       iconBgColor: "bg-indigo-50",
       titleColor: "text-indigo-700",

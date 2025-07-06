@@ -10,7 +10,7 @@ interface DashboardKpiData {
   totalEncaisse: number;
   totalVat: number;
   totalInvoices: number;
-  totalQuotes: number;
+  totalExportRevenue: number;
   activeClients: number;
   currency: { code: string; symbol: string; name: string; decimal_places: number };
 }
@@ -58,7 +58,7 @@ export const useDashboardData = (selectedYear: number) => {
     totalEncaisse: 0,
     totalVat: 0,
     totalInvoices: 0,
-    totalQuotes: 0,
+    totalExportRevenue: 0,
     activeClients: 0,
     currency: { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 }
   });
@@ -147,7 +147,7 @@ export const useDashboardData = (selectedYear: number) => {
         totalEncaisse: 0,
         totalVat: 0,
         totalInvoices: 0,
-        totalQuotes: 0,
+        totalExportRevenue: 0,
         activeClients: 0
       };
     }
@@ -182,17 +182,16 @@ export const useDashboardData = (selectedYear: number) => {
       console.log('📄 KPI - Invoices found for FULL YEAR:', invoices?.length || 0);
     }
 
-    // Devis de l'année
-    const { data: quotes, error: quotesError } = await supabase
-      .from('quotes')
-      .select('*')
-      .eq('organization_id', orgId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0]);
-
-    if (quotesError) {
-      console.error('❌ KPI - Error fetching quotes:', quotesError);
-    }
+    // CA Export (factures avec sales_channel = 'export')
+    const totalExportRevenue = invoices?.filter(inv => inv.sales_channel === 'export').reduce((sum, inv) => {
+      const convertedAmount = convertToDefaultCurrency(
+        inv.total_amount || 0,
+        inv.currency_id || currency.id,
+        currency.id,
+        exchangeRates
+      );
+      return sum + convertedAmount;
+    }, 0) || 0;
 
     // Calculs des KPI avec conversion de devises
     const totalInvoices = invoices?.length || 0;
@@ -227,7 +226,6 @@ export const useDashboardData = (selectedYear: number) => {
       );
       return sum + convertedAmount;
     }, 0) || 0;
-    const totalQuotes = quotes?.length || 0;
     
     // Clients actifs (ayant généré du CA)
     const activeClientsSet = new Set();
@@ -244,7 +242,7 @@ export const useDashboardData = (selectedYear: number) => {
       totalRevenue,
       totalEncaisse,
       totalVat,
-      totalQuotes,
+      totalExportRevenue,
       activeClients
     });
 
@@ -253,7 +251,7 @@ export const useDashboardData = (selectedYear: number) => {
       totalEncaisse,
       totalVat,
       totalInvoices,
-      totalQuotes,
+      totalExportRevenue,
       activeClients
     };
   };
