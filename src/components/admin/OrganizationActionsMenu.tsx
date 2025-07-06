@@ -212,44 +212,53 @@ export function OrganizationActionsMenu({
   const handleDelete = async () => {
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'organisation "${organization.name}" ? Cette action supprimera TOUTES les données associées (utilisateurs, factures, clients, etc.). Cette action est irréversible.`)) {
       try {
-        // Supprimer d'abord tous les profils de l'organisation
-        const { error: profilesError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('organization_id', organization.id);
-
-        if (profilesError) {
-          console.error('Error deleting profiles:', profilesError);
-          throw new Error('Impossible de supprimer les utilisateurs associés');
-        }
-
-        // Supprimer tous les paiements de l'organisation
-        const { error: paymentsError } = await supabase
-          .from('payments')
-          .delete()
-          .eq('organization_id', organization.id);
-
-        if (paymentsError) {
-          console.error('Error deleting payments:', paymentsError);
-          throw new Error('Impossible de supprimer les paiements associés');
-        }
-
-        // Supprimer l'historique de l'organisation
-        const { error: historyError } = await supabase
-          .from('organization_history')
-          .delete()
-          .eq('organization_id', organization.id);
-
-        if (historyError) {
-          console.error('Error deleting organization history:', historyError);
-          // Ne pas bloquer pour l'historique
-        }
-
-        // Enfin, supprimer l'organisation
+        const orgId = organization.id;
+        
+        // Supprimer dans l'ordre pour éviter les contraintes de clé étrangère
+        
+        // 1. Supprimer les éléments de documents
+        await supabase.from('invoice_items').delete().eq('organization_id', orgId);
+        await supabase.from('quote_items').delete().eq('organization_id', orgId);
+        await supabase.from('credit_note_items').delete().eq('organization_id', orgId);
+        await supabase.from('delivery_note_items').delete().eq('organization_id', orgId);
+        await supabase.from('purchase_order_items').delete().eq('organization_id', orgId);
+        
+        // 2. Supprimer les paiements
+        await supabase.from('payments').delete().eq('organization_id', orgId);
+        
+        // 3. Supprimer les documents
+        await supabase.from('invoices').delete().eq('organization_id', orgId);
+        await supabase.from('quotes').delete().eq('organization_id', orgId);
+        await supabase.from('credit_notes').delete().eq('organization_id', orgId);
+        await supabase.from('delivery_notes').delete().eq('organization_id', orgId);
+        await supabase.from('purchase_orders').delete().eq('organization_id', orgId);
+        
+        // 4. Supprimer les données de base
+        await supabase.from('products').delete().eq('organization_id', orgId);
+        await supabase.from('clients').delete().eq('organization_id', orgId);
+        await supabase.from('categories').delete().eq('organization_id', orgId);
+        await supabase.from('stock_movements').delete().eq('organization_id', orgId);
+        
+        // 5. Supprimer les paramètres
+        await supabase.from('currencies').delete().eq('organization_id', orgId);
+        await supabase.from('custom_taxes').delete().eq('organization_id', orgId);
+        await supabase.from('exchange_rates').delete().eq('organization_id', orgId);
+        await supabase.from('global_settings').delete().eq('organization_id', orgId);
+        await supabase.from('document_numberings').delete().eq('organization_id', orgId);
+        await supabase.from('roles').delete().eq('organization_id', orgId);
+        await supabase.from('saved_reports').delete().eq('organization_id', orgId);
+        
+        // 6. Supprimer l'historique
+        await supabase.from('organization_history').delete().eq('organization_id', orgId);
+        
+        // 7. Supprimer les profils utilisateurs
+        await supabase.from('profiles').delete().eq('organization_id', orgId);
+        
+        // 8. Enfin, supprimer l'organisation
         const { error } = await supabase
           .from('organizations')
           .delete()
-          .eq('id', organization.id);
+          .eq('id', orgId);
 
         if (error) throw error;
 
