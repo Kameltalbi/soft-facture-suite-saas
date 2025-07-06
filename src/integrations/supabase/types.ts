@@ -793,6 +793,7 @@ export type Database = {
           name: string
           phone: string | null
           plan: string | null
+          signature_url: string | null
           status: string | null
           subscription_end: string | null
           subscription_start: string | null
@@ -810,6 +811,7 @@ export type Database = {
           name: string
           phone?: string | null
           plan?: string | null
+          signature_url?: string | null
           status?: string | null
           subscription_end?: string | null
           subscription_start?: string | null
@@ -827,6 +829,7 @@ export type Database = {
           name?: string
           phone?: string | null
           plan?: string | null
+          signature_url?: string | null
           status?: string | null
           subscription_end?: string | null
           subscription_start?: string | null

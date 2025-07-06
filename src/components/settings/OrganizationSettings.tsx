@@ -19,7 +19,9 @@ interface OrganizationSettingsProps {
 export function OrganizationSettings({ organization, onSave }: OrganizationSettingsProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
   const [formData, setFormData] = useState<Partial<Organization>>({
     name: organization?.name || '',
     address: organization?.address || '',
@@ -42,6 +44,10 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
 
   const handleLogoClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleSignatureClick = () => {
+    signatureInputRef.current?.click();
   };
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +122,78 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
     }
   };
 
+  const handleSignatureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !organization?.id) return;
+
+    // Validation du fichier
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast({
+        title: 'Erreur',
+        description: validation.error,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUploadingSignature(true);
+    try {
+      // Redimensionner l'image automatiquement
+      const resizedFile = await resizeImage(file, 400, 200, 0.8);
+      
+      toast({
+        title: 'Image optimisée',
+        description: 'Votre signature a été automatiquement redimensionnée pour de meilleures performances.',
+      });
+
+      // Generate a unique filename
+      const fileExt = resizedFile.name.split('.').pop();
+      const fileName = `${organization.id}-signature-${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('organization-signatures')
+        .upload(fileName, resizedFile);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('organization-signatures')
+        .getPublicUrl(fileName);
+
+      // Update the organization in the database
+      const { error: updateError } = await supabase
+        .from('organizations')
+        .update({ signature_url: publicUrl })
+        .eq('id', organization.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Update local state
+      onSave({ signature: publicUrl });
+
+      toast({
+        title: 'Succès',
+        description: 'Signature mise à jour avec succès.',
+      });
+    } catch (error) {
+      console.error('Error uploading signature:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors du téléchargement de la signature.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingSignature(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -174,6 +252,56 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                 type="file"
                 accept="image/*"
                 onChange={handleLogoUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
+
+          {/* Signature Upload */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Signature de l'organisation</label>
+            <div className="text-sm text-muted-foreground mb-4">
+              Format conseillé : PNG ou SVG transparent, dimensions recommandées : 400 x 200 px
+              <br />
+              <span className="text-green-600 font-medium">✨ Redimensionnement automatique activé</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="signature-container w-60 h-20 border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted/30 p-3">
+                {organization?.signature ? (
+                  <img 
+                    src={organization.signature} 
+                    alt="Signature" 
+                    className="max-w-full max-h-full object-contain" 
+                  />
+                ) : (
+                  <div className="text-center">
+                    <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground">Zone d'affichage de la signature</span>
+                    <div className="text-xs text-muted-foreground/70 mt-1">240 x 80 px</div>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleSignatureClick}
+                  disabled={uploadingSignature}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploadingSignature ? 'Optimisation...' : 'Changer la signature'}
+                </Button>
+                <div className="text-xs text-muted-foreground max-w-48">
+                  Formats acceptés : PNG, JPG, SVG<br/>
+                  Taille max : 5MB<br/>
+                  <span className="text-green-600">Redimensionnement auto</span>
+                </div>
+              </div>
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleSignatureUpload}
                 className="hidden"
               />
             </div>

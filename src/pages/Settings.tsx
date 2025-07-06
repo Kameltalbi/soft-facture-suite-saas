@@ -138,6 +138,7 @@ export default function Settings() {
         fiscal_id: '',
         vat_code: organization.vat_number || '',
         logo: organization.logo_url || undefined,
+        signature: (organization as any).signature_url || undefined,
         tenant_id: organization.id // Using organization id as tenant_id
       };
       setOrganizationData(convertedOrg);
@@ -160,16 +161,23 @@ export default function Settings() {
     }
 
     try {
+      const updateData: any = {
+        name: data.name,
+        address: data.address,
+        email: data.email,
+        phone: data.phone,
+        website: data.website,
+        vat_number: data.vat_code,
+      };
+
+      // Add signature_url if signature is provided
+      if (data.signature) {
+        updateData.signature_url = data.signature;
+      }
+
       const { error } = await supabase
         .from('organizations')
-        .update({
-          name: data.name,
-          address: data.address,
-          email: data.email,
-          phone: data.phone,
-          website: data.website,
-          vat_number: data.vat_code,
-        })
+        .update(updateData)
         .eq('id', profile.organization_id);
 
       if (error) throw error;
