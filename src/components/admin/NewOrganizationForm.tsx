@@ -50,7 +50,7 @@ export function NewOrganizationForm({ onCreated }: NewOrganizationFormProps) {
           subscription_start: formData.subscription_start,
           subscription_end: formData.subscription_end || null,
           status: 'active',
-          plan: 'free'
+          plan: 'essential'
         });
 
       if (error) throw error;
