@@ -298,6 +298,7 @@ export type Database = {
           active: boolean
           applicable_documents: string[]
           created_at: string
+          currency_id: string | null
           id: string
           name: string
           organization_id: string
@@ -309,6 +310,7 @@ export type Database = {
           active?: boolean
           applicable_documents?: string[]
           created_at?: string
+          currency_id?: string | null
           id?: string
           name: string
           organization_id: string
@@ -320,6 +322,7 @@ export type Database = {
           active?: boolean
           applicable_documents?: string[]
           created_at?: string
+          currency_id?: string | null
           id?: string
           name?: string
           organization_id?: string
@@ -327,7 +330,15 @@ export type Database = {
           updated_at?: string
           value?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "custom_taxes_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_note_items: {
         Row: {
