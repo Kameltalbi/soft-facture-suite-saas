@@ -148,7 +148,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   // Product search inline
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(-1);
+  const [suggestionText, setSuggestionText] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fonction de nettoyage des timeouts
@@ -173,13 +174,15 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
 
-  // Fonction de recherche de produits avec debounce
+  // Fonction de recherche de produits avec debounce pour autocomplétion inline
   const handleProductSearch = (itemId: string, searchTerm: string) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
     setActiveItemId(itemId);
+    setCurrentSuggestionIndex(-1);
+    setSuggestionText('');
     
     if (searchTerm.length >= 2) {
       searchTimeoutRef.current = setTimeout(() => {
@@ -188,11 +191,47 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
           (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
         );
         setSearchSuggestions(filtered.slice(0, 5));
-        setShowSuggestions(true);
+        
+        // Mettre à jour la suggestion inline
+        if (filtered.length > 0) {
+          const firstMatch = filtered[0];
+          if (firstMatch.name.toLowerCase().startsWith(searchTerm.toLowerCase())) {
+            setSuggestionText(firstMatch.name);
+            setCurrentSuggestionIndex(0);
+          }
+        }
       }, 300);
     } else {
       setSearchSuggestions([]);
-      setShowSuggestions(false);
+      setSuggestionText('');
+      setCurrentSuggestionIndex(-1);
+    }
+  };
+
+  // Navigation avec les touches fléchées
+  const handleKeyNavigation = (e: React.KeyboardEvent, itemId: string) => {
+    if (searchSuggestions.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = Math.min(currentSuggestionIndex + 1, searchSuggestions.length - 1);
+      setCurrentSuggestionIndex(nextIndex);
+      setSuggestionText(searchSuggestions[nextIndex].name);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = Math.max(currentSuggestionIndex - 1, 0);
+      setCurrentSuggestionIndex(prevIndex);
+      setSuggestionText(searchSuggestions[prevIndex].name);
+    } else if (e.key === 'Tab' || e.key === 'Enter') {
+      if (currentSuggestionIndex >= 0 && searchSuggestions[currentSuggestionIndex]) {
+        e.preventDefault();
+        selectProduct(itemId, searchSuggestions[currentSuggestionIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setSearchSuggestions([]);
+      setSuggestionText('');
+      setCurrentSuggestionIndex(-1);
+      setActiveItemId(null);
     }
   };
 
@@ -214,9 +253,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       }
       return item;
     }));
-    setShowSuggestions(false);
-    setActiveItemId(null);
+    
+    // Nettoyer l'état de recherche
     setSearchSuggestions([]);
+    setSuggestionText('');
+    setCurrentSuggestionIndex(-1);
+    setActiveItemId(null);
   };
   
   // Add a new empty invoice item
@@ -552,75 +594,72 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 <TableBody>
                   {invoiceItems.map((item) => (
                     <TableRow key={item.id}>
-                      <TableCell className="relative">
-                        <Input
-                          value={item.description}
-                          onChange={(e) => {
-                            updateInvoiceItem(item.id, 'description', e.target.value);
-                            handleProductSearch(item.id, e.target.value);
-                          }}
-                          placeholder="Tapez pour rechercher un produit..."
-                          onFocus={() => {
-                            setActiveItemId(item.id);
-                            if (item.description.length >= 2) {
-                              handleProductSearch(item.id, item.description);
-                            }
-                          }}
-                          onBlur={(e) => {
-                            // Délai pour permettre le clic sur une suggestion
-                            setTimeout(() => {
-                              const currentTarget = e.currentTarget;
-                              const activeElement = document.activeElement;
-                              if (!currentTarget || !activeElement || !currentTarget.contains(activeElement)) {
-                                setShowSuggestions(false);
-                                setActiveItemId(null);
-                              }
-                            }, 200);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Escape') {
-                              setShowSuggestions(false);
-                              setActiveItemId(null);
-                            }
-                          }}
-                        />
-                        
-                        {/* Suggestions dropdown */}
-                        {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
-                          <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto mt-1">
-                            {searchSuggestions.map((product) => (
-                              <div
-                                key={product.id}
-                                className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
-                                onMouseDown={(e) => {
-                                  e.preventDefault(); // Empêche le blur de l'input
-                                  selectProduct(item.id, product);
-                                }}
-                              >
-                                <div className="flex-1">
-                                  <div className="font-medium text-sm text-gray-900">{product.name}</div>
-                                  {product.description && (
-                                    <div className="text-xs text-gray-500 mt-1">{product.description}</div>
-                                  )}
-                                  <div className="text-xs text-gray-400 mt-1">
-                                    {product.unit && `Unité: ${product.unit}`}
-                                  </div>
-                                </div>
-                                <div className="text-sm font-medium text-blue-600 ml-3">
-                                  {formatCurrency(product.price)}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {/* Message si aucun résultat */}
-                        {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
-                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
-                            Aucun produit trouvé pour "{item.description}"
-                          </div>
-                        )}
-                      </TableCell>
+                       <TableCell className="relative">
+                         <div className="relative">
+                           <Input
+                             value={item.description}
+                             onChange={(e) => {
+                               updateInvoiceItem(item.id, 'description', e.target.value);
+                               handleProductSearch(item.id, e.target.value);
+                             }}
+                             placeholder="Tapez pour rechercher un produit..."
+                             onFocus={() => {
+                               setActiveItemId(item.id);
+                               if (item.description.length >= 2) {
+                                 handleProductSearch(item.id, item.description);
+                               }
+                             }}
+                             onBlur={() => {
+                               setTimeout(() => {
+                                 setSearchSuggestions([]);
+                                 setSuggestionText('');
+                                 setCurrentSuggestionIndex(-1);
+                                 setActiveItemId(null);
+                               }, 200);
+                             }}
+                             onKeyDown={(e) => handleKeyNavigation(e, item.id)}
+                             className="relative z-10 bg-transparent"
+                           />
+                           
+                           {/* Texte d'autocomplétion en arrière-plan */}
+                           {activeItemId === item.id && suggestionText && suggestionText.toLowerCase().startsWith(item.description.toLowerCase()) && item.description.length > 0 && (
+                             <div className="absolute inset-0 pointer-events-none">
+                               <div className="flex items-center h-full px-3 text-gray-400">
+                                 <span className="invisible">{item.description}</span>
+                                 <span>{suggestionText.slice(item.description.length)}</span>
+                               </div>
+                             </div>
+                           )}
+                         </div>
+                         
+                         {/* Suggestions contextuelles */}
+                         {activeItemId === item.id && searchSuggestions.length > 1 && (
+                           <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-32 overflow-y-auto mt-1">
+                             {searchSuggestions.slice(1).map((product, index) => (
+                               <div
+                                 key={product.id}
+                                 className={`p-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm transition-colors ${
+                                   currentSuggestionIndex === index + 1 ? 'bg-blue-50' : ''
+                                 }`}
+                                 onMouseDown={(e) => {
+                                   e.preventDefault();
+                                   selectProduct(item.id, product);
+                                 }}
+                               >
+                                 <div className="font-medium text-gray-900">{product.name}</div>
+                                 <div className="text-xs text-blue-600">{formatCurrency(product.price)}</div>
+                               </div>
+                             ))}
+                           </div>
+                         )}
+                         
+                         {/* Message si aucun résultat */}
+                         {activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                           <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
+                             Aucun produit trouvé pour "{item.description}"
+                           </div>
+                         )}
+                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
