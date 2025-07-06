@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, Building } from 'lucide-react';
+import { Upload, Building, Edit2, Trash2 } from 'lucide-react';
 import { Organization } from '@/types/settings';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -194,6 +194,37 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
     }
   };
 
+  const handleDeleteSignature = async () => {
+    if (!organization?.id || !organization?.signature) return;
+
+    try {
+      // Update the organization in the database to remove signature_url
+      const { error: updateError } = await supabase
+        .from('organizations')
+        .update({ signature_url: null })
+        .eq('id', organization.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Update local state
+      onSave({ signature: undefined });
+
+      toast({
+        title: 'Succès',
+        description: 'Signature supprimée avec succès.',
+      });
+    } catch (error) {
+      console.error('Error deleting signature:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la suppression de la signature.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -252,56 +283,6 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                 type="file"
                 accept="image/*"
                 onChange={handleLogoUpload}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          {/* Signature Upload */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Signature de l'organisation</label>
-            <div className="text-sm text-muted-foreground mb-4">
-              Format conseillé : PNG ou SVG transparent, dimensions recommandées : 400 x 200 px
-              <br />
-              <span className="text-green-600 font-medium">✨ Redimensionnement automatique activé</span>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="signature-container w-60 h-20 border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted/30 p-3">
-                {organization?.signature ? (
-                  <img 
-                    src={organization.signature} 
-                    alt="Signature" 
-                    className="max-w-full max-h-full object-contain" 
-                  />
-                ) : (
-                  <div className="text-center">
-                    <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
-                    <span className="text-xs text-muted-foreground">Zone d'affichage de la signature</span>
-                    <div className="text-xs text-muted-foreground/70 mt-1">240 x 80 px</div>
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleSignatureClick}
-                  disabled={uploadingSignature}
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  {uploadingSignature ? 'Optimisation...' : 'Changer la signature'}
-                </Button>
-                <div className="text-xs text-muted-foreground max-w-48">
-                  Formats acceptés : PNG, JPG, SVG<br/>
-                  Taille max : 5MB<br/>
-                  <span className="text-green-600">Redimensionnement auto</span>
-                </div>
-              </div>
-              <input
-                ref={signatureInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleSignatureUpload}
                 className="hidden"
               />
             </div>
@@ -387,6 +368,70 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                   onChange={(e) => handleInputChange('vat_code', e.target.value)}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Signature Upload */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Signature de l'organisation</h3>
+            <div className="text-sm text-muted-foreground mb-4">
+              Format conseillé : PNG ou SVG transparent, dimensions recommandées : 400 x 200 px
+              <br />
+              <span className="text-green-600 font-medium">✨ Redimensionnement automatique activé</span>
+            </div>
+            <div className="flex items-start gap-6">
+              <div className="signature-container w-60 h-20 border-2 border-dashed border-border rounded-lg flex items-center justify-center bg-muted/30 p-3">
+                {organization?.signature ? (
+                  <img 
+                    src={organization.signature} 
+                    alt="Signature" 
+                    className="max-w-full max-h-full object-contain" 
+                  />
+                ) : (
+                  <div className="text-center">
+                    <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground">Zone d'affichage de la signature</span>
+                    <div className="text-xs text-muted-foreground/70 mt-1">240 x 80 px</div>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleSignatureClick}
+                    disabled={uploadingSignature}
+                  >
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    {uploadingSignature ? 'Optimisation...' : organization?.signature ? 'Modifier' : 'Ajouter'}
+                  </Button>
+                  {organization?.signature && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleDeleteSignature}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </Button>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground max-w-48">
+                  Formats acceptés : PNG, JPG, SVG<br/>
+                  Taille max : 5MB<br/>
+                  <span className="text-green-600">Redimensionnement auto</span>
+                </div>
+              </div>
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleSignatureUpload}
+                className="hidden"
+              />
             </div>
           </div>
 
