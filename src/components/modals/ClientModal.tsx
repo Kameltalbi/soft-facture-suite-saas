@@ -28,7 +28,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
     address: '',
     city: '',
     postal_code: '',
-    country: 'France',
+    country: 'Tunisie',
     vat_number: '',
     payment_terms: 30,
     status: 'active' as 'active' | 'inactive'
@@ -44,7 +44,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         address: client.address || '',
         city: client.city || '',
         postal_code: client.postal_code || '',
-        country: client.country || 'France',
+        country: client.country || 'Tunisie',
         vat_number: client.vat_number || '',
         payment_terms: client.payment_terms || 30,
         status: client.status || 'active'
@@ -58,7 +58,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         address: '',
         city: '',
         postal_code: '',
-        country: 'France',
+        country: 'Tunisie',
         vat_number: '',
         payment_terms: 30,
         status: 'active'
@@ -133,7 +133,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="Jean Dupont"
+                  placeholder="Ahmed Ben Ali"
                   required
                 />
               </div>
@@ -157,7 +157,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  placeholder="contact@entreprise.com"
+                  placeholder="contact@entreprise.tn"
                   required
                 />
               </div>
@@ -168,7 +168,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  placeholder="+33 1 23 45 67 89"
+                  placeholder="+216 20 123 456"
                 />
               </div>
             </div>
@@ -184,7 +184,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
-                placeholder="123 rue de la Paix"
+                placeholder="Avenue Habib Bourguiba"
               />
             </div>
 
@@ -195,7 +195,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                   id="postal_code"
                   value={formData.postal_code}
                   onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
-                  placeholder="75001"
+                  placeholder="1000"
                 />
               </div>
 
@@ -205,7 +205,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                   id="city"
                   value={formData.city}
                   onChange={(e) => setFormData({...formData, city: e.target.value})}
-                  placeholder="Paris"
+                  placeholder="Tunis"
                 />
               </div>
 
@@ -215,7 +215,7 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
                   id="country"
                   value={formData.country}
                   onChange={(e) => setFormData({...formData, country: e.target.value})}
-                  placeholder="France"
+                  placeholder="Tunisie"
                 />
               </div>
             </div>
