@@ -185,7 +185,7 @@ export const useDashboardData = (selectedYear: number) => {
     // CA Export (factures avec sales_channel = 'export')
     const totalExportRevenue = invoices?.filter(inv => inv.sales_channel === 'export').reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
-        inv.total_amount || 0,
+        inv.subtotal || 0,
         inv.currency_id || currency.id,
         currency.id,
         exchangeRates
@@ -199,7 +199,7 @@ export const useDashboardData = (selectedYear: number) => {
     // Convertir tous les montants vers la devise par défaut
     const totalRevenue = invoices?.reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
-        inv.total_amount || 0,
+        inv.subtotal || 0,
         inv.currency_id || currency.id,
         currency.id,
         exchangeRates
@@ -209,7 +209,7 @@ export const useDashboardData = (selectedYear: number) => {
     
     const totalEncaisse = invoices?.filter(inv => inv.status === 'paid').reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
-        inv.total_amount || 0,
+        inv.subtotal || 0,
         inv.currency_id || currency.id,
         currency.id,
         exchangeRates
@@ -230,7 +230,7 @@ export const useDashboardData = (selectedYear: number) => {
     // Clients actifs (ayant généré du CA)
     const activeClientsSet = new Set();
     invoices?.forEach(invoice => {
-      if (invoice.total_amount && invoice.total_amount > 0) {
+      if (invoice.subtotal && invoice.subtotal > 0) {
         activeClientsSet.add(invoice.client_id);
       }
     });
@@ -371,7 +371,7 @@ export const useDashboardData = (selectedYear: number) => {
     // Une seule requête pour les deux années
     const { data: allYearInvoices } = await supabase
       .from('invoices')
-      .select('total_amount, currency_id, date, currencies(code)')
+      .select('subtotal, currency_id, date, currencies(code)')
       .eq('organization_id', orgId)
       .gte('date', prevYearStart.toISOString().split('T')[0])
       .lte('date', currentYearEnd.toISOString().split('T')[0]);
@@ -385,7 +385,7 @@ export const useDashboardData = (selectedYear: number) => {
         })
         .reduce((sum, inv) => {
           const convertedAmount = convertToDefaultCurrency(
-            inv.total_amount || 0,
+            inv.subtotal || 0,
             inv.currency_id || currency.id,
             currency.id,
             exchangeRates
@@ -400,7 +400,7 @@ export const useDashboardData = (selectedYear: number) => {
         })
         .reduce((sum, inv) => {
           const convertedAmount = convertToDefaultCurrency(
-            inv.total_amount || 0,
+            inv.subtotal || 0,
             inv.currency_id || currency.id,
             currency.id,
             exchangeRates
@@ -435,7 +435,7 @@ export const useDashboardData = (selectedYear: number) => {
       
       // Convertir le montant vers la devise par défaut
       const convertedAmount = convertToDefaultCurrency(
-        invoice.total_amount || 0,
+        invoice.subtotal || 0,
         invoice.currency_id || currency.id,
         currency.id,
         exchangeRates
@@ -452,7 +452,7 @@ export const useDashboardData = (selectedYear: number) => {
     // 6. Répartition CA local vs export
     const localRevenue = invoicesWithItems?.filter(inv => inv.sales_channel !== 'export').reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
-        inv.total_amount || 0,
+        inv.subtotal || 0,
         inv.currency_id || currency.id,
         currency.id,
         exchangeRates
@@ -462,7 +462,7 @@ export const useDashboardData = (selectedYear: number) => {
     
     const exportRevenue = invoicesWithItems?.filter(inv => inv.sales_channel === 'export').reduce((sum, inv) => {
       const convertedAmount = convertToDefaultCurrency(
-        inv.total_amount || 0,
+        inv.subtotal || 0,
         inv.currency_id || currency.id,
         currency.id,
         exchangeRates
