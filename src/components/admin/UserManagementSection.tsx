@@ -226,6 +226,14 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
     }
 
     try {
+      console.log('Calling create-user-admin edge function with:', {
+        email: createForm.email,
+        firstName: createForm.firstName,
+        lastName: createForm.lastName,
+        organizationId: createForm.organizationId,
+        role: createForm.role
+      });
+
       // Appeler l'edge function pour créer l'utilisateur
       const { data, error } = await supabase.functions.invoke('create-user-admin', {
         body: {
@@ -238,8 +246,14 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
       if (data.error) {
+        console.error('Edge function returned error:', data.error);
         // Gestion d'erreurs spécifiques pour améliorer l'expérience utilisateur
         if (data.error.includes('already been registered')) {
           throw new Error('Cet email est déjà utilisé par un autre utilisateur');

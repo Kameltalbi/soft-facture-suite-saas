@@ -47,19 +47,41 @@ serve(async (req) => {
     }
 
     // Vérifier si l'utilisateur est un superadmin
+    console.log('Checking permissions for user:', user.id)
+    
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (profileError || !profile || profile.role !== 'superadmin') {
-      console.error('Permission check failed:', profileError, profile)
+    console.log('Profile query result:', { profile, profileError })
+
+    if (profileError) {
+      console.error('Profile query error:', profileError)
       return new Response(
-        JSON.stringify({ error: 'Permissions insuffisantes' }),
+        JSON.stringify({ error: 'Erreur lors de la vérification des permissions: ' + profileError.message }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!profile) {
+      console.error('No profile found for user:', user.id)
+      return new Response(
+        JSON.stringify({ error: 'Profil utilisateur introuvable' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (profile.role !== 'superadmin') {
+      console.error('User is not superadmin:', profile.role)
+      return new Response(
+        JSON.stringify({ error: 'Permissions insuffisantes - rôle requis: superadmin, rôle actuel: ' + profile.role }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    console.log('User is superadmin, proceeding with user creation')
 
     // Récupérer les données de la requête
     const { email, password, firstName, lastName, organizationId, role } = await req.json()
