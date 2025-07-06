@@ -37,7 +37,7 @@ interface DashboardChartData {
     name: string;
     revenue: number;
   }>;
-  clientDistribution: Array<{
+  salesChannelDistribution: Array<{
     name: string;
     value: number;
     color: string;
@@ -68,7 +68,7 @@ export const useDashboardData = (selectedYear: number) => {
     monthlyComparison: [],
     invoicesPerMonth: [],
     top20Clients: [],
-    clientDistribution: [],
+    salesChannelDistribution: [],
     invoiceStatusDistribution: []
   });
 
@@ -266,7 +266,7 @@ export const useDashboardData = (selectedYear: number) => {
         monthlyComparison: [],
         invoicesPerMonth: [],
         top20Clients: [],
-        clientDistribution: [],
+        salesChannelDistribution: [],
         invoiceStatusDistribution: []
       };
     }
@@ -300,7 +300,7 @@ export const useDashboardData = (selectedYear: number) => {
         monthlyComparison: [],
         invoicesPerMonth: [],
         top20Clients: [],
-        clientDistribution: [],
+        salesChannelDistribution: [],
         invoiceStatusDistribution: []
       };
     }
@@ -449,12 +449,39 @@ export const useDashboardData = (selectedYear: number) => {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 20);
 
-    // 6. Répartition CA par client (Top 10 pour le camembert)
-    const clientDistribution = top20Clients.slice(0, 10).map((client, index) => ({
-      name: client.name,
-      value: client.revenue,
-      color: `#${Math.floor(Math.random()*16777215).toString(16)}`
-    }));
+    // 6. Répartition CA local vs export
+    const localRevenue = invoicesWithItems?.filter(inv => inv.sales_channel !== 'export').reduce((sum, inv) => {
+      const convertedAmount = convertToDefaultCurrency(
+        inv.total_amount || 0,
+        inv.currency_id || currency.id,
+        currency.id,
+        exchangeRates
+      );
+      return sum + convertedAmount;
+    }, 0) || 0;
+    
+    const exportRevenue = invoicesWithItems?.filter(inv => inv.sales_channel === 'export').reduce((sum, inv) => {
+      const convertedAmount = convertToDefaultCurrency(
+        inv.total_amount || 0,
+        inv.currency_id || currency.id,
+        currency.id,
+        exchangeRates
+      );
+      return sum + convertedAmount;
+    }, 0) || 0;
+
+    const salesChannelDistribution = [
+      {
+        name: 'Local',
+        value: localRevenue,
+        color: '#22c55e'
+      },
+      {
+        name: 'Export',
+        value: exportRevenue,
+        color: '#3b82f6'
+      }
+    ].filter(item => item.value > 0);
 
     // 7. Répartition factures payées vs non payées
     const paidInvoices = invoicesWithItems?.filter(inv => inv.status === 'paid').length || 0;
@@ -478,7 +505,7 @@ export const useDashboardData = (selectedYear: number) => {
       monthlyComparison: monthlyComparison.length,
       invoicesPerMonth: invoicesPerMonth.length,
       top20Clients: top20Clients.length,
-      clientDistribution: clientDistribution.length,
+      salesChannelDistribution: salesChannelDistribution.length,
       invoiceStatusDistribution: invoiceStatusDistribution.length
     });
 
@@ -488,7 +515,7 @@ export const useDashboardData = (selectedYear: number) => {
       monthlyComparison,
       invoicesPerMonth,
       top20Clients,
-      clientDistribution,
+      salesChannelDistribution,
       invoiceStatusDistribution
     };
   };

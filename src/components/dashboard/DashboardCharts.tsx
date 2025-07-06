@@ -32,7 +32,7 @@ interface DashboardChartsProps {
       value: number;
       color: string;
     }>;
-    clientDistribution: Array<{
+    salesChannelDistribution: Array<{
       name: string;
       value: number;
       color: string;
@@ -253,26 +253,28 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
           </CardContent>
         </Card>
 
-        {/* 6. Répartition du CA par client (Camembert) */}
+        {/* 6. Répartition CA Local vs Export (Camembert) */}
         <Card>
           <CardHeader>
-            <CardTitle>Répartition CA Clients</CardTitle>
+            <CardTitle>Répartition CA Local vs Export</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={data.clientDistribution}
+                    data={data.salesChannelDistribution}
                     cx="50%"
                     cy="50%"
                     innerRadius={40}
                     outerRadius={80}
                     paddingAngle={2}
                     dataKey="value"
+                    label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
+                    labelLine={false}
                   >
-                    {data.clientDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    {data.salesChannelDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
@@ -280,16 +282,16 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
               </ResponsiveContainer>
             </div>
             <div className="mt-4 space-y-1 max-h-32 overflow-y-auto">
-              {data.clientDistribution.map((client, index) => (
+              {data.salesChannelDistribution.map((channel, index) => (
                 <div key={index} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      style={{ backgroundColor: channel.color }}
                     />
-                    <span className="truncate max-w-24">{client.name}</span>
+                    <span className="truncate max-w-24">{channel.name}</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(client.value)}</span>
+                  <span className="font-medium">{formatCurrency(channel.value)}</span>
                 </div>
               ))}
             </div>
