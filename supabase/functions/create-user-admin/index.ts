@@ -47,13 +47,14 @@ serve(async (req) => {
     }
 
     // Vérifier si l'utilisateur est un superadmin
-    const { data: profile, error: profileError } = await supabaseClient
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single()
 
     if (profileError || !profile || profile.role !== 'superadmin') {
+      console.error('Permission check failed:', profileError, profile)
       return new Response(
         JSON.stringify({ error: 'Permissions insuffisantes' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
