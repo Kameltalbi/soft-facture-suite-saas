@@ -226,28 +226,20 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
     }
 
     try {
-      // Créer l'utilisateur dans auth.users
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: createForm.email,
-        password: createForm.password,
-        email_confirm: true
+      // Appeler l'edge function pour créer l'utilisateur
+      const { data, error } = await supabase.functions.invoke('create-user-admin', {
+        body: {
+          email: createForm.email,
+          password: createForm.password,
+          firstName: createForm.firstName,
+          lastName: createForm.lastName,
+          organizationId: createForm.organizationId,
+          role: createForm.role
+        }
       });
 
-      if (authError) throw authError;
-
-      // Créer le profil utilisateur
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          email: createForm.email,
-          first_name: createForm.firstName || null,
-          last_name: createForm.lastName || null,
-          organization_id: createForm.organizationId,
-          role: createForm.role
-        });
-
-      if (profileError) throw profileError;
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
       toast({
         title: "Succès",
