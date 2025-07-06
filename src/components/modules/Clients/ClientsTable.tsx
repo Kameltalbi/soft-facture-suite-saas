@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
-import { memo } from 'react';
 
 interface Client {
   id: string;
@@ -35,7 +34,7 @@ interface ClientsTableProps {
   onDeleteClient: (id: string) => void;
 }
 
-export const ClientsTable = memo(function ClientsTable({ clients, onViewClient, onEditClient, onDeleteClient }: ClientsTableProps) {
+export function ClientsTable({ clients, onViewClient, onEditClient, onDeleteClient }: ClientsTableProps) {
   return (
     <Card>
       <CardContent className="p-0">
@@ -112,4 +111,4 @@ export const ClientsTable = memo(function ClientsTable({ clients, onViewClient, 
       </CardContent>
     </Card>
   );
-});
+}

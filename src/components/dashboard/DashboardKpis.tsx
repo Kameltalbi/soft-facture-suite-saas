@@ -9,7 +9,6 @@ import {
   FileCheck, 
   Users
 } from 'lucide-react';
-import { memo } from 'react';
 
 interface DashboardKpiData {
   totalRevenue: number;
@@ -26,7 +25,7 @@ interface DashboardKpisProps {
   loading: boolean;
 }
 
-export const DashboardKpis = memo(function DashboardKpis({ data, loading }: DashboardKpisProps) {
+export function DashboardKpis({ data, loading }: DashboardKpisProps) {
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString('fr-FR', { minimumFractionDigits: data.currency.decimal_places, maximumFractionDigits: data.currency.decimal_places })} ${data.currency.symbol}`;
   };
@@ -140,4 +139,4 @@ export const DashboardKpis = memo(function DashboardKpis({ data, loading }: Dash
       })}
     </div>
   );
-});
+}
