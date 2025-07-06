@@ -77,6 +77,15 @@ export function InvoiceActionsMenu({
   const canSign = hasSignature && invoice.status !== 'draft';
   const isSigned = invoice.is_signed;
 
+  // Debug logs pour diagnostiquer le problème de signature
+  console.log('🔍 Debug signature:', {
+    hasSignature,
+    invoiceStatus: invoice.status,
+    canSign,
+    isSigned,
+    invoiceId: invoice.id
+  });
+
   const handlePaymentSave = (paymentData: any) => {
     // Passer les données avec le montant total de la facture pour la validation
     const paymentDataWithTotal = {

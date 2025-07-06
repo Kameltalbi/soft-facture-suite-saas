@@ -809,7 +809,16 @@ export default function Invoices() {
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
                       onSign={() => handleSignInvoice(invoice)}
-                      hasSignature={!!organization?.signature_url}
+                      hasSignature={(() => {
+                        const hasSignature = !!organization?.signature_url;
+                        console.log('🔍 Debug organization signature:', {
+                          organizationExists: !!organization,
+                          signatureUrl: organization?.signature_url,
+                          hasSignature,
+                          organizationId: organization?.id
+                        });
+                        return hasSignature;
+                      })()}
                     />
                   </TableCell>
                 </TableRow>
