@@ -587,15 +587,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         
                         {/* Suggestions dropdown */}
                         {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
-                          <div 
-                            className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
-                            style={{
-                              zIndex: 9999,
-                              top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
-                              left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
-                              width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
-                            }}
-                          >
+                          <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto mt-1">
                             {searchSuggestions.map((product) => (
                               <div
                                 key={product.id}
