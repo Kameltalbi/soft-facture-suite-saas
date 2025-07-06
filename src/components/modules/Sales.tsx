@@ -19,8 +19,6 @@ import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface Document {
   id: string;
@@ -89,8 +87,6 @@ const statusLabels = {
 
 export function Sales() {
   const { generateInvoicePDF } = usePDFGeneration();
-  const { organization } = useAuth();
-  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
@@ -161,115 +157,6 @@ export function Sales() {
     } catch (error) {
       console.error('Erreur lors de la validation:', error);
       toast.error('Erreur lors de la validation de la facture');
-    }
-  };
-
-  const handleSaveInvoice = async (invoiceData: any) => {
-    try {
-      if (!organization?.id) {
-        toast.error("Organisation non trouvée");
-        return;
-      }
-
-      console.log('Saving invoice:', invoiceData);
-
-      if (editingDocument) {
-        // Mise à jour d'une facture existante
-        const { error: updateError } = await supabase
-          .from('invoices')
-          .update({
-            invoice_number: invoiceData.number,
-            date: invoiceData.date,
-            due_date: invoiceData.dueDate,
-            client_id: invoiceData.client?.id,
-            subtotal: invoiceData.totals.subtotalHT,
-            tax_amount: invoiceData.totals.totalVAT,
-            total_amount: invoiceData.totals.totalTTC,
-            notes: invoiceData.notes,
-            use_vat: invoiceData.invoiceSettings?.useVat,
-            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
-            has_advance: invoiceData.invoiceSettings?.hasAdvance,
-            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId,
-            status: invoiceData.status || 'draft',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingDocument.id);
-
-        if (updateError) throw updateError;
-
-        // Supprimer les anciens éléments et en créer de nouveaux
-        await supabase.from('invoice_items').delete().eq('invoice_id', editingDocument.id);
-        
-        if (invoiceData.items && invoiceData.items.length > 0) {
-          const newItems = invoiceData.items.map((item: any) => ({
-            invoice_id: editingDocument.id,
-            organization_id: organization.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            tax_rate: item.vatRate,
-            total_price: item.total,
-            product_id: item.productId || null
-          }));
-
-          const { error: itemsError } = await supabase.from('invoice_items').insert(newItems);
-          if (itemsError) throw itemsError;
-        }
-
-        toast.success("La facture a été mise à jour avec succès");
-      } else {
-        // Création d'une nouvelle facture
-        const { data: newInvoice, error: invoiceError } = await supabase
-          .from('invoices')
-          .insert({
-            invoice_number: invoiceData.number,
-            date: invoiceData.date,
-            due_date: invoiceData.dueDate,
-            client_id: invoiceData.client?.id,
-            organization_id: organization.id,
-            status: invoiceData.status || 'draft',
-            subtotal: invoiceData.totals.subtotalHT,
-            tax_amount: invoiceData.totals.totalVAT,
-            total_amount: invoiceData.totals.totalTTC,
-            notes: invoiceData.notes,
-            use_vat: invoiceData.invoiceSettings?.useVat,
-            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
-            has_advance: invoiceData.invoiceSettings?.hasAdvance,
-            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId
-          })
-          .select()
-          .single();
-
-        if (invoiceError) throw invoiceError;
-
-        // Créer les éléments de facture
-        if (invoiceData.items && invoiceData.items.length > 0) {
-          const newItems = invoiceData.items.map((item: any) => ({
-            invoice_id: newInvoice.id,
-            organization_id: organization.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            tax_rate: item.vatRate,
-            total_price: item.total,
-            product_id: item.productId || null
-          }));
-
-          const { error: itemsError } = await supabase.from('invoice_items').insert(newItems);
-          if (itemsError) throw itemsError;
-        }
-
-        toast.success("La facture a été créée avec succès");
-      }
-
-      // Rafraîchir les données
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      setShowInvoiceModal(false);
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      toast.error("Erreur lors de la sauvegarde de la facture");
     }
   };
 
@@ -546,7 +433,10 @@ export function Sales() {
         open={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
         invoice={editingDocument}
-        onSave={handleSaveInvoice}
+        onSave={(data) => {
+          console.log('Saving document:', data);
+          setShowInvoiceModal(false);
+        }}
       />
     </div>
   );
