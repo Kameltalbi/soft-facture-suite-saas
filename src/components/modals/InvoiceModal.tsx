@@ -176,6 +176,8 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
 
   // Fonction de recherche flexible avec dropdown intelligent
   const handleProductSearch = (itemId: string, searchTerm: string) => {
+    console.log('🔍 Recherche de produit:', { itemId, searchTerm, productsCount: products.length });
+    
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
@@ -187,18 +189,13 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     if (searchTerm.length >= 1) {
       searchTimeoutRef.current = setTimeout(() => {
         const normalizedSearch = searchTerm.toLowerCase().trim();
+        console.log('🔍 Recherche normalisée:', normalizedSearch);
         
         const filtered = products.filter(product => {
           const productName = product.name.toLowerCase();
           const productDesc = product.description?.toLowerCase() || '';
           
-          // Recherche flexible :
-          // 1. Commence par le terme recherché
-          // 2. Contient le terme recherché
-          // 3. Recherche par mots (chaque mot séparément)
-          // 4. Recherche dans la description aussi
-          
-          return (
+          const matches = (
             productName.startsWith(normalizedSearch) ||
             productName.includes(normalizedSearch) ||
             productDesc.includes(normalizedSearch) ||
@@ -207,7 +204,15 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
               word.length > 0 && (productName.includes(word) || productDesc.includes(word))
             )
           );
+          
+          if (matches) {
+            console.log('✅ Produit trouvé:', { name: product.name, description: product.description });
+          }
+          
+          return matches;
         });
+        
+        console.log('🎯 Résultats filtrés:', filtered.length);
         
         // Trier par pertinence : ceux qui commencent par le terme en premier
         const sortedFiltered = filtered.sort((a, b) => {
@@ -222,6 +227,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
         
         setSearchSuggestions(sortedFiltered.slice(0, 8)); // Montrer jusqu'à 8 résultats
         setShowSuggestions(sortedFiltered.length > 0);
+        
+        console.log('📊 État final:', { 
+          suggestions: sortedFiltered.length, 
+          showSuggestions: sortedFiltered.length > 0,
+          activeItemId: itemId 
+        });
       }, 150); // Réduit le délai pour plus de réactivité
     } else {
       setSearchSuggestions([]);
