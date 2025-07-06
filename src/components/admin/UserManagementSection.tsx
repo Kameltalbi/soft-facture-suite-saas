@@ -239,7 +239,13 @@ export function UserManagementSection({ organizationId }: UserManagementSectionP
       });
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (data.error) {
+        // Gestion d'erreurs spécifiques pour améliorer l'expérience utilisateur
+        if (data.error.includes('already been registered')) {
+          throw new Error('Cet email est déjà utilisé par un autre utilisateur');
+        }
+        throw new Error(data.error);
+      }
 
       toast({
         title: "Succès",
