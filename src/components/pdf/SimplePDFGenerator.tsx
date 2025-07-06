@@ -42,10 +42,17 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
       let signatureBase64 = null;
       if (organization?.signature_url) {
         try {
+          console.log('🔄 Tentative conversion signature:', organization.signature_url);
           signatureBase64 = await imageUrlToBase64(organization.signature_url);
           console.log('✅ Signature convertie:', signatureBase64 ? 'Succès' : 'Échec');
+          if (signatureBase64) {
+            console.log('📏 Taille signature base64:', signatureBase64.length, 'caractères');
+          }
         } catch (error) {
           console.error('❌ Erreur conversion signature:', error);
+          // Fallback: utiliser l'URL directe si la conversion échoue
+          signatureBase64 = organization.signature_url;
+          console.log('🔄 Fallback: utilisation URL directe');
         }
       }
 
@@ -55,7 +62,7 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
         email: organization?.email || 'contact@monentreprise.fr',
         phone: organization?.phone || 'Téléphone',
         logo_url: organization?.logo_url,
-        signature_url: signatureBase64 || organization?.signature_url
+        signature_url: signatureBase64 // Toujours utiliser la version traitée
       };
 
       const client = {
