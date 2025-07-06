@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -50,6 +50,7 @@ const App = () => (
               <Route path="/cgu" element={<CGUPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/en-attente-validation" element={<Navigate to="/" replace />} />
               
               <Route path="/dashboard" element={
                 <ProtectedRoute>
