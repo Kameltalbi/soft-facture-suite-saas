@@ -32,12 +32,6 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
         total: item.total_price
       })) || [];
 
-      console.log('🖋️ Debug signature:', {
-        invoiceIsSigned: invoice.is_signed,
-        organizationSignatureUrl: organization?.signature_url,
-        organizationHasSignature: !!organization?.signature_url
-      });
-
       // Convertir l'image de signature en base64 si elle existe
       let signatureBase64 = null;
       if (organization?.signature_url) {
@@ -94,11 +88,6 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
         customTaxes: customTaxCalculations,
         isSigned: invoice.is_signed || false
       };
-
-      console.log('📄 PDF Data final:', {
-        isSigned: data.isSigned,
-        hasSignatureUrl: !!data.company.signature_url
-      });
 
       setPdfData(data);
     };
