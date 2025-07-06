@@ -223,15 +223,6 @@ export const InvoicePDF = ({
   const currencySymbol = currency?.symbol || '€';
   const currencyCode = currency?.code || 'EUR';
   
-  // Debug logs pour signature
-  console.log('🖋️ InvoicePDF Debug:', {
-    isSigned,
-    hasSignatureUrl: !!company?.signature_url,
-    signatureUrl: company?.signature_url,
-    companyName: company?.name,
-    invoiceNumber: invoiceData?.number
-  });
-  
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
     const totalVAT = lineItems.reduce((sum, item) => {
@@ -376,14 +367,11 @@ export const InvoicePDF = ({
         </View>
 
         {/* Signature */}
-        {isSigned && company?.signature_url ? (
+        {isSigned && company?.signature_url && (
           <View style={styles.signature}>
             <Text style={styles.signatureLabel}>Signature de l'entreprise</Text>
             <Image style={styles.signatureImage} src={company.signature_url} />
           </View>
-        ) : (
-          console.log('❌ Signature non affichée:', { isSigned, hasSignatureUrl: !!company?.signature_url }),
-          null
         )}
 
         {/* Notes */}
