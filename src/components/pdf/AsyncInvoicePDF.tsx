@@ -6,16 +6,15 @@ import { useCustomTaxes } from '@/hooks/useCustomTaxes';
 import { calculateCustomTaxes } from '@/utils/customTaxCalculations';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface AsyncInvoicePDFProps {
   invoice: any;
+  currency: any;
 }
 
-export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice }) => {
+export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, currency }) => {
   const { organization } = useAuth();
   const { customTaxes } = useCustomTaxes();
-  const { currency } = useCurrency();
   const [pdfData, setPdfData] = useState(null);
 
   const { data: globalSettings } = useQuery({

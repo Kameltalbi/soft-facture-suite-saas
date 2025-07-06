@@ -813,7 +813,7 @@ export default function Invoices() {
                         status: invoice.status as InvoiceStatus,
                         is_signed: invoice.is_signed
                       }}
-                      pdfComponent={<AsyncInvoicePDF invoice={invoice} />}
+                      pdfComponent={<AsyncInvoicePDF invoice={invoice} currency={currency} />}
                       onValidate={() => handleValidateInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}
