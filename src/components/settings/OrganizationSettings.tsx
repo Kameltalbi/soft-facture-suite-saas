@@ -420,7 +420,7 @@ export function OrganizationSettings({ organization, onSave }: OrganizationSetti
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground max-w-48">
-                  Formats acceptés : PNG, JPG, SVG<br/>
+                  Formats acceptés : PNG (recommandé, fond transparent), JPG, SVG<br/>
                   Taille max : 5MB<br/>
                   <span className="text-green-600">Redimensionnement auto</span>
                 </div>
