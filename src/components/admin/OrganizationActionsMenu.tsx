@@ -214,17 +214,24 @@ export function OrganizationActionsMenu({
       try {
         const orgId = organization.id;
         
-        // Supprimer dans l'ordre pour éviter les contraintes de clé étrangère
+        console.log('Début de la suppression de l\'organisation:', orgId);
         
-        // 1. Supprimer les éléments de documents
+        // Supprimer dans l'ordre strict pour éviter les contraintes de clé étrangère
+        
+        // 1. Supprimer les éléments de documents (dépendants des documents)
         await supabase.from('invoice_items').delete().eq('organization_id', orgId);
         await supabase.from('quote_items').delete().eq('organization_id', orgId);
         await supabase.from('credit_note_items').delete().eq('organization_id', orgId);
         await supabase.from('delivery_note_items').delete().eq('organization_id', orgId);
         await supabase.from('purchase_order_items').delete().eq('organization_id', orgId);
         
-        // 2. Supprimer les paiements
-        await supabase.from('payments').delete().eq('organization_id', orgId);
+        // 2. Supprimer les paiements AVANT les documents
+        console.log('Suppression des paiements...');
+        const { error: paymentsError } = await supabase.from('payments').delete().eq('organization_id', orgId);
+        if (paymentsError) {
+          console.error('Erreur lors de la suppression des paiements:', paymentsError);
+          throw new Error(`Impossible de supprimer les paiements: ${paymentsError.message}`);
+        }
         
         // 3. Supprimer les documents
         await supabase.from('invoices').delete().eq('organization_id', orgId);
@@ -233,13 +240,15 @@ export function OrganizationActionsMenu({
         await supabase.from('delivery_notes').delete().eq('organization_id', orgId);
         await supabase.from('purchase_orders').delete().eq('organization_id', orgId);
         
-        // 4. Supprimer les données de base
+        // 4. Supprimer les mouvements de stock
+        await supabase.from('stock_movements').delete().eq('organization_id', orgId);
+        
+        // 5. Supprimer les données de base
         await supabase.from('products').delete().eq('organization_id', orgId);
         await supabase.from('clients').delete().eq('organization_id', orgId);
         await supabase.from('categories').delete().eq('organization_id', orgId);
-        await supabase.from('stock_movements').delete().eq('organization_id', orgId);
         
-        // 5. Supprimer les paramètres
+        // 6. Supprimer les paramètres
         await supabase.from('currencies').delete().eq('organization_id', orgId);
         await supabase.from('custom_taxes').delete().eq('organization_id', orgId);
         await supabase.from('exchange_rates').delete().eq('organization_id', orgId);
@@ -248,20 +257,31 @@ export function OrganizationActionsMenu({
         await supabase.from('roles').delete().eq('organization_id', orgId);
         await supabase.from('saved_reports').delete().eq('organization_id', orgId);
         
-        // 6. Supprimer l'historique
+        // 7. Supprimer l'historique
         await supabase.from('organization_history').delete().eq('organization_id', orgId);
         
-        // 7. Supprimer les profils utilisateurs
-        await supabase.from('profiles').delete().eq('organization_id', orgId);
+        // 8. Supprimer les profils utilisateurs
+        console.log('Suppression des profils...');
+        const { error: profilesError } = await supabase.from('profiles').delete().eq('organization_id', orgId);
+        if (profilesError) {
+          console.error('Erreur lors de la suppression des profils:', profilesError);
+          throw new Error(`Impossible de supprimer les profils: ${profilesError.message}`);
+        }
         
-        // 8. Enfin, supprimer l'organisation
+        // 9. Enfin, supprimer l'organisation
+        console.log('Suppression de l\'organisation...');
         const { error } = await supabase
           .from('organizations')
           .delete()
           .eq('id', orgId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erreur lors de la suppression de l\'organisation:', error);
+          throw error;
+        }
 
+        console.log('Organisation supprimée avec succès');
+        
         toast({
           title: "Succès",
           description: "Organisation et toutes ses données supprimées avec succès"
