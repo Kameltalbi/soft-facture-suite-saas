@@ -190,6 +190,14 @@ export function useInvoicesActions() {
 
   const handleDeleteInvoice = async (invoice: any) => {
     try {
+      // Supprimer d'abord les paiements associés (temporaire)
+      const { error: paymentsError } = await supabase
+        .from('payments')
+        .delete()
+        .eq('invoice_id', invoice.id);
+
+      if (paymentsError) throw paymentsError;
+
       // Supprimer d'abord les éléments de facture
       const { error: itemsError } = await supabase
         .from('invoice_items')
@@ -209,7 +217,7 @@ export function useInvoicesActions() {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast({
         title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été supprimée`,
+        description: `La facture ${invoice.invoice_number} a été supprimée (avec ses paiements)`,
       });
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
