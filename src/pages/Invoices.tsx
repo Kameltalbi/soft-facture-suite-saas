@@ -151,13 +151,33 @@ export default function Invoices() {
   };
 
   const handleEditInvoice = (invoice: any) => {
-    setEditingInvoice({
-      id: invoice.id,
+    // Mapper les données de la facture pour correspondre à ce que le modal attend
+    const mappedInvoice = {
+      ...invoice,
       number: invoice.invoice_number,
-      client: invoice.clients?.name || '',
-      amount: invoice.total_amount,
-      status: invoice.status as InvoiceStatus
-    });
+      client: invoice.clients,
+      items: invoice.invoice_items?.map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        vatRate: item.tax_rate,
+        discount: 0,
+        total: item.total_price,
+        productId: item.product_id
+      })) || [],
+      dueDate: invoice.due_date,
+      invoiceSettings: {
+        useVat: invoice.use_vat ?? true,
+        customTaxesUsed: invoice.custom_taxes_used || [],
+        hasAdvance: invoice.has_advance ?? false,
+        advanceAmount: invoice.advance_amount || 0,
+        currencyId: invoice.currency_id,
+        useDiscount: true
+      }
+    };
+    
+    setEditingInvoice(mappedInvoice);
     setShowInvoiceModal(true);
   };
 
@@ -187,10 +207,10 @@ export default function Invoices() {
             tax_amount: invoiceData.totals.totalVAT,
             total_amount: invoiceData.totals.totalTTC,
             notes: invoiceData.notes,
-            use_vat: invoiceData.settings?.useVat,
-            custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
-            has_advance: invoiceData.settings?.hasAdvance,
-            advance_amount: invoiceData.settings?.advanceAmount || 0,
+            use_vat: invoiceData.invoiceSettings?.useVat,
+            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
+            has_advance: invoiceData.invoiceSettings?.hasAdvance,
+            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
             currency_id: invoiceData.currencyId || null,
             updated_at: new Date().toISOString()
           })
@@ -235,10 +255,10 @@ export default function Invoices() {
             tax_amount: invoiceData.totals.totalVAT,
             total_amount: invoiceData.totals.totalTTC,
             notes: invoiceData.notes,
-            use_vat: invoiceData.settings?.useVat,
-            custom_taxes_used: invoiceData.settings?.customTaxesUsed || [],
-            has_advance: invoiceData.settings?.hasAdvance,
-            advance_amount: invoiceData.settings?.advanceAmount || 0,
+            use_vat: invoiceData.invoiceSettings?.useVat,
+            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
+            has_advance: invoiceData.invoiceSettings?.hasAdvance,
+            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
             currency_id: invoiceData.currencyId || null
           })
           .select()
