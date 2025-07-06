@@ -210,8 +210,42 @@ export function OrganizationActionsMenu({
   };
 
   const handleDelete = async () => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'organisation "${organization.name}" ? Cette action est irréversible.`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'organisation "${organization.name}" ? Cette action supprimera TOUTES les données associées (utilisateurs, factures, clients, etc.). Cette action est irréversible.`)) {
       try {
+        // Supprimer d'abord tous les profils de l'organisation
+        const { error: profilesError } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('organization_id', organization.id);
+
+        if (profilesError) {
+          console.error('Error deleting profiles:', profilesError);
+          throw new Error('Impossible de supprimer les utilisateurs associés');
+        }
+
+        // Supprimer tous les paiements de l'organisation
+        const { error: paymentsError } = await supabase
+          .from('payments')
+          .delete()
+          .eq('organization_id', organization.id);
+
+        if (paymentsError) {
+          console.error('Error deleting payments:', paymentsError);
+          throw new Error('Impossible de supprimer les paiements associés');
+        }
+
+        // Supprimer l'historique de l'organisation
+        const { error: historyError } = await supabase
+          .from('organization_history')
+          .delete()
+          .eq('organization_id', organization.id);
+
+        if (historyError) {
+          console.error('Error deleting organization history:', historyError);
+          // Ne pas bloquer pour l'historique
+        }
+
+        // Enfin, supprimer l'organisation
         const { error } = await supabase
           .from('organizations')
           .delete()
@@ -221,7 +255,7 @@ export function OrganizationActionsMenu({
 
         toast({
           title: "Succès",
-          description: "Organisation supprimée avec succès"
+          description: "Organisation et toutes ses données supprimées avec succès"
         });
         
         onRefresh();
@@ -229,7 +263,7 @@ export function OrganizationActionsMenu({
         console.error('Error deleting organization:', error);
         toast({
           title: "Erreur",
-          description: "Impossible de supprimer l'organisation",
+          description: error instanceof Error ? error.message : "Impossible de supprimer l'organisation",
           variant: "destructive"
         });
       }
