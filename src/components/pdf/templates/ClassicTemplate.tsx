@@ -171,7 +171,13 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
   customTaxes = [],
   isSigned = false
 }) => {
-  console.log('📄 ClassicTemplate - Taxes reçues:', customTaxes);
+  console.log('📄 ClassicTemplate - Debug signature:', {
+    isSigned,
+    hasSignatureUrl: !!company.signature_url,
+    signatureUrl: company.signature_url,
+    documentType,
+    shouldShowSignature: isSigned && company.signature_url
+  });
   
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
