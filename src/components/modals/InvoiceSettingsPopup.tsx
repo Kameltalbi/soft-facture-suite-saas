@@ -121,7 +121,10 @@ export function InvoiceSettingsPopup({
                     <div className="flex-1">
                       <div className="font-medium">{tax.name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} DT`}
+                        {tax.type === 'percentage' 
+                          ? `${tax.value}%` 
+                          : `${tax.value} ${currencies.find(c => c.id === tax.currency_id)?.symbol || 'DT'}`
+                        }
                       </div>
                     </div>
                     <Switch
