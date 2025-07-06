@@ -81,16 +81,6 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       cardBgColor: "bg-purple-25"
     },
     {
-      title: "Nombre de factures",
-      value: data.totalInvoices.toString(),
-      description: "Total des factures émises",
-      icon: FileText,
-      iconColor: "text-orange-600",
-      iconBgColor: "bg-orange-50",
-      titleColor: "text-orange-700",
-      cardBgColor: "bg-orange-25"
-    },
-    {
       title: "CA Export",
       value: formatCurrency(data.totalExportRevenue),
       description: "Chiffre d'affaires à l'export",
@@ -99,6 +89,16 @@ export function DashboardKpis({ data, loading }: DashboardKpisProps) {
       iconBgColor: "bg-indigo-50",
       titleColor: "text-indigo-700",
       cardBgColor: "bg-indigo-25"
+    },
+    {
+      title: "Nombre de factures",
+      value: data.totalInvoices.toString(),
+      description: "Total des factures émises",
+      icon: FileText,
+      iconColor: "text-orange-600",
+      iconBgColor: "bg-orange-50",
+      titleColor: "text-orange-700",
+      cardBgColor: "bg-orange-25"
     },
     {
       title: "Clients actifs",
