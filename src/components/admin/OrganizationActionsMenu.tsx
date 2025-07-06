@@ -210,7 +210,19 @@ export function OrganizationActionsMenu({
   };
 
   const handleDelete = async () => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'organisation "${organization.name}" ? Cette action supprimera TOUTES les données associées (utilisateurs, factures, clients, etc.). Cette action est irréversible.`)) {
+    // Vérifier si l'abonnement a été abrogé (statut suspended et subscription_end dans le passé ou aujourd'hui)
+    const isAbrogated = organization.status === 'suspended' && 
+      organization.subscription_end && 
+      new Date(organization.subscription_end) <= new Date();
+
+    let confirmMessage;
+    if (!isAbrogated) {
+      confirmMessage = `ATTENTION: L'abonnement de "${organization.name}" n'a pas encore été abrogé.\n\nPour une suppression propre, il est recommandé d'abroger d'abord l'abonnement, puis de supprimer l'organisation.\n\nVoulez-vous quand même procéder à la suppression définitive ? Cette action supprimera TOUTES les données associées (utilisateurs, factures, clients, etc.). Cette action est irréversible.`;
+    } else {
+      confirmMessage = `L'abonnement de "${organization.name}" a été abrogé. Voulez-vous procéder à la suppression définitive ?\n\nCette action supprimera TOUTES les données associées (utilisateurs, factures, clients, etc.). Cette action est irréversible.`;
+    }
+
+    if (confirm(confirmMessage)) {
       try {
         const orgId = organization.id;
         
