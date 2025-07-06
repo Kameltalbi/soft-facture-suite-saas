@@ -179,6 +179,22 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
     paddingTop: 8,
   },
+  signature: {
+    marginTop: 56, // 2cm en dessous (environ 56 points)
+    alignItems: 'center',
+    maxWidth: 170, // Largeur max de 6cm (environ 170 points)
+  },
+  signatureLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  signatureImage: {
+    maxWidth: 170, // 6cm max
+    maxHeight: 85, // Hauteur proportionnelle
+    objectFit: 'contain',
+  },
 });
 
 interface InvoicePDFProps {
@@ -189,6 +205,7 @@ interface InvoicePDFProps {
   settings: any;
   currency?: { code: string; symbol: string; name: string };
   customTaxes?: TaxCalculation[];
+  isSigned?: boolean;
 }
 
 export const InvoicePDF = ({
@@ -198,7 +215,8 @@ export const InvoicePDF = ({
   company,
   settings,
   currency,
-  customTaxes = []
+  customTaxes = [],
+  isSigned = false
 }: InvoicePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
   const currencyCode = currency?.code || 'EUR';
@@ -345,6 +363,14 @@ export const InvoicePDF = ({
             {numberToWords(totalTTC, currencyCode)}
           </Text>
         </View>
+
+        {/* Signature */}
+        {isSigned && company?.signature_url && (
+          <View style={styles.signature}>
+            <Text style={styles.signatureLabel}>Signature de l'entreprise</Text>
+            <Image style={styles.signatureImage} src={company.signature_url} />
+          </View>
+        )}
 
         {/* Notes */}
         {invoiceData?.notes && invoiceData.notes.trim() && (

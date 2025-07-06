@@ -83,7 +83,8 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
           footer_display: globalSettings?.footer_display || 'all'
         },
         currency: invoice.currencies || currency,
-        customTaxes: customTaxCalculations
+        customTaxes: customTaxCalculations,
+        isSigned: invoice.is_signed || false
       };
 
       setPdfData(data);
