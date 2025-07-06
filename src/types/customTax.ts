@@ -5,6 +5,7 @@ export interface CustomTax {
   name: string;
   type: 'percentage' | 'fixed';
   value: number;
+  currency_id?: string;
   applicable_documents: string[];
   active: boolean;
   created_at: string;
@@ -15,5 +16,6 @@ export interface CreateCustomTaxData {
   name: string;
   type: 'percentage' | 'fixed';
   value: number;
+  currency_id?: string;
   applicable_documents: string[];
 }

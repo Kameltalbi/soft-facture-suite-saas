@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CustomTax, CreateCustomTaxData } from '@/types/customTax';
+import { useCurrencies } from '@/hooks/useCurrencies';
 
 interface CustomTaxModalProps {
   open: boolean;
@@ -30,10 +31,12 @@ const documentTypes = [
 ];
 
 export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxModalProps) {
+  const { currencies } = useCurrencies();
   const [formData, setFormData] = useState<CreateCustomTaxData>({
     name: editingTax?.name || '',
     type: editingTax?.type || 'percentage',
     value: editingTax?.value || 0,
+    currency_id: editingTax?.currency_id || '',
     applicable_documents: editingTax?.applicable_documents || [],
   });
   const [loading, setLoading] = useState(false);
@@ -61,6 +64,7 @@ export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxM
       name: '',
       type: 'percentage',
       value: 0,
+      currency_id: '',
       applicable_documents: [],
     });
     onClose();
@@ -112,7 +116,7 @@ export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxM
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="percentage">Pourcentage (%)</SelectItem>
-                <SelectItem value="fixed">Valeur ajoutée (VA)</SelectItem>
+                <SelectItem value="fixed">Valeur Absolue</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -133,10 +137,36 @@ export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxM
                 required
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                {formData.type === 'percentage' ? '%' : 'DT'}
+                {formData.type === 'percentage' 
+                  ? '%' 
+                  : currencies.find(c => c.id === formData.currency_id)?.symbol || 'DT'
+                }
               </span>
             </div>
           </div>
+
+          {formData.type === 'fixed' && (
+            <div className="space-y-2">
+              <Label htmlFor="currency">Devise</Label>
+              <Select
+                value={formData.currency_id}
+                onValueChange={(value) => 
+                  setFormData(prev => ({ ...prev, currency_id: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une devise" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.id} value={currency.id}>
+                      {currency.code} ({currency.symbol}) - {currency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Label>Documents concernés</Label>
