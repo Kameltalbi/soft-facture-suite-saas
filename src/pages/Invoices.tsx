@@ -14,11 +14,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { InvoicePDF } from '@/components/pdf/invoices/InvoicePDF';
+import { AsyncInvoicePDF } from '@/components/pdf/AsyncInvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
 import { calculateCustomTaxes } from '@/utils/customTaxCalculations';
+import { imageUrlToBase64 } from '@/utils/imageToBase64';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -489,7 +490,7 @@ export default function Invoices() {
     })} ${currencyToUse.symbol}`;
   };
 
-  const getPDFData = (invoice: any) => {
+  const getPDFData = async (invoice: any) => {
     const mockLineItems = invoice.invoice_items?.map(item => ({
       id: item.id,
       description: item.description,
@@ -500,13 +501,24 @@ export default function Invoices() {
       total: item.total_price
     })) || [];
 
+    // Convertir l'image de signature en base64 si elle existe
+    let signatureBase64 = null;
+    if (organization?.signature_url) {
+      try {
+        signatureBase64 = await imageUrlToBase64(organization.signature_url);
+        console.log('✅ Signature convertie en base64:', signatureBase64 ? 'Succès' : 'Échec');
+      } catch (error) {
+        console.error('❌ Erreur conversion signature:', error);
+      }
+    }
+
     const company = {
       name: organization?.name || 'Mon Entreprise',
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
       logo_url: organization?.logo_url,
-      signature_url: organization?.signature_url
+      signature_url: signatureBase64 || organization?.signature_url // Utiliser base64 si disponible
     };
 
     const client = {
@@ -801,7 +813,7 @@ export default function Invoices() {
                         status: invoice.status as InvoiceStatus,
                         is_signed: invoice.is_signed
                       }}
-                      pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
+                      pdfComponent={<AsyncInvoicePDF invoice={invoice} />}
                       onValidate={() => handleValidateInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}
