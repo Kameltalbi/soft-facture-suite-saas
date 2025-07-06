@@ -182,17 +182,19 @@ const styles = StyleSheet.create({
   signature: {
     marginTop: 56, // 2cm en dessous (environ 56 points)
     alignItems: 'center',
-    maxWidth: 170, // Largeur max de 6cm (environ 170 points)
+    maxWidth: 150, // Largeur recommandée par l'utilisateur
+    alignSelf: 'center', // Centrer horizontalement
   },
   signatureLabel: {
     fontSize: 10,
-    color: '#666666',
+    color: '#333333',
     marginBottom: 10,
     textAlign: 'center',
+    fontWeight: 'bold',
   },
   signatureImage: {
-    maxWidth: 170, // 6cm max
-    maxHeight: 85, // Hauteur proportionnelle
+    maxWidth: 150, // Largeur recommandée par l'utilisateur
+    maxHeight: 75, // Hauteur proportionnelle
     objectFit: 'contain',
   },
 });
@@ -220,6 +222,15 @@ export const InvoicePDF = ({
 }: InvoicePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
   const currencyCode = currency?.code || 'EUR';
+  
+  // Debug logs pour signature
+  console.log('🖋️ InvoicePDF Debug:', {
+    isSigned,
+    hasSignatureUrl: !!company?.signature_url,
+    signatureUrl: company?.signature_url,
+    companyName: company?.name,
+    invoiceNumber: invoiceData?.number
+  });
   
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
@@ -365,11 +376,14 @@ export const InvoicePDF = ({
         </View>
 
         {/* Signature */}
-        {isSigned && company?.signature_url && (
+        {isSigned && company?.signature_url ? (
           <View style={styles.signature}>
             <Text style={styles.signatureLabel}>Signature de l'entreprise</Text>
             <Image style={styles.signatureImage} src={company.signature_url} />
           </View>
+        ) : (
+          console.log('❌ Signature non affichée:', { isSigned, hasSignatureUrl: !!company?.signature_url }),
+          null
         )}
 
         {/* Notes */}
