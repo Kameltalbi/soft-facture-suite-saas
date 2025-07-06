@@ -1,53 +1,30 @@
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { SimplePDFGenerator } from '@/components/pdf/SimplePDFGenerator';
-import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
+import { InvoicesHeader } from '@/components/invoices/InvoicesHeader';
+import { InvoicesFilters } from '@/components/invoices/InvoicesFilters';
+import { InvoicesStats } from '@/components/invoices/InvoicesStats';
+import { InvoicesTable } from '@/components/invoices/InvoicesTable';
+import { useInvoicesData } from '@/hooks/useInvoicesData';
+import { useInvoicesActions } from '@/hooks/useInvoicesActions';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/contexts/CurrencyContext';
-
-type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
-
-interface Invoice {
-  id: string;
-  number: string;
-  client: string;
-  amount: number;
-  status: InvoiceStatus;
-}
-
-const statusLabels = {
-  draft: { label: 'Brouillon', variant: 'secondary' as const },
-  sent: { label: 'Envoyé', variant: 'default' as const },
-  paid: { label: 'Payé', variant: 'default' as const },
-  overdue: { label: 'En retard', variant: 'destructive' as const },
-  partially_paid: { label: 'Payé P.', variant: 'outline' as const },
-  validated: { label: 'Validée', variant: 'success' as const }
-};
+import { Invoice } from '@/types/invoice';
 
 export default function Invoices() {
   const { customTaxes } = useCustomTaxes();
   const { organization } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { currency } = useCurrency();
+  const { invoices, globalSettings, isLoading } = useInvoicesData();
+  const {
+    handleSaveInvoice,
+    handleDuplicateInvoice,
+    handleDeleteInvoice,
+    handleValidateInvoice,
+    handleSignInvoice,
+    handlePaymentRecorded,
+    handleEmailSent
+  } = useInvoicesActions();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -60,77 +37,6 @@ export default function Invoices() {
   
   // Generate available years (5 years back to 2 years forward)
   const availableYears = Array.from({ length: 8 }, (_, i) => currentDate.getFullYear() - 5 + i);
-  
-  const months = [
-    { value: 1, label: 'Janvier' },
-    { value: 2, label: 'Février' },
-    { value: 3, label: 'Mars' },
-    { value: 4, label: 'Avril' },
-    { value: 5, label: 'Mai' },
-    { value: 6, label: 'Juin' },
-    { value: 7, label: 'Juillet' },
-    { value: 8, label: 'Août' },
-    { value: 9, label: 'Septembre' },
-    { value: 10, label: 'Octobre' },
-    { value: 11, label: 'Novembre' },
-    { value: 12, label: 'Décembre' },
-  ];
-
-  const { data: invoices = [], isLoading } = useQuery({
-    queryKey: ['invoices', organization?.id],
-    queryFn: async () => {
-      if (!organization?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('invoices')
-        .select(`
-          *,
-          clients (
-            name,
-            company,
-            address,
-            email,
-            vat_number
-          ),
-          invoice_items (*),
-          currencies (
-            code,
-            symbol,
-            decimal_places
-          )
-        `)
-        .eq('organization_id', organization.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching invoices:', error);
-        throw error;
-      }
-      return data || [];
-    },
-    enabled: !!organization?.id
-  });
-
-  const { data: globalSettings } = useQuery({
-    queryKey: ['globalSettings', organization?.id],
-    queryFn: async () => {
-      if (!organization?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('global_settings')
-        .select('*')
-        .eq('organization_id', organization.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erreur lors de la récupération des paramètres globaux:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!organization?.id
-  });
 
   const filteredInvoices = invoices.filter(invoice => {
     const invoiceDate = new Date(invoice.date);
@@ -148,14 +54,12 @@ export default function Invoices() {
   };
 
   const handleEditInvoice = (invoice: any) => {
-    console.log('Données brutes de la facture:', invoice);
-    
     // Mapper les données de la facture pour correspondre à ce que le modal attend
     const mappedInvoice = {
       ...invoice,
       number: invoice.invoice_number,
       client: invoice.clients,
-      items: invoice.invoice_items?.map(item => ({
+      items: invoice.invoice_items?.map((item: any) => ({
         id: item.id,
         description: item.description,
         quantity: item.quantity,
@@ -176,368 +80,13 @@ export default function Invoices() {
       }
     };
     
-    console.log('Facture mappée pour le modal:', mappedInvoice);
     setEditingInvoice(mappedInvoice);
     setShowInvoiceModal(true);
   };
 
-  const handleSaveInvoice = async (invoiceData: any) => {
-    try {
-      if (!organization?.id) {
-        toast({
-          title: "Erreur",
-          description: "Organisation non trouvée",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Saving invoice:', invoiceData);
-
-      if (editingInvoice) {
-        // Mise à jour d'une facture existante
-        const { error: updateError } = await supabase
-          .from('invoices')
-          .update({
-            invoice_number: invoiceData.number,
-            date: invoiceData.date,
-            due_date: invoiceData.dueDate,
-            client_id: invoiceData.client?.id,
-            subtotal: invoiceData.totals.subtotalHT,
-            tax_amount: invoiceData.totals.totalVAT,
-            total_amount: invoiceData.totals.totalTTC,
-            notes: invoiceData.notes,
-            use_vat: invoiceData.invoiceSettings?.useVat,
-            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
-            has_advance: invoiceData.invoiceSettings?.hasAdvance,
-            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingInvoice.id);
-
-        if (updateError) throw updateError;
-
-        // Supprimer les anciens éléments et en créer de nouveaux
-        await supabase.from('invoice_items').delete().eq('invoice_id', editingInvoice.id);
-        
-        if (invoiceData.items && invoiceData.items.length > 0) {
-          const newItems = invoiceData.items.map((item: any) => ({
-            invoice_id: editingInvoice.id,
-            organization_id: organization.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            tax_rate: item.vatRate,
-            total_price: item.total
-          }));
-
-          const { error: itemsError } = await supabase.from('invoice_items').insert(newItems);
-          if (itemsError) throw itemsError;
-        }
-
-        toast({
-          title: "Succès",
-          description: "La facture a été mise à jour avec succès",
-        });
-      } else {
-        // Création d'une nouvelle facture
-        const { data: newInvoice, error: invoiceError } = await supabase
-          .from('invoices')
-          .insert({
-            invoice_number: invoiceData.number,
-            date: invoiceData.date,
-            due_date: invoiceData.dueDate,
-            client_id: invoiceData.client?.id,
-            organization_id: organization.id,
-            status: 'draft',
-            subtotal: invoiceData.totals.subtotalHT,
-            tax_amount: invoiceData.totals.totalVAT,
-            total_amount: invoiceData.totals.totalTTC,
-            notes: invoiceData.notes,
-            use_vat: invoiceData.invoiceSettings?.useVat,
-            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
-            has_advance: invoiceData.invoiceSettings?.hasAdvance,
-            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId || null
-          })
-          .select()
-          .single();
-
-        if (invoiceError) throw invoiceError;
-
-        // Créer les éléments de facture
-        if (invoiceData.items && invoiceData.items.length > 0) {
-          const newItems = invoiceData.items.map((item: any) => ({
-            invoice_id: newInvoice.id,
-            organization_id: organization.id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            tax_rate: item.vatRate,
-            total_price: item.total
-          }));
-
-          const { error: itemsError } = await supabase.from('invoice_items').insert(newItems);
-          if (itemsError) throw itemsError;
-        }
-
-        toast({
-          title: "Succès",
-          description: "La facture a été créée avec succès",
-        });
-      }
-
-      // Rafraîchir la liste des factures
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      setShowInvoiceModal(false);
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la sauvegarde de la facture",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleViewInvoice = (invoice: any) => {
-    console.log('Viewing invoice:', invoice.invoice_number);
-  };
-
-  const handleDuplicateInvoice = async (invoice: any) => {
-    try {
-      // Générer un nouveau numéro de facture
-      const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`;
-      
-      // Créer la nouvelle facture
-      const { data: newInvoice, error: invoiceError } = await supabase
-        .from('invoices')
-        .insert({
-          invoice_number: invoiceNumber,
-          client_id: invoice.client_id,
-          organization_id: organization.id,
-          date: new Date().toISOString().split('T')[0],
-          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          status: 'draft',
-          subtotal: invoice.subtotal,
-          tax_amount: invoice.tax_amount,
-          total_amount: invoice.total_amount,
-          notes: invoice.notes
-        })
-        .select()
-        .single();
-
-      if (invoiceError) throw invoiceError;
-
-      // Dupliquer les éléments de facture
-      if (invoice.invoice_items && invoice.invoice_items.length > 0) {
-        const newItems = invoice.invoice_items.map(item => ({
-          invoice_id: newInvoice.id,
-          organization_id: organization.id,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          tax_rate: item.tax_rate,
-          total_price: item.total_price,
-          product_id: item.product_id
-        }));
-
-        const { error: itemsError } = await supabase
-          .from('invoice_items')
-          .insert(newItems);
-
-        if (itemsError) throw itemsError;
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été dupliquée en ${invoiceNumber}`,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la duplication:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la duplication de la facture",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleMarkAsSent = async (invoice: any) => {
-    try {
-      const { error } = await supabase
-        .from('invoices')
-        .update({ 
-          status: 'sent',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', invoice.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été marquée comme envoyée`,
-      });
-    } catch (error) {
-      console.error('Erreur lors du changement de statut:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors du changement de statut",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteInvoice = async (invoice: any) => {
-    try {
-      // Supprimer d'abord les éléments de facture
-      const { error: itemsError } = await supabase
-        .from('invoice_items')
-        .delete()
-        .eq('invoice_id', invoice.id);
-
-      if (itemsError) throw itemsError;
-
-      // Supprimer la facture
-      const { error: invoiceError } = await supabase
-        .from('invoices')
-        .delete()
-        .eq('id', invoice.id);
-
-      if (invoiceError) throw invoiceError;
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été supprimée`,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression de la facture",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handlePaymentRecorded = async (paymentData: any) => {
-    try {
-      // Récupérer la facture actuelle pour connaître son montant total
-      const { data: currentInvoice, error: fetchError } = await supabase
-        .from('invoices')
-        .select('total_amount, amount_paid')
-        .eq('id', paymentData.invoiceId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      // Calculer le nouveau montant payé
-      const newAmountPaid = (currentInvoice.amount_paid || 0) + paymentData.amount;
-      
-      // Déterminer le nouveau statut
-      let newStatus = 'partially_paid';
-      if (newAmountPaid >= currentInvoice.total_amount) {
-        newStatus = 'paid';
-      }
-
-      const { error } = await supabase
-        .from('invoices')
-        .update({ 
-          amount_paid: newAmountPaid,
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', paymentData.invoiceId);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: newStatus === 'paid' ? "Le paiement a été enregistré - Facture marquée comme payée" : "Le paiement partiel a été enregistré",
-      });
-    } catch (error) {
-      console.error('Erreur lors de l\'enregistrement du paiement:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de l'enregistrement du paiement",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleEmailSent = (emailData: any) => {
-    toast({
-      title: "Email envoyé",
-      description: `La facture a été envoyée à ${emailData.to}`,
-    });
-  };
-
-  const formatCurrency = (amount, invoiceCurrency = null) => {
-    const currencyToUse = invoiceCurrency || currency;
-    return `${amount.toLocaleString('fr-FR', { 
-      minimumFractionDigits: currencyToUse.decimal_places, 
-      maximumFractionDigits: currencyToUse.decimal_places 
-    })} ${currencyToUse.symbol}`;
-  };
-
-  const handleValidateInvoice = async (invoice: any) => {
-    try {
-      const { error } = await supabase
-        .from('invoices')
-        .update({ 
-          status: 'validated',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', invoice.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été validée`,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la validation:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la validation de la facture",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleSignInvoice = async (invoice: any) => {
-    try {
-      const { error } = await supabase
-        .from('invoices')
-        .update({ 
-          is_signed: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', invoice.id);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast({
-        title: "Succès",
-        description: `La facture ${invoice.invoice_number} a été signée`,
-      });
-    } catch (error) {
-      console.error('Erreur lors de la signature:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la signature de la facture",
-        variant: "destructive"
-      });
-    }
+  const handleInvoiceSave = async (invoiceData: any) => {
+    await handleSaveInvoice(invoiceData, editingInvoice);
+    setShowInvoiceModal(false);
   };
 
   if (isLoading) {
@@ -552,232 +101,42 @@ export default function Invoices() {
 
   return (
     <div className="p-6 space-y-6 bg-neutral-50 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Factures</h1>
-          <p className="text-neutral-600">Gérez vos factures clients</p>
-        </div>
-        <Button onClick={handleNewInvoice} className="bg-primary hover:bg-primary/90">
-          <Plus size={16} className="mr-2" />
-          Nouvelle Facture
-        </Button>
-      </div>
+      <InvoicesHeader onNewInvoice={handleNewInvoice} />
+      
+      <InvoicesFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedYear={selectedYear}
+        onYearChange={setSelectedYear}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
+        availableYears={availableYears}
+      />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" size={16} />
-              <Input
-                placeholder="Rechercher par client ou numéro..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-neutral-200"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Année :</label>
-              <Select
-                value={selectedYear.toString()}
-                onValueChange={(value) => setSelectedYear(parseInt(value))}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <InvoicesStats invoices={filteredInvoices} />
 
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Mois :</label>
-              <Select
-                value={selectedMonth.toString()}
-                onValueChange={(value) => setSelectedMonth(parseInt(value))}
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month) => (
-                    <SelectItem key={month.value} value={month.value.toString()}>
-                      {month.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <InvoicesTable
+        invoices={filteredInvoices}
+        customTaxes={customTaxes}
+        organization={organization}
+        globalSettings={globalSettings}
+        currency={currency}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        onEditInvoice={handleEditInvoice}
+        onDuplicateInvoice={handleDuplicateInvoice}
+        onDeleteInvoice={handleDeleteInvoice}
+        onValidateInvoice={handleValidateInvoice}
+        onSignInvoice={handleSignInvoice}
+        onPaymentRecorded={handlePaymentRecorded}
+        onEmailSent={handleEmailSent}
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Total factures</p>
-                <p className="text-2xl font-bold text-neutral-900">{filteredInvoices.length}</p>
-              </div>
-              <div className="w-3 h-3 bg-primary rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Validées</p>
-                <p className="text-2xl font-bold text-green-600">{filteredInvoices.filter(i => i.status === 'validated').length}</p>
-              </div>
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Payées</p>
-                <p className="text-2xl font-bold text-success">{filteredInvoices.filter(i => i.status === 'paid').length}</p>
-              </div>
-              <div className="w-3 h-3 bg-success rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Payées P.</p>
-                <p className="text-2xl font-bold text-orange-500">{filteredInvoices.filter(i => i.status === 'partially_paid').length}</p>
-              </div>
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">Envoyées</p>
-                <p className="text-2xl font-bold text-secondary">{filteredInvoices.filter(i => i.status === 'sent').length}</p>
-              </div>
-              <div className="w-3 h-3 bg-secondary rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600">En retard</p>
-                <p className="text-2xl font-bold text-destructive">{filteredInvoices.filter(i => i.status === 'overdue').length}</p>
-              </div>
-              <div className="w-3 h-3 bg-destructive rounded-full"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des factures</CardTitle>
-          <CardDescription>
-            Consultez et gérez toutes vos factures pour {months.find(m => m.value === selectedMonth)?.label} {selectedYear}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Numéro</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Montant</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id} className="hover:bg-neutral-50">
-                  <TableCell className="font-mono">{invoice.invoice_number}</TableCell>
-                  <TableCell>{new Date(invoice.date).toLocaleDateString('fr-FR')}</TableCell>
-                  <TableCell>
-                    <div>
-                      <span className="font-medium">{invoice.clients?.name}</span>
-                      {invoice.clients?.company && (
-                        <div className="text-sm text-neutral-500">{invoice.clients.company}</div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {formatCurrency(invoice.total_amount, invoice.currencies)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={statusLabels[invoice.status as InvoiceStatus]?.variant || 'secondary'}>
-                      {statusLabels[invoice.status as InvoiceStatus]?.label || invoice.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <InvoiceActionsMenu
-                      invoice={{
-                        id: invoice.id,
-                        number: invoice.invoice_number,
-                        client: invoice.clients?.name || '',
-                        amount: invoice.total_amount,
-                        paidAmount: invoice.amount_paid || 0,
-                        status: invoice.status as InvoiceStatus,
-                        is_signed: invoice.is_signed
-                      }}
-                      pdfComponent={<SimplePDFGenerator 
-                        invoice={invoice} 
-                        organization={organization}
-                        customTaxes={customTaxes}
-                        globalSettings={globalSettings}
-                        currency={currency}
-                      />}
-                      onValidate={() => handleValidateInvoice(invoice)}
-                      onEdit={() => handleEditInvoice(invoice)}
-                      onDuplicate={() => handleDuplicateInvoice(invoice)}
-                      onDelete={() => handleDeleteInvoice(invoice)}
-                      onPaymentRecorded={handlePaymentRecorded}
-                      onEmailSent={handleEmailSent}
-                      onSign={() => handleSignInvoice(invoice)}
-                      hasSignature={!!organization?.signature_url}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredInvoices.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
-                    {invoices.length === 0 ? 'Aucune facture trouvée. Créez votre première facture !' : 'Aucune facture ne correspond à votre recherche'}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Modal */}
       <InvoiceModal
         open={showInvoiceModal}
         onClose={() => setShowInvoiceModal(false)}
         invoice={editingInvoice}
-        onSave={handleSaveInvoice}
+        onSave={handleInvoiceSave}
       />
     </div>
   );
