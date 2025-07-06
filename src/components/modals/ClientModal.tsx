@@ -227,15 +227,15 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="vat_number">Numéro de TVA intracommunautaire</Label>
+                <Label htmlFor="vat_number">Matricule Fiscale</Label>
                 <Input
                   id="vat_number"
                   value={formData.vat_number}
                   onChange={(e) => setFormData({...formData, vat_number: e.target.value})}
-                  placeholder="FR12345678901"
+                  placeholder="1234567/A/M/000"
                 />
                 <p className="text-xs text-neutral-500 mt-1">
-                  Optionnel - pour les clients européens
+                  Optionnel - matricule fiscal du client
                 </p>
               </div>
 
