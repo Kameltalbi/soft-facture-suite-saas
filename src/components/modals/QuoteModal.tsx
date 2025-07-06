@@ -648,34 +648,42 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                           }}
                         />
                         
-                         {/* Suggestions dropdown */}
-                         {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
-                           <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto mt-1">
-                             {searchSuggestions.map((product) => (
-                               <div
-                                 key={product.id}
-                                 className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
-                                 onMouseDown={(e) => {
-                                   e.preventDefault(); // Empêche le blur de l'input
-                                   selectProduct(item.id, product);
-                                 }}
-                               >
-                                 <div className="flex-1">
-                                   <div className="font-medium text-sm text-gray-900">{product.name}</div>
-                                   {product.description && (
-                                     <div className="text-xs text-gray-500 mt-1">{product.description}</div>
-                                   )}
-                                   <div className="text-xs text-gray-400 mt-1">
-                                     {product.unit && `Unité: ${product.unit}`}
-                                   </div>
-                                 </div>
-                                  <div className="text-sm font-medium text-purple-600 ml-3">
-                                    {formatCurrency(product.price)}
+                        {/* Suggestions dropdown */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
+                          <div 
+                            className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
+                            style={{
+                              zIndex: 9999,
+                              top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
+                              left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
+                              width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
+                            }}
+                          >
+                            {searchSuggestions.map((product) => (
+                              <div
+                                key={product.id}
+                                className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
+                                onMouseDown={(e) => {
+                                  e.preventDefault(); // Empêche le blur de l'input
+                                  selectProduct(item.id, product);
+                                }}
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                                  {product.description && (
+                                    <div className="text-xs text-gray-500 mt-1">{product.description}</div>
+                                  )}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {product.unit && `Unité: ${product.unit}`}
                                   </div>
-                               </div>
-                             ))}
-                           </div>
-                         )}
+                                </div>
+                                 <div className="text-sm font-medium text-purple-600 ml-3">
+                                   {formatCurrency(product.price)}
+                                 </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         
                         {/* Message si aucun résultat */}
                         {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (

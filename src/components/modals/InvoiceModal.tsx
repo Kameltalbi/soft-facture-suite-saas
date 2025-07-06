@@ -49,16 +49,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
-  
-  // Debug des produits
-  React.useEffect(() => {
-    console.log('🔍 Modal InvoiceModal - Debug produits:', {
-      productsCount: products.length,
-      productsLoading,
-      products: products.slice(0, 3), // Afficher les 3 premiers produits
-      organization: organization?.id
-    });
-  }, [products, productsLoading, organization]);
   const { nextInvoiceNumber, generateNextInvoiceNumber, isLoading: numberLoading } = useInvoiceNumber();
   const { customTaxes } = useCustomTaxes();
   const { currency } = useCurrency();
@@ -155,11 +145,10 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [customTaxes, invoice]);
   
-  // Product search with flexible dropdown
+  // Product search inline
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fonction de nettoyage des timeouts
@@ -184,99 +173,30 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     }
   }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
 
-  // Fonction de recherche flexible avec dropdown intelligent
+  // Fonction de recherche de produits avec debounce
   const handleProductSearch = (itemId: string, searchTerm: string) => {
-    console.log('🔍 Recherche de produit:', { itemId, searchTerm, productsCount: products.length });
-    
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
     
     setActiveItemId(itemId);
-    setSelectedSuggestionIndex(-1);
     
-    // Recherche dès 1 caractère avec algorithme flexible
-    if (searchTerm.length >= 1) {
+    if (searchTerm.length >= 2) {
       searchTimeoutRef.current = setTimeout(() => {
-        const normalizedSearch = searchTerm.toLowerCase().trim();
-        console.log('🔍 Recherche normalisée:', normalizedSearch);
-        
-        const filtered = products.filter(product => {
-          const productName = product.name.toLowerCase();
-          const productDesc = product.description?.toLowerCase() || '';
-          
-          const matches = (
-            productName.startsWith(normalizedSearch) ||
-            productName.includes(normalizedSearch) ||
-            productDesc.includes(normalizedSearch) ||
-            // Recherche par mots séparés
-            normalizedSearch.split(' ').every(word => 
-              word.length > 0 && (productName.includes(word) || productDesc.includes(word))
-            )
-          );
-          
-          if (matches) {
-            console.log('✅ Produit trouvé:', { name: product.name, description: product.description });
-          }
-          
-          return matches;
-        });
-        
-        console.log('🎯 Résultats filtrés:', filtered.length);
-        
-        // Trier par pertinence : ceux qui commencent par le terme en premier
-        const sortedFiltered = filtered.sort((a, b) => {
-          const aName = a.name.toLowerCase();
-          const bName = b.name.toLowerCase();
-          
-          if (aName.startsWith(normalizedSearch) && !bName.startsWith(normalizedSearch)) return -1;
-          if (!aName.startsWith(normalizedSearch) && bName.startsWith(normalizedSearch)) return 1;
-          
-          return a.name.localeCompare(b.name);
-        });
-        
-        setSearchSuggestions(sortedFiltered.slice(0, 8)); // Montrer jusqu'à 8 résultats
-        setShowSuggestions(sortedFiltered.length > 0);
-        
-        console.log('📊 État final:', { 
-          suggestions: sortedFiltered.length, 
-          showSuggestions: sortedFiltered.length > 0,
-          activeItemId: itemId 
-        });
-      }, 150); // Réduit le délai pour plus de réactivité
+        const filtered = products.filter(product =>
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        setSearchSuggestions(filtered.slice(0, 5));
+        setShowSuggestions(true);
+      }, 300);
     } else {
       setSearchSuggestions([]);
       setShowSuggestions(false);
     }
   };
 
-  // Navigation au clavier dans le dropdown
-  const handleKeyNavigation = (e: React.KeyboardEvent, itemId: string) => {
-    if (!showSuggestions || searchSuggestions.length === 0) return;
-    
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedSuggestionIndex(prev => 
-        prev < searchSuggestions.length - 1 ? prev + 1 : 0
-      );
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedSuggestionIndex(prev => 
-        prev > 0 ? prev - 1 : searchSuggestions.length - 1
-      );
-    } else if (e.key === 'Enter' || e.key === 'Tab') {
-      if (selectedSuggestionIndex >= 0 && searchSuggestions[selectedSuggestionIndex]) {
-        e.preventDefault();
-        selectProduct(itemId, searchSuggestions[selectedSuggestionIndex]);
-      }
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setSelectedSuggestionIndex(-1);
-      setActiveItemId(null);
-    }
-  };
-
-  // Sélectionner un produit depuis les suggestions  
+  // Sélectionner un produit depuis les suggestions
   const selectProduct = (itemId: string, product: Product) => {
     const taxRate = product.tax_rate || 0;
     const unitPrice = product.price;
@@ -294,12 +214,9 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       }
       return item;
     }));
-    
-    // Nettoyer l'état de recherche
     setShowSuggestions(false);
-    setSearchSuggestions([]);
-    setSelectedSuggestionIndex(-1);
     setActiveItemId(null);
+    setSearchSuggestions([]);
   };
   
   // Add a new empty invoice item
@@ -635,71 +552,83 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 <TableBody>
                   {invoiceItems.map((item) => (
                     <TableRow key={item.id}>
-                       <TableCell className="relative">
-                         <Input
-                           value={item.description}
-                           onChange={(e) => {
-                             updateInvoiceItem(item.id, 'description', e.target.value);
-                             handleProductSearch(item.id, e.target.value);
-                           }}
-                           placeholder="Tapez pour rechercher un produit..."
-                           onFocus={() => {
-                             setActiveItemId(item.id);
-                             if (item.description.length >= 1) {
-                               handleProductSearch(item.id, item.description);
-                             }
-                           }}
-                           onBlur={() => {
-                             setTimeout(() => {
-                               setShowSuggestions(false);
-                               setSearchSuggestions([]);
-                               setSelectedSuggestionIndex(-1);
-                               setActiveItemId(null);
-                             }, 200);
-                           }}
-                           onKeyDown={(e) => handleKeyNavigation(e, item.id)}
-                         />
-                         
-                         {/* Dropdown intelligent avec suggestions */}
-                         {activeItemId === item.id && showSuggestions && searchSuggestions.length > 0 && (
-                           <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-300 rounded-md shadow-xl max-h-64 overflow-y-auto mt-1">
-                             {searchSuggestions.map((product, index) => (
-                               <div
-                                 key={product.id}
-                                 className={`p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors ${
-                                   selectedSuggestionIndex === index ? 'bg-blue-100' : ''
-                                 }`}
-                                 onMouseDown={(e) => {
-                                   e.preventDefault();
-                                   selectProduct(item.id, product);
-                                 }}
-                                 onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                               >
-                                 <div className="flex-1">
-                                   <div className="font-medium text-sm text-gray-900">{product.name}</div>
-                                   {product.description && (
-                                     <div className="text-xs text-gray-500 mt-1 line-clamp-2">{product.description}</div>
-                                   )}
-                                    <div className="text-xs text-gray-400 mt-1">
-                                      {product.unit && `Unité: ${product.unit}`}
-                                      {(product.tax_rate !== null && product.tax_rate !== undefined) && ` • TVA: ${product.tax_rate}%`}
-                                    </div>
-                                 </div>
-                                 <div className="text-sm font-medium text-blue-600 ml-3">
-                                   {formatCurrency(product.price)}
-                                 </div>
-                               </div>
-                             ))}
-                           </div>
-                         )}
-                         
-                         {/* Message si aucun résultat */}
-                         {activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 1 && (
-                           <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
-                             Aucun produit trouvé pour "{item.description}"
-                           </div>
-                         )}
-                       </TableCell>
+                      <TableCell className="relative">
+                        <Input
+                          value={item.description}
+                          onChange={(e) => {
+                            updateInvoiceItem(item.id, 'description', e.target.value);
+                            handleProductSearch(item.id, e.target.value);
+                          }}
+                          placeholder="Tapez pour rechercher un produit..."
+                          onFocus={() => {
+                            setActiveItemId(item.id);
+                            if (item.description.length >= 2) {
+                              handleProductSearch(item.id, item.description);
+                            }
+                          }}
+                          onBlur={(e) => {
+                            // Délai pour permettre le clic sur une suggestion
+                            setTimeout(() => {
+                              const currentTarget = e.currentTarget;
+                              const activeElement = document.activeElement;
+                              if (!currentTarget || !activeElement || !currentTarget.contains(activeElement)) {
+                                setShowSuggestions(false);
+                                setActiveItemId(null);
+                              }
+                            }, 200);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowSuggestions(false);
+                              setActiveItemId(null);
+                            }
+                          }}
+                        />
+                        
+                        {/* Suggestions dropdown */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length > 0 && (
+                          <div 
+                            className="fixed bg-white border border-gray-300 rounded-md shadow-xl max-h-48 overflow-y-auto min-w-[400px]"
+                            style={{
+                              zIndex: 9999,
+                              top: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().bottom + window.scrollY + 4}px`,
+                              left: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().left + window.scrollX}px`,
+                              width: `${(document.activeElement as HTMLElement)?.getBoundingClientRect().width}px`
+                            }}
+                          >
+                            {searchSuggestions.map((product) => (
+                              <div
+                                key={product.id}
+                                className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex justify-between items-start transition-colors"
+                                onMouseDown={(e) => {
+                                  e.preventDefault(); // Empêche le blur de l'input
+                                  selectProduct(item.id, product);
+                                }}
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm text-gray-900">{product.name}</div>
+                                  {product.description && (
+                                    <div className="text-xs text-gray-500 mt-1">{product.description}</div>
+                                  )}
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {product.unit && `Unité: ${product.unit}`}
+                                  </div>
+                                </div>
+                                <div className="text-sm font-medium text-blue-600 ml-3">
+                                  {formatCurrency(product.price)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Message si aucun résultat */}
+                        {showSuggestions && activeItemId === item.id && searchSuggestions.length === 0 && item.description.length >= 2 && (
+                          <div className="absolute top-full left-0 right-0 z-[100] bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-gray-500 text-sm mt-1">
+                            Aucun produit trouvé pour "{item.description}"
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Input
                           type="number"
