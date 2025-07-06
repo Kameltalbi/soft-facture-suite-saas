@@ -1,47 +1,27 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InvoicePDF } from './invoices/InvoicePDF';
 import { imageUrlToBase64 } from '@/utils/imageToBase64';
-import { useAuth } from '@/hooks/useAuth';
-import { useCustomTaxes } from '@/hooks/useCustomTaxes';
 import { calculateCustomTaxes } from '@/utils/customTaxCalculations';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
-interface AsyncInvoicePDFProps {
+interface SimplePDFGeneratorProps {
   invoice: any;
+  organization: any;
+  customTaxes: any[];
+  globalSettings: any;
   currency: any;
 }
 
-export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, currency }) => {
-  const { organization } = useAuth();
-  const { customTaxes } = useCustomTaxes();
+export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
+  invoice,
+  organization,
+  customTaxes,
+  globalSettings,
+  currency
+}) => {
   const [pdfData, setPdfData] = useState(null);
-
-  const { data: globalSettings } = useQuery({
-    queryKey: ['globalSettings', organization?.id],
-    queryFn: async () => {
-      if (!organization?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('global_settings')
-        .select('*')
-        .eq('organization_id', organization.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erreur lors de la récupération des paramètres globaux:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!organization?.id
-  });
 
   useEffect(() => {
     const generatePDFData = async () => {
-      if (!invoice || !organization) return;
-
       const mockLineItems = invoice.invoice_items?.map(item => ({
         id: item.id,
         description: item.description,
@@ -57,7 +37,6 @@ export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, curre
       if (organization?.signature_url) {
         try {
           signatureBase64 = await imageUrlToBase64(organization.signature_url);
-          console.log('✅ Signature convertie en base64:', signatureBase64 ? 'Succès' : 'Échec');
         } catch (error) {
           console.error('❌ Erreur conversion signature:', error);
         }
@@ -69,7 +48,7 @@ export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, curre
         email: organization?.email || 'contact@monentreprise.fr',
         phone: organization?.phone || 'Téléphone',
         logo_url: organization?.logo_url,
-        signature_url: signatureBase64 || organization?.signature_url // Utiliser base64 si disponible
+        signature_url: signatureBase64 || organization?.signature_url
       };
 
       const client = {
@@ -80,7 +59,7 @@ export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, curre
         vat_number: invoice.clients?.vat_number || ''
       };
 
-      // Calcul des taxes personnalisées - Filtrer seulement celles qui ont été sélectionnées
+      // Calcul des taxes personnalisées
       const subtotal = mockLineItems.reduce((sum, item) => sum + (item.total || 0), 0);
       const activeCustomTaxes = invoice.custom_taxes_used 
         ? customTaxes.filter(tax => invoice.custom_taxes_used.includes(tax.id))
@@ -104,8 +83,7 @@ export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, curre
           footer_display: globalSettings?.footer_display || 'all'
         },
         currency: invoice.currencies || currency,
-        customTaxes: customTaxCalculations,
-        isSigned: invoice.is_signed || false
+        customTaxes: customTaxCalculations
       };
 
       setPdfData(data);
@@ -115,7 +93,7 @@ export const AsyncInvoicePDF: React.FC<AsyncInvoicePDFProps> = ({ invoice, curre
   }, [invoice, organization, customTaxes, globalSettings, currency]);
 
   if (!pdfData) {
-    return <div>Chargement...</div>;
+    return null; // Le PDFDownloadLink gérera l'état de chargement
   }
 
   return <InvoicePDF {...pdfData} />;

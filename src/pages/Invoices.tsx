@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InvoiceModal } from '@/components/modals/InvoiceModal';
-import { AsyncInvoicePDF } from '@/components/pdf/AsyncInvoicePDF';
+import { SimplePDFGenerator } from '@/components/pdf/SimplePDFGenerator';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
@@ -813,7 +813,13 @@ export default function Invoices() {
                         status: invoice.status as InvoiceStatus,
                         is_signed: invoice.is_signed
                       }}
-                      pdfComponent={<AsyncInvoicePDF invoice={invoice} currency={currency} />}
+                      pdfComponent={<SimplePDFGenerator 
+                        invoice={invoice} 
+                        organization={organization}
+                        customTaxes={customTaxes}
+                        globalSettings={globalSettings}
+                        currency={currency}
+                      />}
                       onValidate={() => handleValidateInvoice(invoice)}
                       onEdit={() => handleEditInvoice(invoice)}
                       onDuplicate={() => handleDuplicateInvoice(invoice)}
