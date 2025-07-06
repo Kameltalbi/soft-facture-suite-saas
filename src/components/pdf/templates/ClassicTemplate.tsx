@@ -20,6 +20,7 @@ interface ClassicTemplateProps {
   settings: any;
   documentType?: string;
   customTaxes?: any[];
+  isSigned?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -142,6 +143,22 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: '#666666',
   },
+  signature: {
+    marginTop: 56, // 2cm en dessous (environ 56 points)
+    alignItems: 'center',
+    maxWidth: 170, // Largeur max de 6cm (environ 170 points)
+  },
+  signatureLabel: {
+    fontSize: 10,
+    color: '#666666',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  signatureImage: {
+    maxWidth: 170, // 6cm max
+    maxHeight: 85, // Hauteur proportionnelle
+    objectFit: 'contain',
+  },
 });
 
 export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
@@ -151,7 +168,8 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
   company,
   settings,
   documentType = 'FACTURE',
-  customTaxes = []
+  customTaxes = [],
+  isSigned = false
 }) => {
   console.log('📄 ClassicTemplate - Taxes reçues:', customTaxes);
   
@@ -257,6 +275,14 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
             <Text>{totalTTC.toFixed(2)} €</Text>
           </View>
         </View>
+
+        {/* Signature */}
+        {isSigned && company.signature_url && (
+          <View style={styles.signature}>
+            <Text style={styles.signatureLabel}>Signature de l'entreprise</Text>
+            <Image style={styles.signatureImage} src={company.signature_url} />
+          </View>
+        )}
 
         {/* Notes */}
         {invoiceData.notes && (

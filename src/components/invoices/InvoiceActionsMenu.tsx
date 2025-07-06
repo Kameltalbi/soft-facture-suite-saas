@@ -27,7 +27,8 @@ import {
   CreditCard, 
   Edit, 
   Trash2,
-  Send
+  Send,
+  PenTool
 } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { PaymentModal } from '@/components/modals/PaymentModal';
@@ -41,6 +42,7 @@ interface InvoiceActionsMenuProps {
     amount: number;
     paidAmount?: number;
     status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated';
+    is_signed?: boolean;
   };
   pdfComponent: React.ReactElement;
   onValidate: () => void;
@@ -50,6 +52,8 @@ interface InvoiceActionsMenuProps {
   onDelete: () => void;
   onPaymentRecorded: (paymentData: any) => void;
   onEmailSent: (emailData: any) => void;
+  onSign: () => void;
+  hasSignature: boolean;
 }
 
 export function InvoiceActionsMenu({
@@ -61,7 +65,9 @@ export function InvoiceActionsMenu({
   onMarkAsSent,
   onDelete,
   onPaymentRecorded,
-  onEmailSent
+  onEmailSent,
+  onSign,
+  hasSignature
 }: InvoiceActionsMenuProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -72,6 +78,8 @@ export function InvoiceActionsMenu({
   const canMarkAsSent = invoice.status === 'draft';
   const canValidate = invoice.status === 'draft' || invoice.status === 'sent';
   const canModify = invoice.status === 'draft';
+  const canSign = hasSignature && invoice.status !== 'draft';
+  const isSigned = invoice.is_signed;
 
   const handlePaymentSave = (paymentData: any) => {
     // Passer les données avec le montant total de la facture pour la validation
@@ -126,6 +134,17 @@ export function InvoiceActionsMenu({
             <Repeat className="mr-2 h-4 w-4" />
             Dupliquer
           </DropdownMenuItem>
+
+          {canSign && (
+            <DropdownMenuItem 
+              onClick={onSign}
+              disabled={isSigned}
+              className={isSigned ? "text-muted-foreground" : "text-primary"}
+            >
+              <PenTool className="mr-2 h-4 w-4" />
+              {isSigned ? 'Signée' : 'Signer'}
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuSeparator />
 

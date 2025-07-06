@@ -505,6 +505,8 @@ const Quotes = () => {
                           onStatusChange={(status) => handleStatusChange(quote, status)}
                           onDelete={() => handleDeleteQuote(quote)}
                           onEmailSent={handleEmailSent}
+                          onSign={() => {}}
+                          hasSignature={false}
                         />
                       </TableCell>
                     </TableRow>

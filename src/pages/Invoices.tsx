@@ -505,7 +505,8 @@ export default function Invoices() {
       address: organization?.address || 'Adresse de l\'entreprise',
       email: organization?.email || 'contact@monentreprise.fr',
       phone: organization?.phone || 'Téléphone',
-      logo_url: organization?.logo_url
+      logo_url: organization?.logo_url,
+      signature_url: organization?.signature_url
     };
 
     const client = {
@@ -540,7 +541,8 @@ export default function Invoices() {
         footer_display: globalSettings?.footer_display || 'all'
       },
       currency: invoice.currencies || currency,
-      customTaxes: customTaxCalculations
+      customTaxes: customTaxCalculations,
+      isSigned: invoice.is_signed || false
     };
   };
 
@@ -566,6 +568,33 @@ export default function Invoices() {
       toast({
         title: "Erreur",
         description: "Erreur lors de la validation de la facture",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSignInvoice = async (invoice: any) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ 
+          is_signed: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', invoice.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      toast({
+        title: "Succès",
+        description: `La facture ${invoice.invoice_number} a été signée`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la signature:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la signature de la facture",
         variant: "destructive"
       });
     }
@@ -769,7 +798,8 @@ export default function Invoices() {
                         client: invoice.clients?.name || '',
                         amount: invoice.total_amount,
                         paidAmount: invoice.amount_paid || 0,
-                        status: invoice.status as InvoiceStatus
+                        status: invoice.status as InvoiceStatus,
+                        is_signed: invoice.is_signed
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(invoice)} />}
                       onValidate={() => handleValidateInvoice(invoice)}
@@ -779,6 +809,8 @@ export default function Invoices() {
                       onDelete={() => handleDeleteInvoice(invoice)}
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
+                      onSign={() => handleSignInvoice(invoice)}
+                      hasSignature={!!organization?.signature_url}
                     />
                   </TableCell>
                 </TableRow>

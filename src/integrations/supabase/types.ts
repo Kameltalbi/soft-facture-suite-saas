@@ -180,6 +180,7 @@ export type Database = {
           credit_note_number: string
           date: string
           id: string
+          is_signed: boolean | null
           notes: string | null
           organization_id: string
           original_invoice_id: string | null
@@ -196,6 +197,7 @@ export type Database = {
           credit_note_number: string
           date?: string
           id?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id: string
           original_invoice_id?: string | null
@@ -212,6 +214,7 @@ export type Database = {
           credit_note_number?: string
           date?: string
           id?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id?: string
           original_invoice_id?: string | null
@@ -393,6 +396,7 @@ export type Database = {
           delivery_number: string
           expected_delivery_date: string | null
           id: string
+          is_signed: boolean | null
           notes: string | null
           organization_id: string
           status: string | null
@@ -406,6 +410,7 @@ export type Database = {
           delivery_number: string
           expected_delivery_date?: string | null
           id?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id: string
           status?: string | null
@@ -419,6 +424,7 @@ export type Database = {
           delivery_number?: string
           expected_delivery_date?: string | null
           id?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id?: string
           status?: string | null
@@ -671,6 +677,7 @@ export type Database = {
           has_advance: boolean | null
           id: string
           invoice_number: string
+          is_signed: boolean | null
           notes: string | null
           organization_id: string
           status: string | null
@@ -693,6 +700,7 @@ export type Database = {
           has_advance?: boolean | null
           id?: string
           invoice_number: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id: string
           status?: string | null
@@ -715,6 +723,7 @@ export type Database = {
           has_advance?: boolean | null
           id?: string
           invoice_number?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id?: string
           status?: string | null
@@ -1197,6 +1206,7 @@ export type Database = {
           created_at: string | null
           date: string
           id: string
+          is_signed: boolean | null
           notes: string | null
           organization_id: string
           quote_number: string
@@ -1212,6 +1222,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           id?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id: string
           quote_number: string
@@ -1227,6 +1238,7 @@ export type Database = {
           created_at?: string | null
           date?: string
           id?: string
+          is_signed?: boolean | null
           notes?: string | null
           organization_id?: string
           quote_number?: string

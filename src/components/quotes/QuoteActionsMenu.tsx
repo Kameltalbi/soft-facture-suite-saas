@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, ArrowRight, Trash, FileText, CheckCircle } from 'lucide-react';
+import { MoreHorizontal, Eye, Printer, Mail, Edit, Copy, ArrowRight, Trash, FileText, CheckCircle, PenTool } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { EmailModal } from '@/components/modals/EmailModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +37,7 @@ interface Quote {
   amount: number;
   status: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
   validUntil: string;
+  is_signed?: boolean;
 }
 
 interface QuoteActionsMenuProps {
@@ -49,6 +50,8 @@ interface QuoteActionsMenuProps {
   onStatusChange: (status: Quote['status']) => void;
   onDelete: () => void;
   onEmailSent: (emailData: any) => void;
+  onSign: () => void;
+  hasSignature: boolean;
 }
 
 const statusLabels = {
@@ -68,7 +71,9 @@ export function QuoteActionsMenu({
   onConvertToInvoice,
   onStatusChange,
   onDelete,
-  onEmailSent
+  onEmailSent,
+  onSign,
+  hasSignature
 }: QuoteActionsMenuProps) {
   const { organization } = useAuth();
   const { toast } = useToast();
@@ -81,6 +86,8 @@ export function QuoteActionsMenu({
   const canEdit = quote.status === 'draft' || quote.status === 'sent';
   const canConvertToInvoice = quote.status === 'accepted';
   const isExpired = new Date(quote.validUntil) < new Date();
+  const canSign = hasSignature && quote.status !== 'draft';
+  const isSigned = quote.is_signed;
 
   const handleDelete = () => {
     onDelete();
@@ -239,6 +246,17 @@ export function QuoteActionsMenu({
             <Copy size={16} className="mr-2" />
             Dupliquer
           </DropdownMenuItem>
+
+          {canSign && (
+            <DropdownMenuItem 
+              onClick={onSign}
+              disabled={isSigned}
+              className={isSigned ? "text-muted-foreground" : "text-primary"}
+            >
+              <PenTool size={16} className="mr-2" />
+              {isSigned ? 'Signé' : 'Signer'}
+            </DropdownMenuItem>
+          )}
 
           {canConvertToInvoice && (
             <DropdownMenuItem 

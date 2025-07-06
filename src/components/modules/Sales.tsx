@@ -409,7 +409,8 @@ export function Sales() {
                         client: document.client,
                         amount: document.amount,
                         paidAmount: 0,
-                        status: document.status
+                        status: document.status,
+                        is_signed: false
                       }}
                       pdfComponent={<InvoicePDF {...getPDFData(document)} />}
                       onValidate={() => handleValidateDocument(document)}
@@ -419,6 +420,8 @@ export function Sales() {
                       onDelete={() => handleDeleteDocument(document)}
                       onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
+                      onSign={() => {}}
+                      hasSignature={false}
                     />
                   </TableCell>
                 </TableRow>

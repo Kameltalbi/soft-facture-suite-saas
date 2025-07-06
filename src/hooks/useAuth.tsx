@@ -23,6 +23,7 @@ interface Organization {
   website: string | null;
   vat_number: string | null;
   logo_url: string | null;
+  signature_url: string | null;
   plan: 'essential' | 'pro';
   created_at: string;
   updated_at: string;

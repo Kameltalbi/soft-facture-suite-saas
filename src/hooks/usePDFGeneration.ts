@@ -31,7 +31,8 @@ export const usePDFGeneration = () => {
     invoiceData: InvoiceData,
     lineItems: LineItem[],
     settings: any,
-    documentType: string = 'invoice'
+    documentType: string = 'invoice',
+    isSigned: boolean = false
   ) => {
     // Calcul du sous-total
     const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0);
@@ -61,7 +62,8 @@ export const usePDFGeneration = () => {
       address: organization?.address || '456 Avenue de la République, 69000 Lyon',
       email: organization?.email || 'contact@softfacture.fr',
       phone: organization?.phone || '04 72 00 00 00',
-      logo: organization?.logo_url || null
+      logo: organization?.logo_url || null,
+      signature_url: organization?.signature_url || null
     };
 
     return {
@@ -70,7 +72,8 @@ export const usePDFGeneration = () => {
       client: mockClient,
       company: companyData,
       settings,
-      customTaxes: customTaxCalculations
+      customTaxes: customTaxCalculations,
+      isSigned
     };
   };
 
