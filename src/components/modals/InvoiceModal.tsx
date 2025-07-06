@@ -49,6 +49,16 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   const { organization, user } = useAuth();
   const { clients, loading: clientsLoading } = useClients();
   const { products, loading: productsLoading } = useProducts();
+  
+  // Debug des produits
+  React.useEffect(() => {
+    console.log('🔍 Modal InvoiceModal - Debug produits:', {
+      productsCount: products.length,
+      productsLoading,
+      products: products.slice(0, 3), // Afficher les 3 premiers produits
+      organization: organization?.id
+    });
+  }, [products, productsLoading, organization]);
   const { nextInvoiceNumber, generateNextInvoiceNumber, isLoading: numberLoading } = useInvoiceNumber();
   const { customTaxes } = useCustomTaxes();
   const { currency } = useCurrency();
