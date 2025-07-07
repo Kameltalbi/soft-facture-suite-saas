@@ -1233,13 +1233,11 @@ export type Database = {
       }
       quotes: {
         Row: {
-          advance_amount: number | null
           client_id: string
           created_at: string | null
           currency_id: string | null
           custom_taxes_used: string[] | null
           date: string
-          has_advance: boolean | null
           id: string
           is_signed: boolean | null
           notes: string | null
@@ -1255,13 +1253,11 @@ export type Database = {
           valid_until: string | null
         }
         Insert: {
-          advance_amount?: number | null
           client_id: string
           created_at?: string | null
           currency_id?: string | null
           custom_taxes_used?: string[] | null
           date?: string
-          has_advance?: boolean | null
           id?: string
           is_signed?: boolean | null
           notes?: string | null
@@ -1277,13 +1273,11 @@ export type Database = {
           valid_until?: string | null
         }
         Update: {
-          advance_amount?: number | null
           client_id?: string
           created_at?: string | null
           currency_id?: string | null
           custom_taxes_used?: string[] | null
           date?: string
-          has_advance?: boolean | null
           id?: string
           is_signed?: boolean | null
           notes?: string | null
