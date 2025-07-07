@@ -1233,51 +1233,69 @@ export type Database = {
       }
       quotes: {
         Row: {
+          advance_amount: number | null
           client_id: string
           created_at: string | null
+          currency_id: string | null
+          custom_taxes_used: string[] | null
           date: string
+          has_advance: boolean | null
           id: string
           is_signed: boolean | null
           notes: string | null
           organization_id: string
           quote_number: string
           status: string | null
+          subject: string | null
           subtotal: number
           tax_amount: number
           total_amount: number
           updated_at: string | null
+          use_vat: boolean | null
           valid_until: string | null
         }
         Insert: {
+          advance_amount?: number | null
           client_id: string
           created_at?: string | null
+          currency_id?: string | null
+          custom_taxes_used?: string[] | null
           date?: string
+          has_advance?: boolean | null
           id?: string
           is_signed?: boolean | null
           notes?: string | null
           organization_id: string
           quote_number: string
           status?: string | null
+          subject?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
           updated_at?: string | null
+          use_vat?: boolean | null
           valid_until?: string | null
         }
         Update: {
+          advance_amount?: number | null
           client_id?: string
           created_at?: string | null
+          currency_id?: string | null
+          custom_taxes_used?: string[] | null
           date?: string
+          has_advance?: boolean | null
           id?: string
           is_signed?: boolean | null
           notes?: string | null
           organization_id?: string
           quote_number?: string
           status?: string | null
+          subject?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
           updated_at?: string | null
+          use_vat?: boolean | null
           valid_until?: string | null
         }
         Relationships: [
@@ -1286,6 +1304,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
             referencedColumns: ["id"]
           },
           {
