@@ -952,13 +952,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             </div>
 
             {/* Taxes personnalisées */}
-            {customTaxes.length > 0 && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Taxes personnalisées</Label>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Sélectionnez les taxes à appliquer
-                </p>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Taxes personnalisées</Label>
+              <p className="text-xs text-muted-foreground mb-3">
+                Sélectionnez les taxes à appliquer
+              </p>
+              {customTaxes && customTaxes.length > 0 ? (
+                <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
                   {customTaxes
                     .filter(tax => tax.active && tax.applicable_documents.includes('quotes'))
                     .map((tax) => (
@@ -982,9 +982,18 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                         </Label>
                       </div>
                     ))}
+                  {customTaxes.filter(tax => tax.active && tax.applicable_documents.includes('quotes')).length === 0 && (
+                    <p className="text-sm text-muted-foreground italic">
+                      Aucune taxe personnalisée disponible pour les devis.
+                    </p>
+                  )}
                 </div>
-              </div>
-            )}
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  Aucune taxe personnalisée configurée.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-2">
