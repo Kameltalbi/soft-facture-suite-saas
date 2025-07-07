@@ -73,11 +73,23 @@ export function Header({ activeModule }: HeaderProps) {
               Plan {organization.plan === 'essential' ? 'Essentiel' : organization.plan === 'pro' ? 'Pro' : organization.plan}
             </span>
           )}
-          {(organization as any)?.subscription_end && (
-            <span className="text-sm text-gray-600">
-              Fin: {new Date((organization as any).subscription_end).toLocaleDateString('fr-FR')}
-            </span>
-          )}
+          {/* Message d'alerte un mois avant expiration */}
+          {(organization as any)?.subscription_end && (() => {
+            const endDate = new Date((organization as any).subscription_end);
+            const oneMonthBefore = new Date(endDate);
+            oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1);
+            const now = new Date();
+            
+            if (now >= oneMonthBefore && now < endDate) {
+              const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+              return (
+                <span className="text-sm font-medium px-3 py-1 bg-orange-100 text-orange-800 rounded-full animate-pulse">
+                  Renouvellement dans {daysLeft} jour{daysLeft > 1 ? 's' : ''}
+                </span>
+              );
+            }
+            return null;
+          })()}
         </div>
         <div className="flex items-center gap-2 font-medium text-base ml-2">
           <span className="text-green-600">{formatDate(currentDateTime)}</span>
