@@ -98,11 +98,19 @@ const styles = StyleSheet.create({
     padding: 10,
     minHeight: 30,
   },
+  // Colonnes sans remise
   tableCol1: { width: '50%' },
   tableCol2: { width: '10%', textAlign: 'center' },
   tableCol3: { width: '15%', textAlign: 'right' },
   tableCol4: { width: '10%', textAlign: 'center' },
   tableCol5: { width: '15%', textAlign: 'right' },
+  // Colonnes avec remise (largeurs ajustées)
+  tableCol1WithDiscount: { width: '40%' },
+  tableCol2WithDiscount: { width: '8%', textAlign: 'center' },
+  tableCol3WithDiscount: { width: '12%', textAlign: 'right' },
+  tableCol4WithDiscount: { width: '8%', textAlign: 'center' },
+  tableCol5WithDiscount: { width: '8%', textAlign: 'center' },
+  tableCol6WithDiscount: { width: '12%', textAlign: 'right' },
   totalsSection: {
     marginTop: 20,
     alignItems: 'flex-end',
@@ -237,22 +245,22 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
         {/* Table */}
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={styles.tableCol1}>Description</Text>
-            <Text style={styles.tableCol2}>Qté</Text>
-            <Text style={styles.tableCol3}>Prix unit.</Text>
-            {settings?.showDiscount && <Text style={styles.tableCol4}>Remise</Text>}
-            <Text style={styles.tableCol4}>TVA</Text>
-            <Text style={styles.tableCol5}>Total</Text>
+            <Text style={settings?.showDiscount ? styles.tableCol1WithDiscount : styles.tableCol1}>Description</Text>
+            <Text style={settings?.showDiscount ? styles.tableCol2WithDiscount : styles.tableCol2}>Qté</Text>
+            <Text style={settings?.showDiscount ? styles.tableCol3WithDiscount : styles.tableCol3}>Prix unit.</Text>
+            {settings?.showDiscount && <Text style={styles.tableCol4WithDiscount}>Remise</Text>}
+            <Text style={settings?.showDiscount ? styles.tableCol5WithDiscount : styles.tableCol4}>TVA</Text>
+            <Text style={settings?.showDiscount ? styles.tableCol6WithDiscount : styles.tableCol5}>Total</Text>
           </View>
           
           {lineItems.map((item, index) => (
             <View key={item.id} style={styles.tableRow}>
-              <Text style={styles.tableCol1}>{item.description}</Text>
-              <Text style={styles.tableCol2}>{item.quantity}</Text>
-              <Text style={styles.tableCol3}>{item.unitPrice.toFixed(2)} €</Text>
-              {settings?.showDiscount && <Text style={styles.tableCol4}>{item.discount || 0}%</Text>}
-              <Text style={styles.tableCol4}>{item.vatRate}%</Text>
-              <Text style={styles.tableCol5}>{item.total.toFixed(2)} €</Text>
+              <Text style={settings?.showDiscount ? styles.tableCol1WithDiscount : styles.tableCol1}>{item.description}</Text>
+              <Text style={settings?.showDiscount ? styles.tableCol2WithDiscount : styles.tableCol2}>{item.quantity}</Text>
+              <Text style={settings?.showDiscount ? styles.tableCol3WithDiscount : styles.tableCol3}>{item.unitPrice.toFixed(2)} €</Text>
+              {settings?.showDiscount && <Text style={styles.tableCol4WithDiscount}>{item.discount || 0}%</Text>}
+              <Text style={settings?.showDiscount ? styles.tableCol5WithDiscount : styles.tableCol4}>{item.vatRate}%</Text>
+              <Text style={settings?.showDiscount ? styles.tableCol6WithDiscount : styles.tableCol5}>{item.total.toFixed(2)} €</Text>
             </View>
           ))}
         </View>
