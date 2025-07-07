@@ -1,6 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useProductRevenueReport } from '@/hooks/useReports';
 
 interface ProductRevenueReportProps {
   period: {
@@ -11,28 +12,7 @@ interface ProductRevenueReportProps {
 
 export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
   const { currency } = useCurrency();
-  
-  // Données mockées - à remplacer par les vraies données
-  const products = [
-    {
-      name: 'Consultation Informatique',
-      quantity: 45,
-      totalHT: 4500.00,
-      totalTTC: 5400.00
-    },
-    {
-      name: 'Développement Web',
-      quantity: 12,
-      totalHT: 12000.00,
-      totalTTC: 14400.00
-    },
-    {
-      name: 'Formation',
-      quantity: 8,
-      totalHT: 2400.00,
-      totalTTC: 2880.00
-    }
-  ].sort((a, b) => b.totalTTC - a.totalTTC);
+  const { data: products = [], isLoading } = useProductRevenueReport(period);
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString('fr-FR', { 
@@ -40,6 +20,10 @@ export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
       maximumFractionDigits: currency.decimal_places 
     })} ${currency.symbol}`;
   };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Chargement des données...</div>;
+  }
 
   return (
     <div className="space-y-4">
@@ -54,20 +38,30 @@ export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell className="text-right">{product.quantity}</TableCell>
-                <TableCell className="text-right">{formatCurrency(product.totalHT)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(product.totalTTC)}</TableCell>
+            {products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                  Aucune donnée disponible pour cette période
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              products.map((product, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="text-right">{product.quantity}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(product.totalHT)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(product.totalTTC)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
-      <div className="text-sm text-muted-foreground">
-        Total TTC : {formatCurrency(products.reduce((sum, prod) => sum + prod.totalTTC, 0))}
-      </div>
+      {products.length > 0 && (
+        <div className="text-sm text-muted-foreground">
+          Total TTC : {formatCurrency(products.reduce((sum, prod) => sum + prod.totalTTC, 0))}
+        </div>
+      )}
     </div>
   );
 }

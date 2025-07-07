@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ReportFilters } from '@/components/reports/ReportFilters';
 import { ProductRevenueReport } from '@/components/reports/ProductRevenueReport';
 import { useReportExport } from '@/hooks/useReportExport';
+import { useProductRevenueReport } from '@/hooks/useReports';
 
 const ProductRevenueReportPage = () => {
   const navigate = useNavigate();
@@ -31,52 +32,26 @@ const ProductRevenueReportPage = () => {
     };
   };
 
+  const { data: products = [] } = useProductRevenueReport(getCurrentPeriod());
+
   const handlePDFExport = () => {
-    const productsData = [
-      {
-        'Produit/Service': 'Développement Web',
-        'Quantité': '12',
-        'Total HT': '12 000,00 €',
-        'Total TTC': '14 400,00 €'
-      },
-      {
-        'Produit/Service': 'Consultation Informatique',
-        'Quantité': '45',
-        'Total HT': '4 500,00 €',
-        'Total TTC': '5 400,00 €'
-      },
-      {
-        'Produit/Service': 'Formation',
-        'Quantité': '8',
-        'Total HT': '2 400,00 €',
-        'Total TTC': '2 880,00 €'
-      }
-    ];
+    const productsData = products.map(product => ({
+      'Produit/Service': product.name,
+      'Quantité': product.quantity.toString(),
+      'Total HT': `${product.totalHT.toFixed(2)} €`,
+      'Total TTC': `${product.totalTTC.toFixed(2)} €`
+    }));
     
     exportToPDF('CA par Produit/Service', productsData);
   };
 
   const handleCSVExport = () => {
-    const productsData = [
-      {
-        produit: 'Développement Web',
-        quantite: 12,
-        total_ht: 12000.00,
-        total_ttc: 14400.00
-      },
-      {
-        produit: 'Consultation Informatique',
-        quantite: 45,
-        total_ht: 4500.00,
-        total_ttc: 5400.00
-      },
-      {
-        produit: 'Formation',
-        quantite: 8,
-        total_ht: 2400.00,
-        total_ttc: 2880.00
-      }
-    ];
+    const productsData = products.map(product => ({
+      produit: product.name,
+      quantite: product.quantity,
+      total_ht: product.totalHT,
+      total_ttc: product.totalTTC
+    }));
     
     exportToCSV(productsData, 'rapport-produits');
   };

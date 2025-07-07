@@ -2,6 +2,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useMonthlyRevenueReport } from '@/hooks/useReports';
 
 interface MonthlyRevenueReportProps {
   period: {
@@ -12,22 +13,8 @@ interface MonthlyRevenueReportProps {
 
 export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
   const { currency } = useCurrency();
-  
-  // Données mockées - à remplacer par les vraies données
-  const monthlyData = [
-    { month: 'Jan', totalHT: 8500, totalTTC: 10200 },
-    { month: 'Fév', totalHT: 7200, totalTTC: 8640 },
-    { month: 'Mar', totalHT: 9800, totalTTC: 11760 },
-    { month: 'Avr', totalHT: 12500, totalTTC: 15000 },
-    { month: 'Mai', totalHT: 11200, totalTTC: 13440 },
-    { month: 'Juin', totalHT: 13800, totalTTC: 16560 },
-    { month: 'Juil', totalHT: 10900, totalTTC: 13080 },
-    { month: 'Aoû', totalHT: 8200, totalTTC: 9840 },
-    { month: 'Sep', totalHT: 14500, totalTTC: 17400 },
-    { month: 'Oct', totalHT: 16200, totalTTC: 19440 },
-    { month: 'Nov', totalHT: 15600, totalTTC: 18720 },
-    { month: 'Déc', totalHT: 18900, totalTTC: 22680 }
-  ];
+  const currentYear = period.start ? period.start.getFullYear() : new Date().getFullYear();
+  const { data: monthlyData = [], isLoading } = useMonthlyRevenueReport(currentYear);
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString('fr-FR', { 
@@ -35,6 +22,10 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
       maximumFractionDigits: currency.decimal_places 
     })} ${currency.symbol}`;
   };
+
+  if (isLoading) {
+    return <div className="text-center py-8">Chargement des données...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -68,13 +59,21 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {monthlyData.map((data) => (
-              <TableRow key={data.month}>
-                <TableCell className="font-medium">{data.month}</TableCell>
-                <TableCell className="text-right">{formatCurrency(data.totalHT)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(data.totalTTC)}</TableCell>
+            {monthlyData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                  Aucune donnée disponible pour cette année
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              monthlyData.map((data) => (
+                <TableRow key={data.month}>
+                  <TableCell className="font-medium">{data.month}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(data.totalHT)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(data.totalTTC)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
