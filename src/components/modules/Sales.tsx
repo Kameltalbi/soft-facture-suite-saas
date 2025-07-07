@@ -198,7 +198,7 @@ export function Sales() {
         quantity: 1,
         unitPrice: document.amount,
         vatRate: 20,
-        discount: 0,
+        discount: 15, // Ajout d'une remise pour voir la colonne
         total: document.amount
       }
     ];
