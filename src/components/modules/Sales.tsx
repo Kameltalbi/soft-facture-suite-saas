@@ -165,9 +165,17 @@ export function Sales() {
   };
 
   const getPDFData = (document: Document) => {
+    console.log('🔍 getPDFData appelée pour le document:', document.id);
+    
     // Récupérer les vraies données de la facture
     const invoice = invoices.find(inv => inv.id === document.id);
-    if (!invoice) return null;
+    if (!invoice) {
+      console.log('❌ Facture non trouvée dans les données');
+      return null;
+    }
+
+    console.log('✅ Facture trouvée:', invoice.invoice_number);
+    console.log('🔍 Invoice items:', invoice.invoice_items);
 
     const lineItems = invoice.invoice_items?.map(item => ({
       id: item.id,
@@ -178,6 +186,8 @@ export function Sales() {
       discount: item.discount || 0,
       total: item.total_price
     })) || [];
+
+    console.log('🔍 LineItems transformés:', lineItems);
 
     const settings = {
       showVat: invoice.use_vat ?? true,
