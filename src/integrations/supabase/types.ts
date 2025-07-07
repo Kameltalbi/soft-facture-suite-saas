@@ -707,6 +707,7 @@ export type Database = {
           organization_id: string
           sales_channel: string | null
           status: string | null
+          subject: string | null
           subtotal: number
           tax_amount: number
           total_amount: number
@@ -731,6 +732,7 @@ export type Database = {
           organization_id: string
           sales_channel?: string | null
           status?: string | null
+          subject?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
@@ -755,6 +757,7 @@ export type Database = {
           organization_id?: string
           sales_channel?: string | null
           status?: string | null
+          subject?: string | null
           subtotal?: number
           tax_amount?: number
           total_amount?: number
