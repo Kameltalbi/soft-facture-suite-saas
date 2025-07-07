@@ -462,9 +462,20 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-purple-600">
-            {quote ? 'Modifier le devis' : 'Nouveau devis'}
-          </DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle className="text-2xl font-bold text-purple-600">
+              {quote ? 'Modifier le devis' : 'Nouveau devis'}
+            </DialogTitle>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowSettingsModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Paramètres
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -872,35 +883,24 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-between items-center">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSettingsModal(true)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Paramètres
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={onClose} disabled={saving}>
+              Annuler
             </Button>
-            
-            <div className="flex space-x-3">
-              <Button variant="outline" onClick={onClose} disabled={saving}>
-                Annuler
-              </Button>
-              <Button 
-                onClick={() => handleSave('draft')} 
-                variant="secondary"
-                disabled={saving}
-              >
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
-              </Button>
-              <Button 
-                onClick={() => handleSave('pending')} 
-                className="bg-purple-600 hover:bg-purple-700"
-                disabled={saving}
-              >
-                {saving ? 'Validation...' : 'Valider'}
-              </Button>
-            </div>
+            <Button 
+              onClick={() => handleSave('draft')} 
+              variant="secondary"
+              disabled={saving}
+            >
+              {saving ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
+            <Button 
+              onClick={() => handleSave('pending')} 
+              className="bg-purple-600 hover:bg-purple-700"
+              disabled={saving}
+            >
+              {saving ? 'Validation...' : 'Valider'}
+            </Button>
           </div>
         </div>
       </DialogContent>
