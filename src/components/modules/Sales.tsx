@@ -187,6 +187,9 @@ export function Sales() {
       amountInWords: true
     };
 
+    console.log('🔍 PDF Settings dans Sales:', settings);
+    console.log('🔍 GlobalSettings show_discount:', globalSettings?.show_discount);
+
     return generateInvoicePDF(
       {
         number: document.number,
