@@ -28,7 +28,7 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
         quantity: item.quantity,
         unitPrice: item.unit_price,
         vatRate: item.tax_rate,
-        discount: 0,
+        discount: item.discount || 0,
         total: item.total_price
       })) || [];
 
@@ -67,6 +67,12 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
         ? customTaxes.filter(tax => invoice.custom_taxes_used.includes(tax.id))
         : [];
       const customTaxCalculations = calculateCustomTaxes(subtotal, activeCustomTaxes, 'invoice');
+
+      console.log('📄 SimplePDFGenerator - settings créés:', {
+        showVat: true,
+        showDiscount: globalSettings?.show_discount ?? true,
+        globalSettings: globalSettings
+      });
 
       const data = {
         invoiceData: {
