@@ -18,7 +18,7 @@ export function ProductRankingReport({ period }: ProductRankingReportProps) {
   const maxRevenue = products.length > 0 ? Math.max(...products.map(p => p.totalTTC)) : 0;
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { 
+    return `${amount.toLocaleString(undefined, { 
       minimumFractionDigits: currency.decimal_places, 
       maximumFractionDigits: currency.decimal_places 
     })} ${currency.symbol}`;

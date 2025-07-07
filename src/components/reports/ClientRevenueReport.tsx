@@ -16,7 +16,7 @@ export function ClientRevenueReport({ period }: ClientRevenueReportProps) {
   const { data: clients = [], isLoading } = useClientRevenueReport(period);
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { 
+    return `${amount.toLocaleString(undefined, { 
       minimumFractionDigits: currency.decimal_places, 
       maximumFractionDigits: currency.decimal_places 
     })} ${currency.symbol}`;

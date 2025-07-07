@@ -15,7 +15,7 @@ export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
   const { data: products = [], isLoading } = useProductRevenueReport(period);
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { 
+    return `${amount.toLocaleString(undefined, { 
       minimumFractionDigits: currency.decimal_places, 
       maximumFractionDigits: currency.decimal_places 
     })} ${currency.symbol}`;

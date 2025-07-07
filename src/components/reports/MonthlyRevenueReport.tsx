@@ -17,7 +17,7 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
   const { data: monthlyData = [], isLoading } = useMonthlyRevenueReport(currentYear);
 
   const formatCurrency = (amount: number) => {
-    return `${amount.toLocaleString('fr-FR', { 
+    return `${amount.toLocaleString(undefined, { 
       minimumFractionDigits: currency.decimal_places, 
       maximumFractionDigits: currency.decimal_places 
     })} ${currency.symbol}`;
