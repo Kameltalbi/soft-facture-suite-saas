@@ -179,8 +179,9 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
   customTaxes = [],
   isSigned = false
 }) => {
-  console.log('🔍 ClassicTemplate - Settings reçus:', settings);
-  console.log('🔍 ClassicTemplate - showDiscount:', settings?.showDiscount);
+  console.log('🎨 ClassicTemplate - Settings reçus:', settings);
+  console.log('🎨 ClassicTemplate - showDiscount:', settings?.showDiscount);
+  console.log('🎨 ClassicTemplate - lineItems avec discount:', lineItems);
   
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
