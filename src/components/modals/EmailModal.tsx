@@ -71,7 +71,7 @@ L'équipe Soft Facture`
           </div>
 
           <div>
-            <Label htmlFor="subject">Objet *</Label>
+            <Label htmlFor="subject">Référence *</Label>
             <Input
               id="subject"
               value={emailData.subject}

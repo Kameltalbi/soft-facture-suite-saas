@@ -240,7 +240,7 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
               <Text style={styles.text}>Échéance : {new Date(invoiceData.dueDate).toLocaleDateString('fr-FR')}</Text>
             )}
             {invoiceData.subject && (
-              <Text style={styles.text}>Objet : {invoiceData.subject}</Text>
+              <Text style={styles.text}>Référence : {invoiceData.subject}</Text>
             )}
           </View>
         </View>

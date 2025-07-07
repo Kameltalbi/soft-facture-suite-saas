@@ -235,7 +235,7 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
 
         {invoiceData.subject && (
           <View style={{ marginBottom: 20 }}>
-            <Text style={[styles.text, { fontWeight: 'bold' }]}>Objet : {invoiceData.subject}</Text>
+            <Text style={[styles.text, { fontWeight: 'bold' }]}>Référence : {invoiceData.subject}</Text>
           </View>
         )}
 

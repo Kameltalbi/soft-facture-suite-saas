@@ -356,7 +356,7 @@ export const UnifiedTemplate = ({
               )}
               {documentData?.subject && documentData.subject.trim() && (
                 <Text style={[styles.documentDate, { marginTop: 10, fontWeight: 'bold' }]}>
-                  Objet: {documentData.subject}
+                  Référence: {documentData.subject}
                 </Text>
               )}
             </View>

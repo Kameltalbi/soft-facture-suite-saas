@@ -257,7 +257,7 @@ export const ProfessionalTemplate: React.FC<ProfessionalTemplateProps> = ({
 
         {invoiceData.subject && (
           <View style={styles.subjectBox}>
-            <Text style={[styles.text, { fontWeight: 'bold', fontSize: 11 }]}>Objet : {invoiceData.subject}</Text>
+            <Text style={[styles.text, { fontWeight: 'bold', fontSize: 11 }]}>Référence : {invoiceData.subject}</Text>
           </View>
         )}
 

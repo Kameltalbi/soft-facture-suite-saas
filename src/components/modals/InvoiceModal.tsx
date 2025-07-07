@@ -508,12 +508,12 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                 )}
                 
                 <div>
-                  <Label htmlFor="subject">Objet de la facture</Label>
+                  <Label htmlFor="subject">Référence de la facture</Label>
                   <Input
                     id="subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Objet de la facture..."
+                    placeholder="Référence de la facture..."
                     className="mt-1"
                   />
                 </div>

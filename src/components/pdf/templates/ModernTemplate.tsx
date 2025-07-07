@@ -308,7 +308,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
 
         {invoiceData.subject && (
           <View style={styles.subjectContainer}>
-            <Text style={styles.subjectText}>Objet : {invoiceData.subject}</Text>
+            <Text style={styles.subjectText}>Référence : {invoiceData.subject}</Text>
           </View>
         )}
 

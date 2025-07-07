@@ -571,12 +571,12 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                 )}
                 
                 <div>
-                  <Label htmlFor="subject">Objet du devis</Label>
+                  <Label htmlFor="subject">Référence du devis</Label>
                   <Input
                     id="subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Objet du devis..."
+                    placeholder="Référence du devis..."
                     className="mt-1"
                   />
                 </div>
