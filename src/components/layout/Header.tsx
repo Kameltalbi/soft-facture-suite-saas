@@ -70,7 +70,7 @@ export function Header({ activeModule }: HeaderProps) {
         <div className="flex items-center gap-3">
           {organization?.plan && (
             <span className="text-sm font-medium px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
-              Plan {organization.plan}
+              Plan {organization.plan === 'essential' ? 'Essentiel' : organization.plan === 'pro' ? 'Pro' : organization.plan}
             </span>
           )}
           {(organization as any)?.subscription_end && (
