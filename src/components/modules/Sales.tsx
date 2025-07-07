@@ -203,7 +203,7 @@ export function Sales() {
 
     const mockSettings = {
       showVat: true,
-      showDiscount: false,
+      showDiscount: true,
       showAdvance: false,
       currency: 'EUR',
       amountInWords: true
