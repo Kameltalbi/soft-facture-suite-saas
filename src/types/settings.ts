@@ -70,5 +70,6 @@ export interface GlobalSettings {
   quote_template?: string;
   delivery_note_template?: string;
   credit_template?: string;
+  show_discount?: boolean;
   tenant_id: string;
 }

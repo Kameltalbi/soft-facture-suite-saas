@@ -65,6 +65,7 @@ export function useSettings() {
           quote_template: data.quote_template || 'classic',
           delivery_note_template: data.delivery_note_template || 'classic',
           credit_template: data.credit_template || 'classic',
+          show_discount: data.show_discount ?? true,
           tenant_id: data.organization_id
         };
         setGlobalSettings(formattedSettings);
@@ -297,6 +298,7 @@ export function useSettings() {
             quote_template: settings.quote_template,
             delivery_note_template: settings.delivery_note_template,
             credit_template: settings.credit_template,
+            show_discount: settings.show_discount,
             updated_at: new Date().toISOString()
           })
           .eq('organization_id', organization.id)
@@ -314,6 +316,7 @@ export function useSettings() {
             quote_template: settings.quote_template,
             delivery_note_template: settings.delivery_note_template,
             credit_template: settings.credit_template,
+            show_discount: settings.show_discount,
             organization_id: organization.id
           });
       }

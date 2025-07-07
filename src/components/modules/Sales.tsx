@@ -17,6 +17,7 @@ import { InvoiceModal } from '@/components/modals/InvoiceModal';
 import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { useSettings } from '@/hooks/useSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -88,6 +89,7 @@ const statusLabels = {
 
 export function Sales() {
   const { generateInvoicePDF } = usePDFGeneration();
+  const { globalSettings } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
@@ -201,9 +203,9 @@ export function Sales() {
       }
     ];
 
-    const mockSettings = {
+    const settings = {
       showVat: true,
-      showDiscount: true,
+      showDiscount: globalSettings?.show_discount ?? true,
       showAdvance: false,
       currency: 'EUR',
       amountInWords: true
@@ -218,7 +220,7 @@ export function Sales() {
         notes: 'Merci pour votre confiance.'
       },
       mockLineItems,
-      mockSettings
+      settings
     );
   };
 

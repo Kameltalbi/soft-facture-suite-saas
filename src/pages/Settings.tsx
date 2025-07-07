@@ -11,6 +11,7 @@ import { RolePermissions } from '@/components/settings/RolePermissions';
 import { PdfTemplateSettings } from '@/components/settings/PdfTemplateSettings';
 import { ExchangeRateSettings } from '@/components/settings/ExchangeRateSettings';
 import { CustomTaxSettings } from '@/components/settings/CustomTaxSettings';
+import { InvoiceDisplaySettings } from '@/components/settings/InvoiceDisplaySettings';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSettings } from '@/hooks/useSettings';
@@ -373,12 +374,13 @@ export default function Settings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`grid w-full ${settingsAccess.templates ? 'grid-cols-9' : 'grid-cols-8'}`}>
+        <TabsList className={`grid w-full ${settingsAccess.templates ? 'grid-cols-10' : 'grid-cols-9'}`}>
           <TabsTrigger value="organization">Organisation</TabsTrigger>
           <TabsTrigger value="currencies">Devises</TabsTrigger>
           <TabsTrigger value="exchange-rates">Taux de Change</TabsTrigger>
           <TabsTrigger value="footer">Pied de page</TabsTrigger>
           {settingsAccess.templates && <TabsTrigger value="templates">Templates PDF</TabsTrigger>}
+          <TabsTrigger value="display">Affichage</TabsTrigger>
           <TabsTrigger value="taxes">Taxes</TabsTrigger>
           <TabsTrigger value="numbering">Numérotation</TabsTrigger>
           <TabsTrigger value="users">Collaborateurs</TabsTrigger>
@@ -432,6 +434,10 @@ export default function Settings() {
             />
           </TabsContent>
         )}
+
+        <TabsContent value="display">
+          <InvoiceDisplaySettings />
+        </TabsContent>
 
         <TabsContent value="taxes">
           <CustomTaxSettings />

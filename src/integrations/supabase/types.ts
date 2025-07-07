@@ -574,6 +574,7 @@ export type Database = {
           organization_id: string
           primary_currency: string | null
           quote_template: string | null
+          show_discount: boolean | null
           unified_template: string | null
           updated_at: string
           use_unified_template: boolean | null
@@ -589,6 +590,7 @@ export type Database = {
           organization_id: string
           primary_currency?: string | null
           quote_template?: string | null
+          show_discount?: boolean | null
           unified_template?: string | null
           updated_at?: string
           use_unified_template?: boolean | null
@@ -604,6 +606,7 @@ export type Database = {
           organization_id?: string
           primary_currency?: string | null
           quote_template?: string | null
+          show_discount?: boolean | null
           unified_template?: string | null
           updated_at?: string
           use_unified_template?: boolean | null
