@@ -55,6 +55,8 @@ export function useInvoicesActions() {
             quantity: item.quantity,
             unit_price: item.unitPrice,
             tax_rate: item.vatRate,
+            discount: item.discount || 0,
+            discount_type: item.discountType || 'percentage',
             total_price: item.total
           }));
 
@@ -102,6 +104,8 @@ export function useInvoicesActions() {
             quantity: item.quantity,
             unit_price: item.unitPrice,
             tax_rate: item.vatRate,
+            discount: item.discount || 0,
+            discount_type: item.discountType || 'percentage',
             total_price: item.total
           }));
 
@@ -162,6 +166,8 @@ export function useInvoicesActions() {
           quantity: item.quantity,
           unit_price: item.unit_price,
           tax_rate: item.tax_rate,
+          discount: item.discount || 0,
+          discount_type: item.discount_type || 'percentage',
           total_price: item.total_price,
           product_id: item.product_id
         }));
