@@ -363,22 +363,35 @@ export const UnifiedTemplate = ({
           </View>
         </View>
 
-        {/* Client Section */}
-        <View style={styles.clientSection}>
-          <Text style={styles.sectionTitle}>{config.clientLabel}</Text>
-          <Text style={styles.clientInfo}>
-            {client?.company || client?.name || 'Nom du client'}
-          </Text>
-          <Text style={styles.clientInfo}>
-            {client?.address || 'Adresse du client'}
-          </Text>
-          <Text style={styles.clientInfo}>
-            {client?.email || 'Email du client'}
-          </Text>
-          {client?.vat_number && client.vat_number.trim() && (
+        {/* Client and Subject Section */}
+        <View style={{ flexDirection: 'row', marginBottom: 20, gap: 20 }}>
+          {/* Client Section */}
+          <View style={[styles.clientSection, { flex: 1 }]}>
+            <Text style={styles.sectionTitle}>{config.clientLabel}</Text>
             <Text style={styles.clientInfo}>
-              N° TVA: {client.vat_number}
+              {client?.company || client?.name || 'Nom du client'}
             </Text>
+            <Text style={styles.clientInfo}>
+              {client?.address || 'Adresse du client'}
+            </Text>
+            <Text style={styles.clientInfo}>
+              {client?.email || 'Email du client'}
+            </Text>
+            {client?.vat_number && client.vat_number.trim() && (
+              <Text style={styles.clientInfo}>
+                N° TVA: {client.vat_number}
+              </Text>
+            )}
+          </View>
+
+          {/* Subject Section */}
+          {documentData?.subject && documentData.subject.trim() && (
+            <View style={[styles.clientSection, { flex: 1 }]}>
+              <Text style={styles.sectionTitle}>OBJET :</Text>
+              <Text style={styles.clientInfo}>
+                {documentData.subject}
+              </Text>
+            </View>
           )}
         </View>
 
