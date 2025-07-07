@@ -384,15 +384,13 @@ export const UnifiedTemplate = ({
             )}
           </View>
 
-          {/* Subject Section */}
-          {documentData?.subject && documentData.subject.trim() && (
-            <View style={[styles.clientSection, { flex: 1 }]}>
-              <Text style={styles.sectionTitle}>OBJET :</Text>
-              <Text style={styles.clientInfo}>
-                {documentData.subject}
-              </Text>
-            </View>
-          )}
+          {/* Subject Section - Always shown for testing */}
+          <View style={[styles.clientSection, { flex: 1 }]}>
+            <Text style={styles.sectionTitle}>OBJET :</Text>
+            <Text style={styles.clientInfo}>
+              {documentData?.subject && documentData.subject.trim() ? documentData.subject : 'Aucun objet spécifié (test)'}
+            </Text>
+          </View>
         </View>
 
         {/* Table */}
