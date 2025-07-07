@@ -308,6 +308,9 @@ export const InvoicePDF = ({
             {settings?.showVat && (
               <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>TVA</Text>
             )}
+            {settings?.showDiscount && (
+              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>REMISE</Text>
+            )}
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>TOTAL HT</Text>
           </View>
 
@@ -321,6 +324,11 @@ export const InvoicePDF = ({
               {settings?.showVat && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
                   {item.vatRate || 0}%
+                </Text>
+              )}
+              {settings?.showDiscount && (
+                <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
+                  {item.discount || 0}%
                 </Text>
               )}
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
