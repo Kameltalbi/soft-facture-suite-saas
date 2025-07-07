@@ -960,7 +960,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
               {customTaxes && customTaxes.length > 0 ? (
                 <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
                   {customTaxes
-                    .filter(tax => tax.active && tax.applicable_documents.includes('quotes'))
+                    .filter(tax => tax.active && (tax.applicable_documents.includes('quotes') || tax.applicable_documents.includes('invoice')))
                     .map((tax) => (
                       <div key={tax.id} className="flex items-center space-x-2">
                         <Checkbox
