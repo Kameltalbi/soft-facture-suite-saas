@@ -14,12 +14,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { QuoteModal } from '@/components/modals/QuoteModal';
 import { QuoteActionsMenu } from '@/components/quotes/QuoteActionsMenu';
-import { QuotePDF } from '@/components/pdf/quotes/QuotePDF';
+import { UniversalPDFGenerator } from '@/components/pdf/UniversalPDFGenerator';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useCustomTaxes } from '@/hooks/useCustomTaxes';
 
 const Quotes = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,6 +30,7 @@ const Quotes = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currency } = useCurrency();
+  const { customTaxes } = useCustomTaxes();
 
   // Fetch quotes from Supabase
   const { data: quotes = [], isLoading } = useQuery({
@@ -425,43 +427,7 @@ const Quotes = () => {
                     status: getQuoteStatus(quote.status)
                   };
 
-                  // Prepare data for PDF with real settings from database
-                  const pdfData = {
-                    quoteData: {
-                      number: quote.quote_number,
-                      date: quote.date,
-                      validUntil: quote.valid_until,
-                      notes: quote.notes
-                    },
-                    lineItems: quote.quote_items?.map(item => ({
-                      description: item.description,
-                      quantity: item.quantity,
-                      unitPrice: item.unit_price,
-                      vatRate: item.tax_rate,
-                      total: item.total_price
-                    })) || [],
-                    client: {
-                      name: quote.clients?.name || '',
-                      company: quote.clients?.company || '',
-                      address: quote.clients?.address || '',
-                      email: quote.clients?.email || ''
-                    },
-                    company: {
-                      name: organization?.name || 'Soft Facture',
-                      address: organization?.address || '',
-                      email: organization?.email || '',
-                      phone: organization?.phone || '',
-                      logo_url: organization?.logo_url || ''
-                    },
-                    settings: {
-                      showVat: true,
-                      footer_content: globalSettings?.footer_content || '',
-                      footer_display: globalSettings?.footer_display || 'all'
-                    },
-                    currency: currency
-                  };
-
-                  console.log('PDF Data settings:', pdfData.settings);
+                  console.log('Utilisation d\'UniversalPDFGenerator pour devis:', quote.quote_number);
 
                   return (
                     <TableRow key={quote.id} className="hover:bg-neutral-50">
@@ -497,7 +463,16 @@ const Quotes = () => {
                       <TableCell className="text-right">
                         <QuoteActionsMenu
                           quote={convertedQuote}
-                          pdfComponent={<QuotePDF {...pdfData} />}
+                          pdfComponent={
+                            <UniversalPDFGenerator
+                              document={{...quote, clients: quote.clients, quote_items: quote.quote_items}}
+                              organization={organization}
+                              customTaxes={customTaxes || []}
+                              globalSettings={globalSettings}
+                              currency={currency}
+                              documentType="DEVIS"
+                            />
+                          }
                           onView={() => handleViewQuote(quote)}
                           onEdit={() => handleEditQuote(quote)}
                           onDuplicate={() => handleDuplicateQuote(quote)}
