@@ -162,16 +162,26 @@ export const QuotePDF = ({
   const currencySymbol = currency?.symbol || '€';
   
   const calculateTotals = () => {
+    const subtotalBeforeDiscount = lineItems.reduce((sum, item) => {
+      return sum + ((item.quantity || 0) * (item.unitPrice || 0));
+    }, 0);
+    
+    const totalDiscount = lineItems.reduce((sum, item) => {
+      const itemSubtotal = (item.quantity || 0) * (item.unitPrice || 0);
+      const discountAmount = itemSubtotal * ((item.discount || 0) / 100);
+      return sum + discountAmount;
+    }, 0);
+    
     const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
     const totalVAT = lineItems.reduce((sum, item) => {
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0);
     const totalTTC = subtotalHT + totalVAT;
 
-    return { subtotalHT, totalVAT, totalTTC };
+    return { subtotalBeforeDiscount, totalDiscount, subtotalHT, totalVAT, totalTTC };
   };
 
-  const { subtotalHT, totalVAT, totalTTC } = calculateTotals();
+  const { subtotalBeforeDiscount, totalDiscount, subtotalHT, totalVAT, totalTTC } = calculateTotals();
 
   // Debug: log the settings to see what's being passed
   console.log('QuotePDF settings:', settings);
@@ -235,6 +245,9 @@ export const QuotePDF = ({
             <Text style={[styles.tableHeaderText, { flex: 3 }]}>DESCRIPTION</Text>
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>QTÉ</Text>
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>P.U. HT</Text>
+            {settings?.showDiscount && (
+              <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>REMISE %</Text>
+            )}
             {settings?.showVat && (
               <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>TVA</Text>
             )}
@@ -248,6 +261,11 @@ export const QuotePDF = ({
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
                 {(item.unitPrice || 0).toFixed(2)} {currencySymbol}
               </Text>
+              {settings?.showDiscount && (
+                <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
+                  {item.discount || 0}%
+                </Text>
+              )}
               {settings?.showVat && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
                   {item.vatRate || 0}%
@@ -262,8 +280,20 @@ export const QuotePDF = ({
 
         {/* Totals */}
         <View style={styles.totalsSection}>
+          {totalDiscount > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Sous-total HT:</Text>
+              <Text style={styles.totalValue}>{subtotalBeforeDiscount.toFixed(2)} {currencySymbol}</Text>
+            </View>
+          )}
+          {totalDiscount > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={[styles.totalLabel, { color: '#ef4444' }]}>Remise totale:</Text>
+              <Text style={[styles.totalValue, { color: '#ef4444' }]}>-{totalDiscount.toFixed(2)} {currencySymbol}</Text>
+            </View>
+          )}
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Sous-total HT:</Text>
+            <Text style={styles.totalLabel}>{totalDiscount > 0 ? 'Net HT:' : 'Sous-total HT:'}</Text>
             <Text style={styles.totalValue}>{subtotalHT.toFixed(2)} {currencySymbol}</Text>
           </View>
           {settings?.showVat && (
