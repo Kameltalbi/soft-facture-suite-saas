@@ -201,7 +201,8 @@ export function useClientRevenueReport(period: { start?: Date; end?: Date }) {
           status,
           date,
           clients!inner (
-            name
+            name,
+            company
           )
         `)
         .eq('organization_id', organization.id);
@@ -219,7 +220,8 @@ export function useClientRevenueReport(period: { start?: Date; end?: Date }) {
       const clientMap = new Map();
       
       data?.forEach(invoice => {
-        const clientName = invoice.clients.name;
+        // Utiliser le nom de l'entreprise s'il existe, sinon le nom du contact
+        const clientName = invoice.clients.company || invoice.clients.name;
         const paidAmount = invoice.amount_paid || 0;
         const dueAmount = invoice.total_amount - paidAmount;
 
