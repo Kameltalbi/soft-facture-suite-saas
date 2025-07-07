@@ -30,6 +30,7 @@ interface Document {
   client: string;
   amount: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated' | 'signed';
+  subject?: string;
 }
 
 const documentTypes = {
@@ -89,7 +90,8 @@ export function Sales() {
     date: invoice.date,
     client: invoice.clients?.name || 'Client inconnu',
     amount: invoice.total_amount,
-    status: invoice.status as Document['status']
+    status: invoice.status as Document['status'],
+    subject: invoice.subject || ''
   }));
 
   const filteredDocuments = documents.filter(doc => {
@@ -204,7 +206,7 @@ export function Sales() {
         number: document.number,
         date: document.date,
         clientId: invoice.client_id,
-        subject: `Facture pour ${document.client}`,
+        subject: document.subject || '',
         notes: invoice.notes || 'Merci pour votre confiance.'
       },
       lineItems,
