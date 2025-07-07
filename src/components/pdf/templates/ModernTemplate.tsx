@@ -312,6 +312,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
             <Text style={styles.tableCol1}>Description</Text>
             <Text style={styles.tableCol2}>Qté</Text>
             <Text style={styles.tableCol3}>Prix unit.</Text>
+            {settings?.showDiscount && <Text style={styles.tableCol4}>Remise</Text>}
             <Text style={styles.tableCol4}>TVA</Text>
             <Text style={styles.tableCol5}>Total</Text>
           </View>
@@ -321,6 +322,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
               <Text style={styles.tableCol1}>{item.description}</Text>
               <Text style={styles.tableCol2}>{item.quantity}</Text>
               <Text style={styles.tableCol3}>{item.unitPrice.toFixed(2)} €</Text>
+              {settings?.showDiscount && <Text style={styles.tableCol4}>{item.discount || 0}%</Text>}
               <Text style={styles.tableCol4}>{item.vatRate}%</Text>
               <Text style={styles.tableCol5}>{item.total.toFixed(2)} €</Text>
             </View>

@@ -29,6 +29,7 @@ const mockLineItems = [
     quantity: 1,
     unitPrice: 1500,
     vatRate: 20,
+    discount: 5,
     total: 1800
   },
   {
@@ -37,6 +38,7 @@ const mockLineItems = [
     quantity: 2,
     unitPrice: 300,
     vatRate: 20,
+    discount: 0,
     total: 720
   },
   {
@@ -45,6 +47,7 @@ const mockLineItems = [
     quantity: 12,
     unitPrice: 50,
     vatRate: 20,
+    discount: 10,
     total: 720
   }
 ];
@@ -64,6 +67,8 @@ const mockCompany = {
 };
 
 const mockSettings = {
+  showVat: true,
+  showDiscount: true,
   footer_content: 'Soft Facture SARL - 123 Avenue Habib Bourguiba, 1000 Tunis\nTél: +216 71 123 456 - Email: contact@softfacture.tn\nRIB: 12345678901234567890 - IBAN: TN59 1234 5678 9012 3456 7890'
 };
 
