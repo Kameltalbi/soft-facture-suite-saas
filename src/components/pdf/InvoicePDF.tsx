@@ -189,6 +189,9 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
   settings,
   customTaxes = [],
 }) => {
+  console.log('📄 InvoicePDF - Settings reçus:', settings);
+  console.log('📄 InvoicePDF - showDiscount:', settings?.showDiscount);
+  
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
     const totalVAT = lineItems.reduce((sum, item) => {
