@@ -50,7 +50,6 @@ const App = () => (
               <Route path="/cgu" element={<CGUPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/en-attente-validation" element={<Navigate to="/" replace />} />
               
               <Route path="/dashboard" element={
                 <ProtectedRoute>
