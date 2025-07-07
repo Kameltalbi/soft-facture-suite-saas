@@ -10,6 +10,10 @@ export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
     queryFn: async () => {
       if (!organization?.id) return [];
 
+      console.log('Fetching product revenue report for organization:', organization.id);
+      console.log('Period:', period);
+
+      // D'abord, récupérer tous les éléments de facture avec leurs factures
       let query = supabase
         .from('invoice_items')
         .select(`
@@ -24,9 +28,9 @@ export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
             use_vat
           )
         `)
-        .eq('invoices.organization_id', organization.id)
-        .in('invoices.status', ['sent', 'paid', 'partially_paid']);
+        .eq('invoices.organization_id', organization.id);
 
+      // Filtrer par période si spécifiée
       if (period.start) {
         query = query.gte('invoices.date', period.start.toISOString().split('T')[0]);
       }
@@ -35,29 +39,46 @@ export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      
+      console.log('Query result:', { data, error });
+      
+      if (error) {
+        console.error('Error fetching invoice items:', error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('No invoice items found');
+        return [];
+      }
 
       // Grouper par produit/service
       const productMap = new Map();
       
-      data?.forEach(item => {
+      data.forEach(item => {
         const productName = item.description;
+        const vatMultiplier = item.invoices.use_vat ? (1 + item.tax_rate / 100) : 1;
+        const totalTTC = item.total_price * vatMultiplier;
+        
         if (productMap.has(productName)) {
           const existing = productMap.get(productName);
-          existing.quantity += item.quantity;
-          existing.totalHT += item.total_price;
-          existing.totalTTC += item.total_price * (1 + (item.invoices.use_vat ? item.tax_rate / 100 : 0));
+          existing.quantity += Number(item.quantity);
+          existing.totalHT += Number(item.total_price);
+          existing.totalTTC += totalTTC;
         } else {
           productMap.set(productName, {
             name: productName,
-            quantity: item.quantity,
-            totalHT: item.total_price,
-            totalTTC: item.total_price * (1 + (item.invoices.use_vat ? item.tax_rate / 100 : 0))
+            quantity: Number(item.quantity),
+            totalHT: Number(item.total_price),
+            totalTTC: totalTTC
           });
         }
       });
 
-      return Array.from(productMap.values()).sort((a, b) => b.totalTTC - a.totalTTC);
+      const result = Array.from(productMap.values()).sort((a, b) => b.totalTTC - a.totalTTC);
+      console.log('Final result:', result);
+      
+      return result;
     },
     enabled: !!organization?.id
   });
