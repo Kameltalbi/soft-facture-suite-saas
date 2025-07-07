@@ -311,17 +311,30 @@ export const useDashboardData = (selectedYear: number) => {
       invoice.invoice_items?.forEach(item => {
         let category = 'Non catégorisé';
         
-        // Si le produit est lié directement
+        console.log('🔍 Processing item:', {
+          description: item.description,
+          product: item.products,
+          productCategory: item.products?.category
+        });
+        
+        // Si le produit est lié directement et a une catégorie
         if (item.products?.category && item.products.category.trim() !== '') {
           category = item.products.category;
+          console.log('✅ Category found from product:', category);
         } else {
+          console.log('⚠️ No category found, using fallback logic');
           // Sinon, essayer de deviner la catégorie à partir de la description
           const description = item.description.toLowerCase();
-          if (description.includes('vidéo') || description.includes('creation') || description.includes('capsule')) {
+          if (description.includes('formation')) {
+            category = 'Formation';
+          } else if (description.includes('conseil')) {
+            category = 'Conseils';
+          } else if (description.includes('vidéo') || description.includes('creation') || description.includes('capsule')) {
             category = 'Publicité Digitale';
           } else if (description.includes('page') || description.includes('magazine') || description.includes('publicitaire')) {
             category = 'Publicité Magazine';
           }
+          console.log('🔄 Fallback category assigned:', category);
         }
         
         // Convertir le montant vers la devise par défaut
