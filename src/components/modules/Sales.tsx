@@ -175,7 +175,7 @@ export function Sales() {
       quantity: item.quantity,
       unitPrice: item.unit_price,
       vatRate: item.tax_rate,
-      discount: 0, // À récupérer depuis la base si nécessaire
+      discount: item.discount || 0,
       total: item.total_price
     })) || [];
 

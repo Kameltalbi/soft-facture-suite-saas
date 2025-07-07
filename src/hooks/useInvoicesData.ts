@@ -21,7 +21,11 @@ export function useInvoicesData() {
             email,
             vat_number
           ),
-          invoice_items (*),
+          invoice_items (
+            *,
+            discount,
+            discount_type
+          ),
           currencies (
             code,
             symbol,
