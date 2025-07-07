@@ -254,7 +254,7 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
             <Text style={styles.tableCol1}>Description</Text>
             <Text style={styles.tableCol2}>Qté</Text>
             <Text style={styles.tableCol3}>Prix unit.</Text>
-            {true && <Text style={styles.tableCol4}>Remise</Text>}
+            {settings.showDiscount && <Text style={styles.tableCol4}>Remise</Text>}
             {settings.showVat && <Text style={styles.tableCol5}>TVA</Text>}
             <Text style={styles.tableCol6}>Total</Text>
           </View>
@@ -264,7 +264,7 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
               <Text style={styles.tableCol1}>{item.description}</Text>
               <Text style={styles.tableCol2}>{item.quantity}</Text>
               <Text style={styles.tableCol3}>{item.unitPrice.toFixed(2)} {settings.currency}</Text>
-              {true && <Text style={styles.tableCol4}>{item.discount}%</Text>}
+              {settings.showDiscount && <Text style={styles.tableCol4}>{item.discount}%</Text>}
               {settings.showVat && <Text style={styles.tableCol5}>{item.vatRate}%</Text>}
               <Text style={styles.tableCol6}>{item.total.toFixed(2)} {settings.currency}</Text>
             </View>
