@@ -77,6 +77,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const [useVat, setUseVat] = useState(quote?.use_vat ?? true);
   const [selectedCurrency, setSelectedCurrency] = useState(quote?.currency_id || null);
   const [selectedCustomTaxes, setSelectedCustomTaxes] = useState<string[]>(quote?.custom_taxes_used || []);
+  const [showDiscount, setShowDiscount] = useState(true);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   // Form state - Générer un numéro unique basé sur timestamp
@@ -627,13 +628,13 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[35%]">Description</TableHead>
-                    <TableHead className="w-[12%] text-center">Quantité</TableHead>
-                    <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
-                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
-                    <TableHead className="w-[10%] text-center">TVA</TableHead>
-                    <TableHead className="w-[12%] text-right">Total HT</TableHead>
-                    <TableHead className="w-[5%]"></TableHead>
+                     <TableHead className="w-[35%]">Description</TableHead>
+                     <TableHead className="w-[12%] text-center">Quantité</TableHead>
+                     <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
+                     {showDiscount && <TableHead className="w-[10%] text-center">Remise %</TableHead>}
+                     <TableHead className="w-[10%] text-center">TVA</TableHead>
+                     <TableHead className="w-[12%] text-right">Total HT</TableHead>
+                     <TableHead className="w-[5%]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -754,16 +755,18 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                           step="0.01"
                         />
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          value={item.discount}
-                          onChange={(e) => updateQuoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                          min="0"
-                          max="100"
-                        />
-                      </TableCell>
+                       {showDiscount && (
+                         <TableCell>
+                           <Input
+                             type="number"
+                             value={item.discount}
+                             onChange={(e) => updateQuoteItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                             className="text-center"
+                             min="0"
+                             max="100"
+                           />
+                         </TableCell>
+                       )}
                       <TableCell>
                         <Input
                           type="number"
@@ -949,6 +952,23 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Affichage de la remise */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="show-discount" className="text-sm font-medium">
+                  Afficher la remise
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Afficher la colonne remise dans le tableau
+                </p>
+              </div>
+              <Switch
+                id="show-discount"
+                checked={showDiscount}
+                onCheckedChange={setShowDiscount}
+              />
             </div>
 
             {/* Taxes personnalisées */}
