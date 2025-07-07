@@ -61,9 +61,39 @@ const App = () => (
                   <Index />
                 </ProtectedRoute>
               } />
-              <Route path="/reports/*" element={
+              <Route path="/reports" element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/invoices" element={
+                <ProtectedRoute>
+                  <InvoiceReportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/product-revenue" element={
+                <ProtectedRoute>
+                  <ProductRevenueReportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/monthly-revenue" element={
+                <ProtectedRoute>
+                  <MonthlyRevenueReportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/year-comparison" element={
+                <ProtectedRoute>
+                  <YearComparisonReportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/product-ranking" element={
+                <ProtectedRoute>
+                  <ProductRankingReportPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports/client-revenue" element={
+                <ProtectedRoute>
+                  <ClientRevenueReportPage />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

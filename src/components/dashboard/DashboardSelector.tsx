@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 import { Header } from '@/components/layout/Header';
@@ -14,12 +13,6 @@ import DeliveryNotes from '@/pages/DeliveryNotes';
 import Stock from '@/pages/Stock';
 import Settings from '@/pages/Settings';
 import Reports from '@/pages/Reports';
-import InvoiceReportPage from '@/pages/reports/InvoiceReportPage';
-import ProductRevenueReportPage from '@/pages/reports/ProductRevenueReportPage';
-import MonthlyRevenueReportPage from '@/pages/reports/MonthlyRevenueReportPage';
-import YearComparisonReportPage from '@/pages/reports/YearComparisonReportPage';
-import ProductRankingReportPage from '@/pages/reports/ProductRankingReportPage';
-import ClientRevenueReportPage from '@/pages/reports/ClientRevenueReportPage';
 import Fournisseurs from '@/pages/Fournisseurs';
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
 import Avoirs from '@/pages/Avoirs';
@@ -30,16 +23,7 @@ import Recouvrement from '@/pages/Recouvrement';
 
 export const DashboardSelector = () => {
   const { profile, user, loading } = useAuth();
-  const location = useLocation();
   const [activeModule, setActiveModule] = useState('dashboard');
-
-  // Gérer la navigation basée sur l'URL
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.startsWith('/reports')) {
-      setActiveModule('reports');
-    }
-  }, [location.pathname]);
 
   // Logs de débogage détaillés
   console.log('🔍 DashboardSelector - État complet:');
@@ -84,28 +68,6 @@ export const DashboardSelector = () => {
 
   // Pour les utilisateurs normaux, afficher le dashboard complet avec sidebar
   const renderModule = () => {
-    const path = location.pathname;
-    
-    // Gérer les sous-routes des rapports
-    if (path.startsWith('/reports/')) {
-      switch (path) {
-        case '/reports/invoices':
-          return <InvoiceReportPage />;
-        case '/reports/product-revenue':
-          return <ProductRevenueReportPage />;
-        case '/reports/monthly-revenue':
-          return <MonthlyRevenueReportPage />;
-        case '/reports/year-comparison':
-          return <YearComparisonReportPage />;
-        case '/reports/product-ranking':
-          return <ProductRankingReportPage />;
-        case '/reports/client-revenue':
-          return <ClientRevenueReportPage />;
-        default:
-          return <Reports />;
-      }
-    }
-    
     switch (activeModule) {
       case 'dashboard':
         return <Dashboard />;
