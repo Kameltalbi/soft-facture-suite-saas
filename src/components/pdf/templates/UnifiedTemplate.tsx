@@ -434,7 +434,7 @@ export const UnifiedTemplate = ({
               </Text>
               {config.showPrices && (
                 <Text style={[styles.tableCell, settings?.showDiscount ? styles.colUnitPriceWithDiscount : styles.colUnitPrice]}>
-                  {(item.unitPrice || 0).toFixed(2)} {currencySymbol}
+                  {Math.round(item.unitPrice || 0).toLocaleString('fr-FR')} {currencySymbol}
                 </Text>
               )}
               {settings?.showDiscount && config.showPrices && (
@@ -449,7 +449,7 @@ export const UnifiedTemplate = ({
               )}
               {config.showPrices && (
                 <Text style={[styles.tableCell, settings?.showDiscount ? styles.colTotalWithDiscount : styles.colTotal]}>
-                  {(item.total || 0).toFixed(2)} {currencySymbol}
+                  {Math.round(item.total || 0).toLocaleString('fr-FR')} {currencySymbol}
                 </Text>
               )}
             </View>
@@ -461,12 +461,12 @@ export const UnifiedTemplate = ({
           <View style={styles.totalsSection}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Sous-total HT:</Text>
-              <Text style={styles.totalValue}>{subtotalHT.toFixed(2)} {currencySymbol}</Text>
+              <Text style={styles.totalValue}>{Math.round(subtotalHT).toLocaleString('fr-FR')} {currencySymbol}</Text>
             </View>
             {config.showVat && (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>TVA:</Text>
-                <Text style={styles.totalValue}>{totalVAT.toFixed(2)} {currencySymbol}</Text>
+                <Text style={styles.totalValue}>{Math.round(totalVAT).toLocaleString('fr-FR')} {currencySymbol}</Text>
               </View>
             )}
             
@@ -476,13 +476,13 @@ export const UnifiedTemplate = ({
                 <Text style={styles.totalLabel}>
                   {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
                 </Text>
-                <Text style={styles.totalValue}>{tax.amount.toFixed(2)} {currencySymbol}</Text>
+                <Text style={styles.totalValue}>{Math.round(tax.amount).toLocaleString('fr-FR')} {currencySymbol}</Text>
               </View>
             ))}
             
             <View style={styles.grandTotal}>
               <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
-              <Text style={styles.grandTotalText}>{totalTTC.toFixed(2)} {currencySymbol}</Text>
+              <Text style={styles.grandTotalText}>{Math.round(totalTTC).toLocaleString('fr-FR')} {currencySymbol}</Text>
             </View>
           </View>
         )}
