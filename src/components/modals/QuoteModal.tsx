@@ -1018,7 +1018,10 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setShowSettingsModal(false)}>
-              Fermer
+              Annuler
+            </Button>
+            <Button onClick={() => setShowSettingsModal(false)}>
+              Appliquer
             </Button>
           </div>
         </DialogContent>
