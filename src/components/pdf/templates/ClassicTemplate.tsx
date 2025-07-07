@@ -181,6 +181,8 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
 }) => {
   console.log('🎨 ClassicTemplate - Settings reçus:', settings);
   console.log('🎨 ClassicTemplate - showDiscount:', settings?.showDiscount);
+  console.log('🎨 ClassicTemplate - Type de showDiscount:', typeof settings?.showDiscount);
+  console.log('🎨 ClassicTemplate - showDiscount === true ?', settings?.showDiscount === true);
   console.log('🎨 ClassicTemplate - lineItems avec discount:', lineItems);
   
   const calculateTotals = () => {
