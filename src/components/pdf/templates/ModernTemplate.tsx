@@ -250,6 +250,8 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
   documentType = 'FACTURE',
   customTaxes = []
 }) => {
+  console.log('🎨 MODERN TEMPLATE APPELÉ !!! Settings:', settings);
+  console.log('🎨 MODERN TEMPLATE showDiscount:', settings?.showDiscount);
   console.log('🎨 ModernTemplate - Taxes reçues:', customTaxes);
   
   const calculateTotals = () => {
