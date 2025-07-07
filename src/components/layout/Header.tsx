@@ -65,9 +65,21 @@ export function Header({ activeModule }: HeaderProps) {
         )}
       </div>
 
-      {/* Date et heure en temps réel - centrée */}
-      <div className="flex-1 flex justify-center">
-        <div className="flex items-center gap-2 font-medium text-lg">
+      {/* Informations d'organisation et date/heure */}
+      <div className="flex-1 flex items-center justify-center gap-6">
+        <div className="flex items-center gap-3">
+          {organization?.plan && (
+            <span className="text-sm font-medium px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+              Plan {organization.plan}
+            </span>
+          )}
+          {(organization as any)?.subscription_end && (
+            <span className="text-sm text-gray-600">
+              Fin: {new Date((organization as any).subscription_end).toLocaleDateString('fr-FR')}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 font-medium text-base ml-2">
           <span className="text-green-600">{formatDate(currentDateTime)}</span>
           <span className="text-orange-600">{formatTime(currentDateTime)}</span>
         </div>
