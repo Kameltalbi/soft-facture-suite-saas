@@ -250,10 +250,6 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
   documentType = 'FACTURE',
   customTaxes = []
 }) => {
-  console.log('🎨 MODERN TEMPLATE APPELÉ !!! Settings:', settings);
-  console.log('🎨 MODERN TEMPLATE showDiscount:', settings?.showDiscount);
-  console.log('🎨 ModernTemplate - Taxes reçues:', customTaxes);
-  
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);
     const totalVAT = lineItems.reduce((sum, item) => {
@@ -322,7 +318,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
             <Text style={settings?.showDiscount ? styles.tableCol1WithDiscount : styles.tableCol1}>Description</Text>
             <Text style={settings?.showDiscount ? styles.tableCol2WithDiscount : styles.tableCol2}>Qté</Text>
             <Text style={settings?.showDiscount ? styles.tableCol3WithDiscount : styles.tableCol3}>Prix unit.</Text>
-            {true && <Text style={styles.tableCol4WithDiscount}>Remise</Text>}
+            {settings?.showDiscount && <Text style={styles.tableCol4WithDiscount}>Remise</Text>}
             <Text style={settings?.showDiscount ? styles.tableCol5WithDiscount : styles.tableCol4}>TVA</Text>
             <Text style={settings?.showDiscount ? styles.tableCol6WithDiscount : styles.tableCol5}>Total</Text>
           </View>
@@ -332,7 +328,7 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({
               <Text style={settings?.showDiscount ? styles.tableCol1WithDiscount : styles.tableCol1}>{item.description}</Text>
               <Text style={settings?.showDiscount ? styles.tableCol2WithDiscount : styles.tableCol2}>{item.quantity}</Text>
               <Text style={settings?.showDiscount ? styles.tableCol3WithDiscount : styles.tableCol3}>{item.unitPrice.toFixed(2)} €</Text>
-              {true && <Text style={styles.tableCol4WithDiscount}>{item.discount || 0}%</Text>}
+              {settings?.showDiscount && <Text style={styles.tableCol4WithDiscount}>{item.discount || 0}%</Text>}
               <Text style={settings?.showDiscount ? styles.tableCol5WithDiscount : styles.tableCol4}>{item.vatRate}%</Text>
               <Text style={settings?.showDiscount ? styles.tableCol6WithDiscount : styles.tableCol5}>{item.total.toFixed(2)} €</Text>
             </View>

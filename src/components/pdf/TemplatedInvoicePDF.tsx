@@ -19,11 +19,6 @@ export const TemplatedInvoicePDF = ({
   customTaxes = [],
   ...props 
 }: TemplatedInvoicePDFProps) => {
-  console.log('🎨 TemplatedInvoicePDF - Template utilisé:', template);
-  console.log('🎨 TemplatedInvoicePDF - Taxes reçues:', customTaxes);
-  console.log('🎨 TemplatedInvoicePDF - Settings reçus:', props.settings);
-  console.log('🎨 TemplatedInvoicePDF - showDiscount:', props.settings?.showDiscount);
-  
   const templateProps = { 
     ...props, 
     documentType,
