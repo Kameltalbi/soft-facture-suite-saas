@@ -148,7 +148,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
           number: getDocumentNumber(),
           date: document.date,
           dueDate: getDueDate(),
-          subject: document.subject || `${documentType} pour ${client.name}`,
+          subject: document.subject || '',
           notes: document.notes || ''
         },
         lineItems,
