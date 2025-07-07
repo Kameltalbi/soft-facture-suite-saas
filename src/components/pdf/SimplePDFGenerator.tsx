@@ -81,6 +81,7 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
         company,
         settings: {
           showVat: true,
+          showDiscount: globalSettings?.show_discount ?? true,
           footer_content: globalSettings?.footer_content || '',
           footer_display: globalSettings?.footer_display || 'all'
         },
