@@ -936,12 +936,12 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
             {/* Devise */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Devise</Label>
-              <Select value={selectedCurrency || ''} onValueChange={setSelectedCurrency}>
+              <Select value={selectedCurrency || 'default'} onValueChange={(value) => setSelectedCurrency(value === 'default' ? null : value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner une devise" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Devise par défaut</SelectItem>
+                  <SelectItem value="default">Devise par défaut</SelectItem>
                   {currencies.map((currency) => (
                     <SelectItem key={currency.id} value={currency.id}>
                       {currency.code} - {currency.name}
