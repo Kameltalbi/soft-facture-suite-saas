@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Trash2, FileText, User, Calendar } from 'lucide-react';
+import { Search, Plus, Trash2, FileText, User, Calendar, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { UniversalPDFGenerator } from '@/components/pdf/UniversalPDFGenerator';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useCustomTaxes } from '@/hooks/useCustomTaxes';
+import { useCurrencies } from '@/hooks/useCurrencies';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface QuoteItem {
   id: string;
@@ -58,6 +63,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currency } = useCurrency();
+  const { customTaxes } = useCustomTaxes();
+  const { currencies } = useCurrencies();
   
   // State for clients and products
   const [clients, setClients] = useState<Client[]>([]);
@@ -65,6 +72,12 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const [clientsLoading, setClientsLoading] = useState(false);
   const [productsLoading, setProductsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  // Paramètres du devis
+  const [useVat, setUseVat] = useState(quote?.use_vat ?? true);
+  const [selectedCurrency, setSelectedCurrency] = useState(quote?.currency_id || null);
+  const [selectedCustomTaxes, setSelectedCustomTaxes] = useState<string[]>(quote?.custom_taxes_used || []);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   
   // Form state - Générer un numéro unique basé sur timestamp
   const [quoteNumber, setQuoteNumber] = useState(quote?.number || `DEVIS-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`);
@@ -859,27 +872,128 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={onClose} disabled={saving}>
-              Annuler
-            </Button>
+          <div className="flex justify-between items-center">
             <Button 
-              onClick={() => handleSave('draft')} 
-              variant="secondary"
-              disabled={saving}
+              variant="outline" 
+              onClick={() => setShowSettingsModal(true)}
+              className="flex items-center gap-2"
             >
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+              <Settings className="h-4 w-4" />
+              Paramètres
             </Button>
-            <Button 
-              onClick={() => handleSave('pending')} 
-              className="bg-purple-600 hover:bg-purple-700"
-              disabled={saving}
-            >
-              {saving ? 'Validation...' : 'Valider'}
-            </Button>
+            
+            <div className="flex space-x-3">
+              <Button variant="outline" onClick={onClose} disabled={saving}>
+                Annuler
+              </Button>
+              <Button 
+                onClick={() => handleSave('draft')} 
+                variant="secondary"
+                disabled={saving}
+              >
+                {saving ? 'Enregistrement...' : 'Enregistrer'}
+              </Button>
+              <Button 
+                onClick={() => handleSave('pending')} 
+                className="bg-purple-600 hover:bg-purple-700"
+                disabled={saving}
+              >
+                {saving ? 'Validation...' : 'Valider'}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
+      
+      {/* Modal Paramètres */}
+      <Dialog open={showSettingsModal} onOpenChange={setShowSettingsModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Paramètres du devis
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* TVA */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="use-vat" className="text-sm font-medium">
+                  Utiliser la TVA
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Inclure la TVA dans les calculs
+                </p>
+              </div>
+              <Switch
+                id="use-vat"
+                checked={useVat}
+                onCheckedChange={setUseVat}
+              />
+            </div>
+
+            {/* Devise */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Devise</Label>
+              <Select value={selectedCurrency || ''} onValueChange={setSelectedCurrency}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une devise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Devise par défaut</SelectItem>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.id} value={currency.id}>
+                      {currency.code} - {currency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Taxes personnalisées */}
+            {customTaxes.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Taxes personnalisées</Label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Sélectionnez les taxes à appliquer
+                </p>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {customTaxes
+                    .filter(tax => tax.active && tax.applicable_documents.includes('quotes'))
+                    .map((tax) => (
+                      <div key={tax.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`tax-${tax.id}`}
+                          checked={selectedCustomTaxes.includes(tax.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCustomTaxes([...selectedCustomTaxes, tax.id]);
+                            } else {
+                              setSelectedCustomTaxes(selectedCustomTaxes.filter(id => id !== tax.id));
+                            }
+                          }}
+                        />
+                        <Label 
+                          htmlFor={`tax-${tax.id}`} 
+                          className="text-sm cursor-pointer flex-1"
+                        >
+                          {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${tax.currency_id ? 'devise' : currency.code}`})
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowSettingsModal(false)}>
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
