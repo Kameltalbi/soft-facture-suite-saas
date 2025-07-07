@@ -150,15 +150,21 @@ export function useMonthlyRevenueReport(year: number) {
     queryFn: async () => {
       if (!organization?.id) return [];
 
+      console.log('Fetching monthly revenue for year:', year, 'organization:', organization.id);
+
       const { data, error } = await supabase
         .from('invoices')
         .select('date, subtotal, total_amount, use_vat')
         .eq('organization_id', organization.id)
-        .in('status', ['sent', 'paid', 'partially_paid'])
         .gte('date', `${year}-01-01`)
         .lte('date', `${year}-12-31`);
 
-      if (error) throw error;
+      console.log('Monthly revenue query result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching monthly revenue:', error);
+        throw error;
+      }
 
       // Créer un tableau pour les 12 mois
       const months = [
@@ -175,10 +181,11 @@ export function useMonthlyRevenueReport(year: number) {
       data?.forEach(invoice => {
         const invoiceDate = new Date(invoice.date);
         const monthIndex = invoiceDate.getMonth();
-        monthlyData[monthIndex].totalHT += invoice.subtotal;
-        monthlyData[monthIndex].totalTTC += invoice.total_amount;
+        monthlyData[monthIndex].totalHT += Number(invoice.subtotal) || 0;
+        monthlyData[monthIndex].totalTTC += Number(invoice.total_amount) || 0;
       });
 
+      console.log('Final monthly data:', monthlyData);
       return monthlyData;
     },
     enabled: !!organization?.id
