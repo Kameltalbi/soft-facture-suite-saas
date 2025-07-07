@@ -190,7 +190,7 @@ export default function Avoirs() {
 
     const settings = {
       showVat: true,
-      showDiscount: false,
+      showDiscount: true,
       currency: 'EUR',
       amountInWords: true
     };

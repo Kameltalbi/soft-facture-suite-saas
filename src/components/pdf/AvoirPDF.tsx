@@ -193,7 +193,7 @@ export const AvoirPDF: React.FC<AvoirPDFProps> = ({
   company,
   settings = {
     showVat: true,
-    showDiscount: false,
+    showDiscount: true,
     currency: 'EUR',
     amountInWords: true
   }
