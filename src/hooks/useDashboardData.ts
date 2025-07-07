@@ -307,34 +307,40 @@ export const useDashboardData = (selectedYear: number) => {
 
     // 1. CA par catégorie avec conversion
     const categoryMap = new Map<string, number>();
+    
+    // Récupérer toutes les catégories de l'organisation pour le mapping
+    const { data: organizationCategories } = await supabase
+      .from('categories')
+      .select('name')
+      .eq('organization_id', orgId);
+    
+    const categoryNames = organizationCategories?.map(cat => cat.name.toLowerCase()) || [];
+    
     invoicesWithItems?.forEach(invoice => {
       invoice.invoice_items?.forEach(item => {
         let category = 'Non catégorisé';
         
-        console.log('🔍 Processing item:', {
-          description: item.description,
-          product: item.products,
-          productCategory: item.products?.category
-        });
-        
-        // Si le produit est lié directement et a une catégorie
+        // Méthode 1 : Si le produit est lié directement et a une catégorie
         if (item.products?.category && item.products.category.trim() !== '') {
           category = item.products.category;
-          console.log('✅ Category found from product:', category);
-        } else {
-          console.log('⚠️ No category found, using fallback logic');
-          // Sinon, essayer de deviner la catégorie à partir de la description
+        } 
+        // Méthode 2 : Rechercher dans la description en utilisant les catégories de l'organisation
+        else {
           const description = item.description.toLowerCase();
-          if (description.includes('formation')) {
-            category = 'Formation';
-          } else if (description.includes('conseil')) {
-            category = 'Conseils';
-          } else if (description.includes('vidéo') || description.includes('creation') || description.includes('capsule')) {
-            category = 'Publicité Digitale';
-          } else if (description.includes('page') || description.includes('magazine') || description.includes('publicitaire')) {
-            category = 'Publicité Magazine';
+          
+          // Chercher quelle catégorie de l'organisation correspond le mieux à la description
+          for (const catName of categoryNames) {
+            if (description.includes(catName)) {
+              // Trouver le nom original (avec la casse correcte)
+              const originalCategory = organizationCategories?.find(
+                cat => cat.name.toLowerCase() === catName
+              );
+              if (originalCategory) {
+                category = originalCategory.name;
+                break;
+              }
+            }
           }
-          console.log('🔄 Fallback category assigned:', category);
         }
         
         // Convertir le montant vers la devise par défaut
