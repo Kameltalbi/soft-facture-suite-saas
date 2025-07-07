@@ -155,13 +155,14 @@ export const useDashboardData = (selectedYear: number) => {
     // Récupérer la devise par défaut
     const currency = await fetchOrganizationCurrency();
 
-    const startDate = new Date(selectedYear, 0, 1);
-    const endDate = new Date(selectedYear, 11, 31);
+    // Utiliser directement les chaînes de dates pour éviter les problèmes de timezone
+    const startDate = `${selectedYear}-01-01`;
+    const endDate = `${selectedYear}-12-31`;
 
     console.log('📅 KPI - Date range for FULL YEAR:', { 
       year: selectedYear,
-      startDate: startDate.toISOString().split('T')[0], 
-      endDate: endDate.toISOString().split('T')[0] 
+      startDate, 
+      endDate 
     });
 
     // Factures de l'année complète
@@ -173,8 +174,8 @@ export const useDashboardData = (selectedYear: number) => {
         currencies(id, code, symbol, name, decimal_places)
       `)
       .eq('organization_id', orgId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0]);
+      .gte('date', startDate)
+      .lte('date', endDate);
 
     if (invoicesError) {
       console.error('❌ KPI - Error fetching invoices:', invoicesError);
@@ -276,8 +277,9 @@ export const useDashboardData = (selectedYear: number) => {
 
     console.log('📊 Charts - Fetching data for org:', orgId, 'Year:', selectedYear);
 
-    const startDate = new Date(selectedYear, 0, 1);
-    const endDate = new Date(selectedYear, 11, 31);
+    // Utiliser directement les chaînes de dates pour éviter les problèmes de timezone
+    const startDate = `${selectedYear}-01-01`;
+    const endDate = `${selectedYear}-12-31`;
 
     // Récupérer toutes les factures avec les items et produits
     const { data: invoicesWithItems, error: invoicesError } = await supabase
@@ -289,8 +291,8 @@ export const useDashboardData = (selectedYear: number) => {
         currencies(id, code, symbol, name, decimal_places)
       `)
       .eq('organization_id', orgId)
-      .gte('date', startDate.toISOString().split('T')[0])
-      .lte('date', endDate.toISOString().split('T')[0]);
+      .gte('date', startDate)
+      .lte('date', endDate);
 
     if (invoicesError) {
       console.error('❌ Charts - Error fetching invoices:', invoicesError);
@@ -382,18 +384,19 @@ export const useDashboardData = (selectedYear: number) => {
     // 3. Comparaison mensuelle avec année précédente (UNE SEULE REQUÊTE OPTIMISÉE)
     const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     
-    const currentYearStart = new Date(selectedYear, 0, 1);
-    const currentYearEnd = new Date(selectedYear, 11, 31);
-    const prevYearStart = new Date(selectedYear - 1, 0, 1);
-    const prevYearEnd = new Date(selectedYear - 1, 11, 31);
+    // Utiliser directement les chaînes de dates pour éviter les problèmes de timezone
+    const currentYearStart = `${selectedYear}-01-01`;
+    const currentYearEnd = `${selectedYear}-12-31`;
+    const prevYearStart = `${selectedYear - 1}-01-01`;
+    const prevYearEnd = `${selectedYear - 1}-12-31`;
 
     // Une seule requête pour les deux années
     const { data: allYearInvoices } = await supabase
       .from('invoices')
       .select('subtotal, currency_id, date, currencies(code)')
       .eq('organization_id', orgId)
-      .gte('date', prevYearStart.toISOString().split('T')[0])
-      .lte('date', currentYearEnd.toISOString().split('T')[0]);
+      .gte('date', prevYearStart)
+      .lte('date', currentYearEnd);
 
     // Organiser les données par mois et année
     const monthlyComparison = months.map((month, monthIndex) => {
