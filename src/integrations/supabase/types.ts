@@ -625,6 +625,8 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string
+          discount: number | null
+          discount_type: string | null
           id: string
           invoice_id: string
           organization_id: string
@@ -637,6 +639,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description: string
+          discount?: number | null
+          discount_type?: string | null
           id?: string
           invoice_id: string
           organization_id: string
@@ -649,6 +653,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string
+          discount?: number | null
+          discount_type?: string | null
           id?: string
           invoice_id?: string
           organization_id?: string
