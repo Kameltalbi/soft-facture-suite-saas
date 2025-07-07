@@ -143,6 +143,9 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         }
       };
 
+      console.log('🔍 Document object:', document);
+      console.log('🔍 Document subject:', document.subject);
+      
       const data = {
         documentData: {
           number: getDocumentNumber(),
