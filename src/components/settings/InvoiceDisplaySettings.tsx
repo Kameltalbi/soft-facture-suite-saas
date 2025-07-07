@@ -9,12 +9,12 @@ import { useToast } from '@/hooks/use-toast';
 export function InvoiceDisplaySettings() {
   const { globalSettings, saveGlobalSettings, loading } = useSettings();
   const { toast } = useToast();
-  const [showDiscount, setShowDiscount] = useState(true);
+  const [showDiscount, setShowDiscount] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (globalSettings) {
-      setShowDiscount(globalSettings.show_discount ?? true);
+      setShowDiscount(globalSettings.show_discount ?? false);
     }
   }, [globalSettings]);
 
