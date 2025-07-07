@@ -75,12 +75,12 @@ const styles = StyleSheet.create({
     padding: 8,
     minHeight: 30,
   },
-  tableCol1: { width: '40%' },
-  tableCol2: { width: '10%', textAlign: 'center' },
-  tableCol3: { width: '15%', textAlign: 'right' },
-  tableCol4: { width: '10%', textAlign: 'center' },
-  tableCol5: { width: '10%', textAlign: 'center' },
-  tableCol6: { width: '15%', textAlign: 'right' },
+  tableCol1: { width: '35%' },
+  tableCol2: { width: '8%', textAlign: 'center' },
+  tableCol3: { width: '12%', textAlign: 'right' },
+  tableCol4: { width: '8%', textAlign: 'center' },
+  tableCol5: { width: '12%', textAlign: 'center' },
+  tableCol6: { width: '25%', textAlign: 'right' },
   totalsSection: {
     marginTop: 20,
     alignItems: 'flex-end',
@@ -189,8 +189,6 @@ export const InvoicePDF: React.FC<InvoicePDFProps> = ({
   settings,
   customTaxes = [],
 }) => {
-  console.log('📄 InvoicePDF - Settings reçus:', settings);
-  console.log('📄 InvoicePDF - showDiscount:', settings?.showDiscount);
   
   const calculateTotals = () => {
     const subtotalHT = lineItems.reduce((sum, item) => sum + item.total, 0);

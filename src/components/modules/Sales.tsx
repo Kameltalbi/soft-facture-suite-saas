@@ -211,9 +211,6 @@ export function Sales() {
       amountInWords: true
     };
 
-    console.log('🔍 Sales.tsx - globalSettings:', globalSettings);
-    console.log('🔍 Sales.tsx - showDiscount:', globalSettings?.show_discount);
-    console.log('🔍 Sales.tsx - settings finaux:', settings);
 
     return generateInvoicePDF(
       {
