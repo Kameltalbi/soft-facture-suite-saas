@@ -50,11 +50,11 @@ export function UserManagement({ users, roles, currentUserRole, currentPlan, onC
   const getUserLimit = (plan: string) => {
     switch (plan) {
       case 'essential':
-        return 1;
+        return 2; // Corrigé : 2 utilisateurs pour Essential
       case 'pro':
         return 3;
       default:
-        return 1;
+        return 2; // Valeur par défaut 2 utilisateurs
     }
   };
 
