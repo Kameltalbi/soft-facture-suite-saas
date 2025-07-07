@@ -386,7 +386,7 @@ export const UnifiedTemplate = ({
 
           {/* Subject Section - Always visible */}
           <View style={[styles.clientSection, { flex: 1 }]}>
-            <Text style={styles.sectionTitle}>OBJET :</Text>
+            <Text style={styles.sectionTitle}>RÉFÉRENCE :</Text>
             <Text style={styles.clientInfo}>
               {documentData?.subject || ''}
             </Text>
