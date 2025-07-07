@@ -18,6 +18,7 @@ import { InvoicePDF } from '@/components/pdf/InvoicePDF';
 import { InvoiceActionsMenu } from '@/components/invoices/InvoiceActionsMenu';
 import { usePDFGeneration } from '@/hooks/usePDFGeneration';
 import { useSettings } from '@/hooks/useSettings';
+import { useInvoicesData } from '@/hooks/useInvoicesData';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -30,45 +31,6 @@ interface Document {
   amount: number;
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'partially_paid' | 'validated' | 'signed';
 }
-
-const mockDocuments: Document[] = [
-  {
-    id: '1',
-    type: 'invoice',
-    number: 'FAC-2024-001',
-    date: '2024-01-15',
-    client: 'Entreprise ABC',
-    amount: 1250.00,
-    status: 'paid'
-  },
-  {
-    id: '2',
-    type: 'quote',
-    number: 'DEV-2024-001',
-    date: '2024-01-12',
-    client: 'Société XYZ',
-    amount: 850.00,
-    status: 'sent'
-  },
-  {
-    id: '3',
-    type: 'delivery',
-    number: 'BL-2024-001',
-    date: '2024-01-10',
-    client: 'Client Premium',
-    amount: 2100.00,
-    status: 'sent'
-  },
-  {
-    id: '4',
-    type: 'credit',
-    number: 'AV-2024-001',
-    date: '2024-01-08',
-    client: 'Entreprise ABC',
-    amount: -150.00,
-    status: 'sent'
-  }
-];
 
 const documentTypes = {
   invoice: { label: 'Facture', color: 'bg-primary' },
@@ -90,6 +52,7 @@ const statusLabels = {
 export function Sales() {
   const { generateInvoicePDF } = usePDFGeneration();
   const { globalSettings } = useSettings();
+  const { invoices, isLoading } = useInvoicesData();
   const [searchTerm, setSearchTerm] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
@@ -118,7 +81,18 @@ export function Sales() {
     { value: 12, label: 'Décembre' },
   ];
 
-  const filteredDocuments = mockDocuments.filter(doc => {
+  // Convertir les données de la base en format Document
+  const documents: Document[] = invoices.map(invoice => ({
+    id: invoice.id,
+    type: 'invoice' as const,
+    number: invoice.invoice_number,
+    date: invoice.date,
+    client: invoice.clients?.name || 'Client inconnu',
+    amount: invoice.total_amount,
+    status: invoice.status as Document['status']
+  }));
+
+  const filteredDocuments = documents.filter(doc => {
     const docDate = new Date(doc.date);
     const matchesSearch = doc.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.number.toLowerCase().includes(searchTerm.toLowerCase());
@@ -167,7 +141,7 @@ export function Sales() {
     const duplicatedDocument = {
       ...document,
       id: Date.now().toString(),
-      number: `${document.type.toUpperCase()}-2024-${String(mockDocuments.length + 1).padStart(3, '0')}`,
+      number: `${document.type.toUpperCase()}-2024-${String(documents.length + 1).padStart(3, '0')}`,
       date: new Date().toISOString().split('T')[0],
       status: 'draft' as const
     };
@@ -191,36 +165,37 @@ export function Sales() {
   };
 
   const getPDFData = (document: Document) => {
-    const mockLineItems = [
-      {
-        id: '1',
-        description: 'Service de consultation',
-        quantity: 1,
-        unitPrice: document.amount,
-        vatRate: 20,
-        discount: 15, // Ajout d'une remise pour voir la colonne
-        total: document.amount
-      }
-    ];
+    // Récupérer les vraies données de la facture
+    const invoice = invoices.find(inv => inv.id === document.id);
+    if (!invoice) return null;
+
+    const lineItems = invoice.invoice_items?.map(item => ({
+      id: item.id,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      vatRate: item.tax_rate,
+      discount: 0, // À récupérer depuis la base si nécessaire
+      total: item.total_price
+    })) || [];
 
     const settings = {
-      showVat: true,
+      showVat: invoice.use_vat ?? true,
       showDiscount: globalSettings?.show_discount ?? true,
-      showAdvance: false,
-      currency: 'EUR',
+      showAdvance: invoice.has_advance ?? false,
+      currency: invoice.currencies?.code || 'EUR',
       amountInWords: true
     };
-
 
     return generateInvoicePDF(
       {
         number: document.number,
         date: document.date,
-        clientId: '1',
-        subject: `${documentTypes[document.type].label} pour ${document.client}`,
-        notes: 'Merci pour votre confiance.'
+        clientId: invoice.client_id,
+        subject: `Facture pour ${document.client}`,
+        notes: invoice.notes || 'Merci pour votre confiance.'
       },
-      mockLineItems,
+      lineItems,
       settings
     );
   };
@@ -412,11 +387,11 @@ export function Sales() {
                         number: document.number,
                         client: document.client,
                         amount: document.amount,
-                        paidAmount: 0,
+                        paidAmount: invoices.find(inv => inv.id === document.id)?.amount_paid || 0,
                         status: document.status,
-                        is_signed: false
+                        is_signed: invoices.find(inv => inv.id === document.id)?.is_signed || false
                       }}
-                      pdfComponent={<InvoicePDF {...getPDFData(document)} />}
+                      pdfComponent={getPDFData(document) ? <InvoicePDF {...getPDFData(document)!} /> : null}
                       onValidate={() => handleValidateDocument(document)}
                       onEdit={() => handleEditDocument(document)}
                       onDuplicate={() => handleDuplicateDocument(document)}
