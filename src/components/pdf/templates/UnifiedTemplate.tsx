@@ -354,6 +354,11 @@ export const UnifiedTemplate = ({
                   {config.dueDateLabel} {new Date(documentData.dueDate).toLocaleDateString('fr-FR')}
                 </Text>
               )}
+              {documentData?.subject && documentData.subject.trim() && (
+                <Text style={[styles.documentDate, { marginTop: 10, fontWeight: 'bold' }]}>
+                  Objet: {documentData.subject}
+                </Text>
+              )}
             </View>
           </View>
         </View>
