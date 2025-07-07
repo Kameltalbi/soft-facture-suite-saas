@@ -160,7 +160,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
           footer_content: globalSettings?.footer_content || '',
           footer_display: globalSettings?.footer_display || 'all'
         },
-        currency: document.currencies || currency,
+        currency: currency, // Utiliser la devise du contexte qui contient decimal_places
         customTaxes: customTaxCalculations,
         isSigned: document.is_signed || false,
         documentType
