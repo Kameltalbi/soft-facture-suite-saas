@@ -434,10 +434,7 @@ export const UnifiedTemplate = ({
               </Text>
               {config.showPrices && (
                 <Text style={[styles.tableCell, settings?.showDiscount ? styles.colUnitPriceWithDiscount : styles.colUnitPrice]}>
-                  {(item.unitPrice || 0).toLocaleString('fr-FR', { 
-                    minimumFractionDigits: currency?.decimal_places || 2, 
-                    maximumFractionDigits: currency?.decimal_places || 2 
-                  })} {currencySymbol}
+                  {(item.unitPrice || 0).toFixed(currency?.decimal_places || 2)} {currencySymbol}
                 </Text>
               )}
               {settings?.showDiscount && config.showPrices && (
@@ -452,10 +449,7 @@ export const UnifiedTemplate = ({
               )}
               {config.showPrices && (
                 <Text style={[styles.tableCell, settings?.showDiscount ? styles.colTotalWithDiscount : styles.colTotal]}>
-                  {(item.total || 0).toLocaleString('fr-FR', { 
-                    minimumFractionDigits: currency?.decimal_places || 2, 
-                    maximumFractionDigits: currency?.decimal_places || 2 
-                  })} {currencySymbol}
+                  {(item.total || 0).toFixed(currency?.decimal_places || 2)} {currencySymbol}
                 </Text>
               )}
             </View>
@@ -467,18 +461,12 @@ export const UnifiedTemplate = ({
           <View style={styles.totalsSection}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Sous-total HT:</Text>
-              <Text style={styles.totalValue}>{subtotalHT.toLocaleString('fr-FR', { 
-                minimumFractionDigits: currency?.decimal_places || 2, 
-                maximumFractionDigits: currency?.decimal_places || 2 
-              })} {currencySymbol}</Text>
+              <Text style={styles.totalValue}>{subtotalHT.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
             </View>
             {config.showVat && (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>TVA:</Text>
-                <Text style={styles.totalValue}>{totalVAT.toLocaleString('fr-FR', { 
-                  minimumFractionDigits: currency?.decimal_places || 2, 
-                  maximumFractionDigits: currency?.decimal_places || 2 
-                })} {currencySymbol}</Text>
+                <Text style={styles.totalValue}>{totalVAT.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
               </View>
             )}
             
@@ -488,19 +476,13 @@ export const UnifiedTemplate = ({
                 <Text style={styles.totalLabel}>
                   {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
                 </Text>
-                <Text style={styles.totalValue}>{tax.amount.toLocaleString('fr-FR', { 
-                  minimumFractionDigits: currency?.decimal_places || 2, 
-                  maximumFractionDigits: currency?.decimal_places || 2 
-                })} {currencySymbol}</Text>
+                <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
               </View>
             ))}
             
             <View style={styles.grandTotal}>
               <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
-              <Text style={styles.grandTotalText}>{totalTTC.toLocaleString('fr-FR', { 
-                minimumFractionDigits: currency?.decimal_places || 2, 
-                maximumFractionDigits: currency?.decimal_places || 2 
-              })} {currencySymbol}</Text>
+              <Text style={styles.grandTotalText}>{totalTTC.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
             </View>
           </View>
         )}

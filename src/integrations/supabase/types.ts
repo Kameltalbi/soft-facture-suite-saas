@@ -1174,6 +1174,8 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string
+          discount: number | null
+          discount_type: string | null
           id: string
           organization_id: string
           product_id: string | null
@@ -1186,6 +1188,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description: string
+          discount?: number | null
+          discount_type?: string | null
           id?: string
           organization_id: string
           product_id?: string | null
@@ -1198,6 +1202,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string
+          discount?: number | null
+          discount_type?: string | null
           id?: string
           organization_id?: string
           product_id?: string | null

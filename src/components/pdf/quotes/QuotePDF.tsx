@@ -149,6 +149,8 @@ interface QuotePDFProps {
   company: any;
   settings: any;
   currency?: { code: string; symbol: string; name: string };
+  showDiscount?: boolean;
+  showVat?: boolean;
 }
 
 export const QuotePDF = ({
@@ -157,7 +159,9 @@ export const QuotePDF = ({
   client,
   company,
   settings,
-  currency
+  currency,
+  showDiscount = true,
+  showVat = true
 }: QuotePDFProps) => {
   const currencySymbol = currency?.symbol || '€';
   
@@ -245,10 +249,10 @@ export const QuotePDF = ({
             <Text style={[styles.tableHeaderText, { flex: 3 }]}>DESCRIPTION</Text>
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>QTÉ</Text>
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>P.U. HT</Text>
-            {settings?.showDiscount && (
+            {showDiscount && (
               <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>REMISE %</Text>
             )}
-            {settings?.showVat && (
+            {showVat && (
               <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'center' }]}>TVA</Text>
             )}
             <Text style={[styles.tableHeaderText, { flex: 1, textAlign: 'right' }]}>TOTAL HT</Text>
@@ -261,14 +265,14 @@ export const QuotePDF = ({
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
                 {(item.unitPrice || 0).toFixed(2)} {currencySymbol}
               </Text>
-              {settings?.showDiscount && (
+              {showDiscount && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
-                  {item.discount || 0}%
+                  {(item.discount || 0).toFixed(0)}%
                 </Text>
               )}
-              {settings?.showVat && (
+              {showVat && (
                 <Text style={[styles.tableCell, { flex: 1, textAlign: 'center' }]}>
-                  {item.vatRate || 0}%
+                  {(item.vatRate || 0).toFixed(0)}%
                 </Text>
               )}
               <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>
@@ -296,7 +300,7 @@ export const QuotePDF = ({
             <Text style={styles.totalLabel}>{totalDiscount > 0 ? 'Net HT:' : 'Sous-total HT:'}</Text>
             <Text style={styles.totalValue}>{subtotalHT.toFixed(2)} {currencySymbol}</Text>
           </View>
-          {settings?.showVat && (
+          {showVat && (
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>TVA:</Text>
               <Text style={styles.totalValue}>{totalVAT.toFixed(2)} {currencySymbol}</Text>

@@ -380,7 +380,9 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
           quantity: item.quantity,
           unit_price: item.unitPrice,
           tax_rate: item.vatRate,
-          total_price: item.total
+          total_price: item.total,
+          discount: item.discount || 0,
+          discount_type: 'percentage'
         }));
 
       if (quoteItemsToSave.length > 0) {
