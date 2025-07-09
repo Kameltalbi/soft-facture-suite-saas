@@ -318,13 +318,24 @@ export const useDashboardData = (selectedYear: number) => {
     
     const categoryNames = organizationCategories?.map(cat => cat.name.toLowerCase()) || [];
     
+    console.log('🏷️ Categories disponibles:', organizationCategories);
+    console.log('📄 Factures avec items:', invoicesWithItems?.length);
+    
     invoicesWithItems?.forEach(invoice => {
       invoice.invoice_items?.forEach(item => {
         let category = 'Non catégorisé';
         
+        console.log('🔍 Item analysé:', {
+          description: item.description,
+          product_id: item.product_id,
+          product: item.products,
+          product_category: item.products?.category
+        });
+        
         // Méthode 1 : Si le produit est lié directement et a une catégorie
         if (item.products?.category && item.products.category.trim() !== '') {
           category = item.products.category;
+          console.log('✅ Catégorie trouvée via produit:', category);
         } 
         // Méthode 2 : Rechercher dans la description en utilisant les catégories de l'organisation
         else {
@@ -339,9 +350,14 @@ export const useDashboardData = (selectedYear: number) => {
               );
               if (originalCategory) {
                 category = originalCategory.name;
+                console.log('✅ Catégorie trouvée via description:', category);
                 break;
               }
             }
+          }
+          
+          if (category === 'Non catégorisé') {
+            console.log('❌ Aucune catégorie trouvée pour:', description);
           }
         }
         
