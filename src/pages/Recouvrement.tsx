@@ -36,11 +36,12 @@ const Recouvrement = () => {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, invoiceCurrency?: { symbol: string; decimal_places: number }) => {
+    const currencyToUse = invoiceCurrency || currency;
     return new Intl.NumberFormat('fr-FR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount) + ' ' + currency.symbol;
+      minimumFractionDigits: currencyToUse.decimal_places,
+      maximumFractionDigits: currencyToUse.decimal_places,
+    }).format(amount) + ' ' + currencyToUse.symbol;
   };
 
   const formatDate = (dateString: string) => {
@@ -149,7 +150,7 @@ const Recouvrement = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">À recouvrer</p>
+                  <p className="text-sm text-muted-foreground">À recouvrer*</p>
                   <p className="text-2xl font-bold text-destructive">{formatCurrency(stats.totalOutstanding)}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-destructive" />
@@ -161,7 +162,7 @@ const Recouvrement = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Encaissé</p>
+                  <p className="text-sm text-muted-foreground">Encaissé*</p>
                   <p className="text-2xl font-bold text-success">{formatCurrency(stats.totalPaid)}</p>
                 </div>
                 <CreditCard className="h-8 w-8 text-success" />
@@ -180,6 +181,11 @@ const Recouvrement = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Note sur les devises */}
+        <div className="text-xs text-muted-foreground text-center">
+          * Les totaux sont exprimés en {currency.name} ({currency.symbol}). Les factures individuelles sont affichées dans leur devise d'origine.
         </div>
 
         {/* Filtres */}
@@ -260,12 +266,12 @@ const Recouvrement = () => {
                       {formatDate(invoice.date)}
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">{formatCurrency(invoice.total_amount)}</span>
+                      <span className="font-medium">{formatCurrency(invoice.total_amount, invoice.currency)}</span>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">{formatCurrency(invoice.amount_paid)}</span>
+                          <span className="text-sm font-medium">{formatCurrency(invoice.amount_paid, invoice.currency)}</span>
                           <span className="text-xs text-muted-foreground">{invoice.payment_progress.toFixed(0)}%</span>
                         </div>
                         <Progress value={invoice.payment_progress} className="h-2" />
@@ -273,7 +279,7 @@ const Recouvrement = () => {
                     </TableCell>
                     <TableCell>
                       <span className={`font-medium ${invoice.remaining_balance > 0 ? 'text-destructive' : 'text-success'}`}>
-                        {formatCurrency(invoice.remaining_balance)}
+                        {formatCurrency(invoice.remaining_balance, invoice.currency)}
                       </span>
                     </TableCell>
                     <TableCell>

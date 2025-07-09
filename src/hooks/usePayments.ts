@@ -24,6 +24,12 @@ export interface InvoiceWithPayments {
   status: string;
   remaining_balance: number;
   payment_progress: number;
+  currency: {
+    code: string;
+    symbol: string;
+    name: string;
+    decimal_places: number;
+  };
 }
 
 export const usePayments = () => {
@@ -46,7 +52,9 @@ export const usePayments = () => {
           total_amount,
           amount_paid,
           status,
-          clients!inner(name)
+          currency_id,
+          clients!inner(name),
+          currencies(code, symbol, name, decimal_places)
         `)
         .not('status', 'eq', 'paid');
 
@@ -77,7 +85,8 @@ export const usePayments = () => {
         amount_paid: invoice.amount_paid || 0,
         status: invoice.status,
         remaining_balance: invoice.total_amount - (invoice.amount_paid || 0),
-        payment_progress: ((invoice.amount_paid || 0) / invoice.total_amount) * 100
+        payment_progress: ((invoice.amount_paid || 0) / invoice.total_amount) * 100,
+        currency: (invoice.currencies as any) || { code: 'EUR', symbol: '€', name: 'Euro', decimal_places: 2 }
       })) || [];
 
       setInvoices(invoicesWithPayments);
