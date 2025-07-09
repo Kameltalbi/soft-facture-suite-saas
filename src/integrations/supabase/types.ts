@@ -1557,6 +1557,13 @@ export type Database = {
         Args: { org_id: string; months: number }
         Returns: undefined
       }
+      get_ca_par_categorie: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category: string
+          total_amount: number
+        }[]
+      }
       get_recouvrement_data: {
         Args: { sel_year: number; sel_month: number }
         Returns: {
@@ -1569,6 +1576,18 @@ export type Database = {
           amount_paid: number
           status: string
           days_late: number
+        }[]
+      }
+      get_stock_actuel: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          sku: string
+          category: string
+          stock_quantity: number
+          price: number
+          active: boolean
         }[]
       }
       get_subscription_status: {
