@@ -310,15 +310,23 @@ export const useDashboardData = (selectedYear: number) => {
     // 1. CA par catégorie avec conversion
     const categoryMap = new Map<string, number>();
     
-    // Récupérer toutes les catégories de l'organisation pour le mapping
-    const { data: organizationCategories } = await supabase
-      .from('categories')
-      .select('name')
+    // Récupérer tous les produits avec leurs catégories pour le mapping
+    const { data: organizationProducts } = await supabase
+      .from('products')
+      .select('name, category')
       .eq('organization_id', orgId);
     
-    const categoryNames = organizationCategories?.map(cat => cat.name.toLowerCase()) || [];
+    // Créer un mapping nom produit -> catégorie pour la correspondance
+    const productCategoryMap = new Map();
+    if (organizationProducts) {
+      organizationProducts.forEach(product => {
+        if (product.category && product.category.trim() !== '') {
+          productCategoryMap.set(product.name.toLowerCase(), product.category);
+        }
+      });
+    }
     
-    console.log('🏷️ Categories disponibles:', organizationCategories);
+    console.log('🗺️ Mapping produit->catégorie:', Object.fromEntries(productCategoryMap));
     console.log('📄 Factures avec items:', invoicesWithItems?.length);
     
     invoicesWithItems?.forEach(invoice => {
@@ -335,29 +343,17 @@ export const useDashboardData = (selectedYear: number) => {
         // Méthode 1 : Si le produit est lié directement et a une catégorie
         if (item.products?.category && item.products.category.trim() !== '') {
           category = item.products.category;
-          console.log('✅ Catégorie trouvée via produit:', category);
+          console.log('✅ Catégorie trouvée via produit lié:', category);
         } 
-        // Méthode 2 : Rechercher dans la description en utilisant les catégories de l'organisation
-        else {
-          const description = item.description.toLowerCase();
-          
-          // Chercher quelle catégorie de l'organisation correspond le mieux à la description
-          for (const catName of categoryNames) {
-            if (description.includes(catName)) {
-              // Trouver le nom original (avec la casse correcte)
-              const originalCategory = organizationCategories?.find(
-                cat => cat.name.toLowerCase() === catName
-              );
-              if (originalCategory) {
-                category = originalCategory.name;
-                console.log('✅ Catégorie trouvée via description:', category);
-                break;
-              }
-            }
-          }
-          
-          if (category === 'Non catégorisé') {
-            console.log('❌ Aucune catégorie trouvée pour:', description);
+        // Méthode 2 : Correspondance par nom de produit (quand product_id est null)
+        else if (item.description) {
+          const itemName = item.description.toLowerCase();
+          const matchedCategory = productCategoryMap.get(itemName);
+          if (matchedCategory) {
+            category = matchedCategory;
+            console.log('✅ Catégorie trouvée via nom:', category, 'pour', item.description);
+          } else {
+            console.log('❌ Aucune catégorie trouvée pour:', item.description);
           }
         }
         
