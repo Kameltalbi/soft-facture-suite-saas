@@ -22,8 +22,23 @@ import { Organization, User } from '@/types/settings';
 export default function Settings() {
   const { toast } = useToast();
   const { organization, profile } = useAuth();
-  const { settingsAccess } = usePlanAccess();
+  const { settingsAccess, isAdmin } = usePlanAccess();
   const [activeTab, setActiveTab] = useState('organization');
+
+  // Vérification des permissions d'accès
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h2 className="text-2xl font-bold mb-4">Accès refusé</h2>
+          <p className="text-muted-foreground">
+            Vous n'avez pas les permissions nécessaires pour accéder aux paramètres.
+            Seuls les administrateurs peuvent accéder à cette page.
+          </p>
+        </Card>
+      </div>
+    );
+  }
   const [organizationData, setOrganizationData] = useState<Organization | null>(null);
   const [organizationLoading, setOrganizationLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);

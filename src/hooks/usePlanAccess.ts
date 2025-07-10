@@ -1,11 +1,12 @@
 import { useAuth } from './useAuth';
 
 export const usePlanAccess = () => {
-  const { organization } = useAuth();
+  const { organization, profile } = useAuth();
   
   const plan = organization?.plan || 'essential';
   const isEssential = plan === 'essential';
   const isPro = plan === 'pro';
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
 
   // Sidebar pages access
   const sidebarAccess = {
@@ -20,7 +21,7 @@ export const usePlanAccess = () => {
     categories: true,
     stock: true,
     reports: true,
-    settings: true,
+    settings: isAdmin, // Seuls les admins peuvent accéder aux paramètres
     // Pro only features
     fournisseurs: isPro,
     'bons-commande': isPro,
@@ -54,6 +55,7 @@ export const usePlanAccess = () => {
     plan,
     isEssential,
     isPro,
+    isAdmin,
     sidebarAccess,
     reportsAccess,
     settingsAccess,
