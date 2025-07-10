@@ -17,7 +17,36 @@ const Recouvrement = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
   const { invoices, loading, fetchInvoicesWithPayments, createPayment } = usePayments();
-  const { currency } = useCurrency();
+  const { currency, exchangeRates } = useCurrency();
+
+  // Fonction pour convertir un montant vers la devise principale
+  const convertToPrimaryCurrency = (amount: number, fromCurrencyCode: string): number => {
+    if (fromCurrencyCode === currency.code) {
+      return amount; // Déjà dans la devise principale
+    }
+
+    // Chercher le taux de change direct
+    const directRate = exchangeRates.find(
+      rate => rate.from_currency_code === fromCurrencyCode && rate.to_currency_code === currency.code
+    );
+    
+    if (directRate) {
+      return amount * directRate.rate;
+    }
+
+    // Chercher le taux inverse
+    const inverseRate = exchangeRates.find(
+      rate => rate.from_currency_code === currency.code && rate.to_currency_code === fromCurrencyCode
+    );
+    
+    if (inverseRate) {
+      return amount / inverseRate.rate;
+    }
+
+    // Si aucun taux trouvé, retourner le montant original
+    console.warn(`Aucun taux de change trouvé pour ${fromCurrencyCode} -> ${currency.code}`);
+    return amount;
+  };
 
   const months = [
     { value: '1', label: 'Janvier' },
@@ -98,11 +127,17 @@ const Recouvrement = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  // Calculer les statistiques
+  // Calculer les statistiques avec conversion de devise
   const stats = {
     totalInvoices: invoices.length,
-    totalOutstanding: invoices.reduce((sum, inv) => sum + inv.remaining_balance, 0),
-    totalPaid: invoices.reduce((sum, inv) => sum + inv.amount_paid, 0),
+    totalOutstanding: invoices.reduce((sum, inv) => {
+      const convertedAmount = convertToPrimaryCurrency(inv.remaining_balance, inv.currency.code);
+      return sum + convertedAmount;
+    }, 0),
+    totalPaid: invoices.reduce((sum, inv) => {
+      const convertedAmount = convertToPrimaryCurrency(inv.amount_paid, inv.currency.code);
+      return sum + convertedAmount;
+    }, 0),
     fullyPaid: invoices.filter(inv => inv.remaining_balance <= 0).length
   };
 
