@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { convertToDefaultCurrency } from '@/utils/currencyConverter';
 
 export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
   const { organization } = useAuth();
+  const { currency, exchangeRates } = useCurrency();
 
   return useQuery({
     queryKey: ['productRevenueReport', organization?.id, period.start, period.end],
@@ -13,7 +16,15 @@ export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
       console.log('Fetching product revenue report for organization:', organization.id);
       console.log('Period:', period);
 
-      // D'abord, récupérer tous les éléments de facture avec leurs factures
+      // Récupérer la devise par défaut
+      const { data: defaultCurrency } = await supabase
+        .from('currencies')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .eq('is_primary', true)
+        .single();
+
+      // D'abord, récupérer tous les éléments de facture avec leurs factures et devises
       let query = supabase
         .from('invoice_items')
         .select(`
@@ -25,7 +36,8 @@ export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
             date,
             status,
             organization_id,
-            use_vat
+            use_vat,
+            currency_id
           )
         `)
         .eq('invoices.organization_id', organization.id);
@@ -52,25 +64,39 @@ export function useProductRevenueReport(period: { start?: Date; end?: Date }) {
         return [];
       }
 
-      // Grouper par produit/service
+      // Récupérer les taux de change
+      const { data: rates } = await supabase
+        .from('exchange_rates')
+        .select('*')
+        .eq('organization_id', organization.id);
+
+      // Grouper par produit/service avec conversion de devise
       const productMap = new Map();
       
       data.forEach(item => {
         const productName = item.description;
         const vatMultiplier = item.invoices.use_vat ? (1 + item.tax_rate / 100) : 1;
-        const totalTTC = item.total_price * vatMultiplier;
+        
+        // Convertir les montants vers la devise par défaut
+        const convertedTotalHT = convertToDefaultCurrency(
+          Number(item.total_price),
+          item.invoices.currency_id || defaultCurrency?.id,
+          defaultCurrency?.id,
+          rates || []
+        );
+        const convertedTotalTTC = convertedTotalHT * vatMultiplier;
         
         if (productMap.has(productName)) {
           const existing = productMap.get(productName);
           existing.quantity += Number(item.quantity);
-          existing.totalHT += Number(item.total_price);
-          existing.totalTTC += totalTTC;
+          existing.totalHT += convertedTotalHT;
+          existing.totalTTC += convertedTotalTTC;
         } else {
           productMap.set(productName, {
             name: productName,
             quantity: Number(item.quantity),
-            totalHT: Number(item.total_price),
-            totalTTC: totalTTC
+            totalHT: convertedTotalHT,
+            totalTTC: convertedTotalTTC
           });
         }
       });
@@ -92,6 +118,14 @@ export function useProductRankingReport(period: { start?: Date; end?: Date }) {
     queryFn: async () => {
       if (!organization?.id) return [];
 
+      // Récupérer la devise par défaut
+      const { data: defaultCurrency } = await supabase
+        .from('currencies')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .eq('is_primary', true)
+        .single();
+
       let query = supabase
         .from('invoice_items')
         .select(`
@@ -103,7 +137,8 @@ export function useProductRankingReport(period: { start?: Date; end?: Date }) {
             date,
             status,
             organization_id,
-            use_vat
+            use_vat,
+            currency_id
           )
         `)
         .eq('invoices.organization_id', organization.id)
@@ -119,19 +154,36 @@ export function useProductRankingReport(period: { start?: Date; end?: Date }) {
       const { data, error } = await query;
       if (error) throw error;
 
+      // Récupérer les taux de change
+      const { data: rates } = await supabase
+        .from('exchange_rates')
+        .select('*')
+        .eq('organization_id', organization.id);
+
       const productMap = new Map();
       
       data?.forEach(item => {
         const productName = item.description;
+        const vatMultiplier = item.invoices.use_vat ? (1 + item.tax_rate / 100) : 1;
+        
+        // Convertir le montant vers la devise par défaut
+        const convertedAmount = convertToDefaultCurrency(
+          Number(item.total_price),
+          item.invoices.currency_id || defaultCurrency?.id,
+          defaultCurrency?.id,
+          rates || []
+        );
+        const convertedTotalTTC = convertedAmount * vatMultiplier;
+        
         if (productMap.has(productName)) {
           const existing = productMap.get(productName);
           existing.quantity += item.quantity;
-          existing.totalTTC += item.total_price * (1 + (item.invoices.use_vat ? item.tax_rate / 100 : 0));
+          existing.totalTTC += convertedTotalTTC;
         } else {
           productMap.set(productName, {
             name: productName,
             quantity: item.quantity,
-            totalTTC: item.total_price * (1 + (item.invoices.use_vat ? item.tax_rate / 100 : 0))
+            totalTTC: convertedTotalTTC
           });
         }
       });
@@ -152,9 +204,17 @@ export function useMonthlyRevenueReport(year: number) {
 
       console.log('Fetching monthly revenue for year:', year, 'organization:', organization.id);
 
+      // Récupérer la devise par défaut
+      const { data: defaultCurrency } = await supabase
+        .from('currencies')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .eq('is_primary', true)
+        .single();
+
       const { data, error } = await supabase
         .from('invoices')
-        .select('date, subtotal, total_amount, use_vat')
+        .select('date, subtotal, total_amount, use_vat, currency_id')
         .eq('organization_id', organization.id)
         .gte('date', `${year}-01-01`)
         .lte('date', `${year}-12-31`);
@@ -165,6 +225,12 @@ export function useMonthlyRevenueReport(year: number) {
         console.error('Error fetching monthly revenue:', error);
         throw error;
       }
+
+      // Récupérer les taux de change
+      const { data: rates } = await supabase
+        .from('exchange_rates')
+        .select('*')
+        .eq('organization_id', organization.id);
 
       // Créer un tableau pour les 12 mois
       const months = [
@@ -181,8 +247,23 @@ export function useMonthlyRevenueReport(year: number) {
       data?.forEach(invoice => {
         const invoiceDate = new Date(invoice.date);
         const monthIndex = invoiceDate.getMonth();
-        monthlyData[monthIndex].totalHT += Number(invoice.subtotal) || 0;
-        monthlyData[monthIndex].totalTTC += Number(invoice.total_amount) || 0;
+        
+        // Convertir les montants vers la devise par défaut
+        const convertedSubtotal = convertToDefaultCurrency(
+          Number(invoice.subtotal) || 0,
+          invoice.currency_id || defaultCurrency?.id,
+          defaultCurrency?.id,
+          rates || []
+        );
+        const convertedTotal = convertToDefaultCurrency(
+          Number(invoice.total_amount) || 0,
+          invoice.currency_id || defaultCurrency?.id,
+          defaultCurrency?.id,
+          rates || []
+        );
+        
+        monthlyData[monthIndex].totalHT += convertedSubtotal;
+        monthlyData[monthIndex].totalTTC += convertedTotal;
       });
 
       console.log('Final monthly data:', monthlyData);
@@ -200,6 +281,14 @@ export function useClientRevenueReport(period: { start?: Date; end?: Date }) {
     queryFn: async () => {
       if (!organization?.id) return [];
 
+      // Récupérer la devise par défaut
+      const { data: defaultCurrency } = await supabase
+        .from('currencies')
+        .select('*')
+        .eq('organization_id', organization.id)
+        .eq('is_primary', true)
+        .single();
+
       let query = supabase
         .from('invoices')
         .select(`
@@ -207,6 +296,7 @@ export function useClientRevenueReport(period: { start?: Date; end?: Date }) {
           amount_paid,
           status,
           date,
+          currency_id,
           clients!inner (
             name,
             company
@@ -224,27 +314,46 @@ export function useClientRevenueReport(period: { start?: Date; end?: Date }) {
       const { data, error } = await query;
       if (error) throw error;
 
+      // Récupérer les taux de change
+      const { data: rates } = await supabase
+        .from('exchange_rates')
+        .select('*')
+        .eq('organization_id', organization.id);
+
       const clientMap = new Map();
       
       data?.forEach(invoice => {
         // Utiliser le nom de l'entreprise s'il existe, sinon le nom du contact
         const clientName = invoice.clients.company || invoice.clients.name;
-        const paidAmount = invoice.amount_paid || 0;
-        const dueAmount = invoice.total_amount - paidAmount;
+        
+        // Convertir les montants vers la devise par défaut
+        const convertedTotalAmount = convertToDefaultCurrency(
+          Number(invoice.total_amount) || 0,
+          invoice.currency_id || defaultCurrency?.id,
+          defaultCurrency?.id,
+          rates || []
+        );
+        const convertedPaidAmount = convertToDefaultCurrency(
+          Number(invoice.amount_paid) || 0,
+          invoice.currency_id || defaultCurrency?.id,
+          defaultCurrency?.id,
+          rates || []
+        );
+        const convertedDueAmount = convertedTotalAmount - convertedPaidAmount;
 
         if (clientMap.has(clientName)) {
           const existing = clientMap.get(clientName);
           existing.invoiceCount += 1;
-          existing.totalAmount += invoice.total_amount;
-          existing.paidAmount += paidAmount;
-          existing.dueAmount += dueAmount;
+          existing.totalAmount += convertedTotalAmount;
+          existing.paidAmount += convertedPaidAmount;
+          existing.dueAmount += convertedDueAmount;
         } else {
           clientMap.set(clientName, {
             name: clientName,
             invoiceCount: 1,
-            totalAmount: invoice.total_amount,
-            paidAmount: paidAmount,
-            dueAmount: dueAmount
+            totalAmount: convertedTotalAmount,
+            paidAmount: convertedPaidAmount,
+            dueAmount: convertedDueAmount
           });
         }
       });
