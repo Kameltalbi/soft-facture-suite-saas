@@ -16,7 +16,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { useState } from 'react';
 
 interface Client {
   id: string;
@@ -35,7 +44,20 @@ interface ClientsTableProps {
 }
 
 export function ClientsTable({ clients, onViewClient, onEditClient, onDeleteClient }: ClientsTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
+  
+  const totalPages = Math.ceil(clients.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentClients = clients.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
+    <div className="space-y-4">{/* ... keep existing code */}
     <Card>
       <CardContent className="p-0">
         <Table>
@@ -50,7 +72,7 @@ export function ClientsTable({ clients, onViewClient, onEditClient, onDeleteClie
             </TableRow>
           </TableHeader>
           <TableBody>
-            {clients.map((client) => (
+            {currentClients.map((client) => (
               <TableRow key={client.id} className="hover:bg-neutral-50">
                 <TableCell>
                   <div className="font-medium text-neutral-900">{client.name}</div>
@@ -99,6 +121,13 @@ export function ClientsTable({ clients, onViewClient, onEditClient, onDeleteClie
                 </TableCell>
               </TableRow>
             ))}
+            {currentClients.length === 0 && clients.length > 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
+                  Aucun client sur cette page
+                </TableCell>
+              </TableRow>
+            )}
             {clients.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
@@ -110,5 +139,38 @@ export function ClientsTable({ clients, onViewClient, onEditClient, onDeleteClie
         </Table>
       </CardContent>
     </Card>
+    
+    {totalPages > 1 && (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => handlePageChange(page)}
+                isActive={page === currentPage}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    )}
+    </div>
   );
 }
