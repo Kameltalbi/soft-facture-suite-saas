@@ -36,7 +36,7 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
             <XAxis dataKey="month" stroke="#666" />
             <YAxis stroke="#666" tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
             <Tooltip 
-              formatter={(value: number) => [formatCurrency(value), 'CA TTC']}
+              formatter={(value: number) => [formatCurrency(value), 'CA HT']}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e0e0e0',
@@ -44,7 +44,7 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }}
             />
-            <Bar dataKey="totalTTC" fill="#6A9C89" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="totalHT" fill="#6A9C89" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -55,13 +55,12 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
             <TableRow>
               <TableHead>Mois</TableHead>
               <TableHead className="text-right">CA HT</TableHead>
-              <TableHead className="text-right">CA TTC</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {monthlyData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={2} className="text-center text-muted-foreground py-8">
                   Aucune donnée disponible pour cette année
                 </TableCell>
               </TableRow>
@@ -69,8 +68,7 @@ export function MonthlyRevenueReport({ period }: MonthlyRevenueReportProps) {
               monthlyData.map((data) => (
                 <TableRow key={data.month}>
                   <TableCell className="font-medium">{data.month}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(data.totalHT)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(data.totalTTC)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(data.totalHT)}</TableCell>
                 </TableRow>
               ))
             )}

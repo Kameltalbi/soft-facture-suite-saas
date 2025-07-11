@@ -173,22 +173,25 @@ export function useProductRankingReport(period: { start?: Date; end?: Date }) {
           defaultCurrency?.id,
           rates || []
         );
+        const convertedTotalHT = convertedAmount;
         const convertedTotalTTC = convertedAmount * vatMultiplier;
         
         if (productMap.has(productName)) {
           const existing = productMap.get(productName);
           existing.quantity += item.quantity;
+          existing.totalHT += convertedTotalHT;
           existing.totalTTC += convertedTotalTTC;
         } else {
           productMap.set(productName, {
             name: productName,
             quantity: item.quantity,
+            totalHT: convertedTotalHT,
             totalTTC: convertedTotalTTC
           });
         }
       });
 
-      return Array.from(productMap.values()).sort((a, b) => b.totalTTC - a.totalTTC);
+      return Array.from(productMap.values()).sort((a, b) => b.totalHT - a.totalHT);
     },
     enabled: !!organization?.id
   });

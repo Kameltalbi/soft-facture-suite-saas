@@ -15,7 +15,7 @@ export function ProductRankingReport({ period }: ProductRankingReportProps) {
   const { currency } = useCurrency();
   const { data: products = [], isLoading } = useProductRankingReport(period);
 
-  const maxRevenue = products.length > 0 ? Math.max(...products.map(p => p.totalTTC)) : 0;
+  const maxRevenue = products.length > 0 ? Math.max(...products.map(p => p.totalHT)) : 0;
 
   const formatCurrency = (amount: number) => {
     return `${amount.toLocaleString(undefined, { 
@@ -37,7 +37,7 @@ export function ProductRankingReport({ period }: ProductRankingReportProps) {
               <TableHead>Rang</TableHead>
               <TableHead>Produit</TableHead>
               <TableHead className="text-right">Quantité</TableHead>
-              <TableHead className="text-right">CA TTC</TableHead>
+              <TableHead className="text-right">CA HT</TableHead>
               <TableHead className="w-[120px]">Performance</TableHead>
             </TableRow>
           </TableHeader>
@@ -54,10 +54,10 @@ export function ProductRankingReport({ period }: ProductRankingReportProps) {
                   <TableCell className="font-bold text-lg">#{index + 1}</TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-right">{product.quantity}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(product.totalTTC)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(product.totalHT)}</TableCell>
                   <TableCell>
                     <Progress 
-                      value={maxRevenue > 0 ? (product.totalTTC / maxRevenue) * 100 : 0} 
+                      value={maxRevenue > 0 ? (product.totalHT / maxRevenue) * 100 : 0} 
                       className="h-2"
                     />
                   </TableCell>
@@ -69,7 +69,7 @@ export function ProductRankingReport({ period }: ProductRankingReportProps) {
       </div>
       {products.length > 0 && (
         <div className="text-sm text-muted-foreground">
-          Total CA : {formatCurrency(products.reduce((sum, prod) => sum + prod.totalTTC, 0))}
+          Total CA HT : {formatCurrency(products.reduce((sum, prod) => sum + prod.totalHT, 0))}
         </div>
       )}
     </div>

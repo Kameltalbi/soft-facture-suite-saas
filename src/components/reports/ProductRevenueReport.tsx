@@ -33,14 +33,13 @@ export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
             <TableRow>
               <TableHead>Produit/Service</TableHead>
               <TableHead className="text-right">Quantité</TableHead>
-              <TableHead className="text-right">Total HT</TableHead>
-              <TableHead className="text-right">Total TTC</TableHead>
+              <TableHead className="text-right">CA HT</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                   Aucune donnée disponible pour cette période
                 </TableCell>
               </TableRow>
@@ -49,8 +48,7 @@ export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
                 <TableRow key={index}>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-right">{product.quantity}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(product.totalHT)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(product.totalTTC)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(product.totalHT)}</TableCell>
                 </TableRow>
               ))
             )}
@@ -59,7 +57,7 @@ export function ProductRevenueReport({ period }: ProductRevenueReportProps) {
       </div>
       {products.length > 0 && (
         <div className="text-sm text-muted-foreground">
-          Total TTC : {formatCurrency(products.reduce((sum, prod) => sum + prod.totalTTC, 0))}
+          Total HT : {formatCurrency(products.reduce((sum, prod) => sum + prod.totalHT, 0))}
         </div>
       )}
     </div>
