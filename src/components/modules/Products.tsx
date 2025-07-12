@@ -127,7 +127,8 @@ export function Products() {
   };
 
   const handleImportComplete = () => {
-    fetchProducts();
+    // Le hook useProducts gère déjà la mise à jour automatique
+    // Pas besoin d'appeler fetchProducts() manuellement
   };
 
   if (loading) {

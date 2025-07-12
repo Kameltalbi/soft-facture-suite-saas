@@ -90,7 +90,8 @@ const Clients = () => {
   };
 
   const handleImportComplete = () => {
-    fetchClients();
+    // Le hook useClients gère déjà la mise à jour automatique
+    // Pas besoin d'appeler fetchClients() manuellement
   };
 
   if (loading) {
