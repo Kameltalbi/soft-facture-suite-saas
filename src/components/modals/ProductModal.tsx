@@ -15,9 +15,10 @@ interface ProductModalProps {
   open: boolean;
   onClose: () => void;
   product?: any;
+  onSave?: () => void;
 }
 
-export function ProductModal({ open, onClose, product }: ProductModalProps) {
+export function ProductModal({ open, onClose, product, onSave }: ProductModalProps) {
   const { categories, loading: categoriesLoading } = useCategories();
   const { createProduct, updateProduct } = useProducts();
   
@@ -112,7 +113,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
           setError(result.error);
         } else {
           console.log('Product updated successfully');
-          onClose();
+          if (onSave) onSave();
+          else onClose();
         }
       } else {
         // Mode création
@@ -122,7 +124,8 @@ export function ProductModal({ open, onClose, product }: ProductModalProps) {
           setError(result.error);
         } else {
           console.log('Product created successfully');
-          onClose();
+          if (onSave) onSave();
+          else onClose();
         }
       }
     } catch (error) {

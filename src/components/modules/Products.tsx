@@ -314,6 +314,10 @@ export function Products() {
         open={isModalOpen}
         onClose={handleCloseModal}
         product={selectedProduct}
+        onSave={() => {
+          fetchProducts();
+          handleCloseModal();
+        }}
       />
 
       {/* Import Modal */}

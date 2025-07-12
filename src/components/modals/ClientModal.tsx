@@ -14,9 +14,10 @@ interface ClientModalProps {
   open: boolean;
   onClose: () => void;
   client?: any;
+  onSave?: () => void;
 }
 
-export function ClientModal({ open, onClose, client }: ClientModalProps) {
+export function ClientModal({ open, onClose, client, onSave }: ClientModalProps) {
   const { createClient, updateClient } = useClients();
   const [loading, setLoading] = useState(false);
   
@@ -94,7 +95,8 @@ export function ClientModal({ open, onClose, client }: ClientModalProps) {
         toast.error(`Erreur: ${result.error}`);
       } else {
         toast.success(client ? 'Client modifié avec succès' : 'Client créé avec succès');
-        onClose();
+        if (onSave) onSave();
+        else onClose();
       }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du client:', error);

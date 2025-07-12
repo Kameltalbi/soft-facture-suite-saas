@@ -62,6 +62,8 @@ const statusLabels = {
   expired: { label: 'Expiré', variant: 'secondary' as const }
 };
 
+import { useInvoiceNumber } from '@/hooks/useInvoiceNumber';
+
 export function QuoteActionsMenu({
   quote,
   pdfComponent,
@@ -82,6 +84,7 @@ export function QuoteActionsMenu({
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [converting, setConverting] = useState(false);
+  const { generateNextInvoiceNumber } = useInvoiceNumber();
 
   const canEdit = quote.status === 'draft' || quote.status === 'sent';
   const canConvertToInvoice = quote.status === 'accepted';
@@ -129,8 +132,8 @@ export function QuoteActionsMenu({
 
       if (quoteError) throw quoteError;
 
-      // Générer le numéro de facture
-      const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(Date.now()).slice(-3)}`;
+      // Générer le numéro de facture séquentiel
+      const invoiceNumber = await generateNextInvoiceNumber();
 
       // Créer la facture
       const { data: invoiceData, error: invoiceError } = await supabase
