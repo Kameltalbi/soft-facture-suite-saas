@@ -68,8 +68,10 @@ export function useClients() {
 
       if (error) throw error;
       
-      // Refresh the clients list
-      await fetchClients();
+      // Update state immediately for instant UI feedback
+      if (data) {
+        setClients(prevClients => [...prevClients, data]);
+      }
       
       return { data, error: null };
     } catch (err) {
@@ -95,8 +97,14 @@ export function useClients() {
 
       if (error) throw error;
       
-      // Refresh the clients list
-      await fetchClients();
+      // Update state immediately for instant UI feedback
+      if (data) {
+        setClients(prevClients => 
+          prevClients.map(client => 
+            client.id === id ? data : client
+          )
+        );
+      }
       
       toast({
         title: 'Succès',
@@ -130,8 +138,10 @@ export function useClients() {
 
       if (error) throw error;
       
-      // Refresh the clients list
-      await fetchClients();
+      // Update state immediately for instant UI feedback
+      setClients(prevClients => 
+        prevClients.filter(client => client.id !== id)
+      );
       
       toast({
         title: 'Succès',

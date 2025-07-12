@@ -65,8 +65,10 @@ export function useProducts() {
 
       if (error) throw error;
       
-      // Refresh the products list
-      await fetchProducts();
+      // Update state immediately for instant UI feedback
+      if (data) {
+        setProducts(prevProducts => [...prevProducts, data]);
+      }
       
       return { data, error: null };
     } catch (err) {
@@ -92,8 +94,14 @@ export function useProducts() {
 
       if (error) throw error;
       
-      // Refresh the products list
-      await fetchProducts();
+      // Update state immediately for instant UI feedback
+      if (data) {
+        setProducts(prevProducts => 
+          prevProducts.map(product => 
+            product.id === productId ? data : product
+          )
+        );
+      }
       
       return { data, error: null };
     } catch (err) {
@@ -117,8 +125,10 @@ export function useProducts() {
 
       if (error) throw error;
       
-      // Refresh the products list
-      await fetchProducts();
+      // Update state immediately for instant UI feedback
+      setProducts(prevProducts => 
+        prevProducts.filter(product => product.id !== productId)
+      );
       
       return { error: null };
     } catch (err) {
