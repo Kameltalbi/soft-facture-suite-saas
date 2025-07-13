@@ -13,6 +13,8 @@ export function useInvoiceNumber() {
 
     setIsLoading(true);
     try {
+      console.log('🔍 Début génération numéro facture pour organisation:', organization.id);
+      
       // Récupérer les paramètres de numérotation pour les factures
       const { data: numberingConfig, error: numberingError } = await supabase
         .from('document_numberings')
@@ -20,6 +22,9 @@ export function useInvoiceNumber() {
         .eq('organization_id', organization.id)
         .eq('document_type', 'invoice')
         .single();
+
+      console.log('📋 Paramètres de numérotation récupérés:', numberingConfig);
+      console.log('❌ Erreur de récupération:', numberingError);
 
       if (numberingError) {
         console.error('Erreur lors de la récupération des paramètres de numérotation:', numberingError);
@@ -32,6 +37,15 @@ export function useInvoiceNumber() {
       const currentMonth = new Date().getMonth() + 1;
       let searchPattern = '';
       let nextNumber = numberingConfig.next_number;
+
+      console.log('📊 Données initiales:', {
+        currentYear,
+        currentMonth,
+        nextNumber,
+        resetFrequency: numberingConfig.reset_frequency,
+        format: numberingConfig.format,
+        prefix: numberingConfig.prefix
+      });
 
       // Construire le pattern de recherche selon la fréquence de réinitialisation
       switch (numberingConfig.reset_frequency) {
@@ -48,6 +62,8 @@ export function useInvoiceNumber() {
           break;
       }
 
+      console.log('🔍 Pattern de recherche:', searchPattern);
+
       // Rechercher la dernière facture selon le pattern
       const { data: lastInvoice, error } = await supabase
         .from('invoices')
@@ -58,18 +74,25 @@ export function useInvoiceNumber() {
         .limit(1)
         .maybeSingle();
 
+      console.log('📄 Dernière facture trouvée:', lastInvoice);
+      console.log('❌ Erreur de recherche:', error);
+
       if (error) {
         console.error('Erreur lors de la recherche de la dernière facture:', error);
       }
 
       if (lastInvoice?.invoice_number) {
+        console.log('🔢 Extraction du numéro depuis:', lastInvoice.invoice_number);
         // Extraire le numéro de la dernière facture
         const parts = lastInvoice.invoice_number.split('-');
+        console.log('📝 Parties du numéro:', parts);
         if (parts.length > 0) {
           const lastNumberStr = parts[parts.length - 1];
           const lastNumber = parseInt(lastNumberStr);
+          console.log('🧮 Dernier numéro extrait:', lastNumber);
           if (!isNaN(lastNumber)) {
             nextNumber = Math.max(nextNumber, lastNumber + 1);
+            console.log('✅ Nouveau nextNumber calculé:', nextNumber);
           }
         }
       }
@@ -79,7 +102,7 @@ export function useInvoiceNumber() {
       switch (numberingConfig.format) {
         case 'yearly':
           if (numberingConfig.reset_frequency === 'yearly') {
-            // Réinitialiser à 1 si c'est une nouvelle année
+            // Vérifier s'il y a des factures cette année
             const yearSearchPattern = `${numberingConfig.prefix}${currentYear}-%`;
             const { data: yearInvoices } = await supabase
               .from('invoices')
@@ -88,15 +111,17 @@ export function useInvoiceNumber() {
               .like('invoice_number', yearSearchPattern)
               .limit(1);
             
+            console.log('📅 Factures de cette année:', yearInvoices);
             if (!yearInvoices || yearInvoices.length === 0) {
               nextNumber = 1;
+              console.log('🔄 Réinitialisation à 1 pour nouvelle année');
             }
           }
           invoiceNumber = `${numberingConfig.prefix}${currentYear}-${nextNumber.toString().padStart(4, '0')}`;
           break;
         case 'monthly':
           if (numberingConfig.reset_frequency === 'monthly') {
-            // Réinitialiser à 1 si c'est un nouveau mois
+            // Vérifier s'il y a des factures ce mois
             const monthStr = currentMonth.toString().padStart(2, '0');
             const monthSearchPattern = `${numberingConfig.prefix}${currentYear}${monthStr}-%`;
             const { data: monthInvoices } = await supabase
@@ -106,8 +131,10 @@ export function useInvoiceNumber() {
               .like('invoice_number', monthSearchPattern)
               .limit(1);
             
+            console.log('📅 Factures de ce mois:', monthInvoices);
             if (!monthInvoices || monthInvoices.length === 0) {
               nextNumber = 1;
+              console.log('🔄 Réinitialisation à 1 pour nouveau mois');
             }
           }
           const monthStr = currentMonth.toString().padStart(2, '0');
@@ -119,15 +146,20 @@ export function useInvoiceNumber() {
           break;
       }
 
+      console.log('🎯 Numéro de facture généré:', invoiceNumber);
+
       // Mettre à jour le next_number dans la base de données
-      await supabase
+      const { error: updateError } = await supabase
         .from('document_numberings')
         .update({ next_number: nextNumber + 1 })
         .eq('id', numberingConfig.id);
 
+      console.log('💾 Mise à jour next_number:', nextNumber + 1);
+      console.log('❌ Erreur de mise à jour:', updateError);
+
       return invoiceNumber;
     } catch (error) {
-      console.error('Erreur lors de la génération du numéro de facture:', error);
+      console.error('💥 Erreur générale lors de la génération du numéro de facture:', error);
       const currentYear = new Date().getFullYear();
       return `FAC-${currentYear}-0001`;
     } finally {
