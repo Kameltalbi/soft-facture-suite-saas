@@ -168,10 +168,15 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   
   // Set default invoice number when modal opens for new invoice
   React.useEffect(() => {
-    if (open && !invoice && nextInvoiceNumber && !invoiceNumber) {
-      setInvoiceNumber(nextInvoiceNumber);
-    }
-  }, [open, invoice, nextInvoiceNumber, invoiceNumber]);
+    const setInvoiceNumberForNewInvoice = async () => {
+      if (open && !invoice) {
+        const newNumber = await generateNextInvoiceNumber();
+        setInvoiceNumber(newNumber);
+      }
+    };
+    
+    setInvoiceNumberForNewInvoice();
+  }, [open, invoice, generateNextInvoiceNumber]);
 
   // Fonction de recherche de produits avec debounce
   const handleProductSearch = (itemId: string, searchTerm: string) => {
