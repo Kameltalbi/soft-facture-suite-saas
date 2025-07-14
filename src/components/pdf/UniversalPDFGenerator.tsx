@@ -157,6 +157,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         settings: {
           showVat: document.use_vat ?? globalSettings?.use_vat ?? true,
           showDiscount: globalSettings?.show_discount ?? true,
+          showFiscalStamp: globalSettings?.show_fiscal_stamp ?? true,
           footer_content: globalSettings?.footer_content || '',
           footer_display: globalSettings?.footer_display || 'all'
         },

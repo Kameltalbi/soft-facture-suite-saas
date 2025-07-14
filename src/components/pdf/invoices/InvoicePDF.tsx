@@ -229,8 +229,15 @@ export const InvoicePDF = ({
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0);
     
-    // Calcul du total des taxes personnalisées
-    const totalCustomTaxes = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+    // Calcul du total des taxes personnalisées filtrées selon le paramètre showFiscalStamp
+    const filteredCustomTaxes = customTaxes.filter((tax) => {
+      // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
+      if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
+        return false;
+      }
+      return true;
+    });
+    const totalCustomTaxes = filteredCustomTaxes.reduce((sum, tax) => sum + tax.amount, 0);
     
     const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
@@ -352,14 +359,22 @@ export const InvoicePDF = ({
           )}
           
           {/* Affichage des taxes personnalisées */}
-          {customTaxes.map((tax) => (
-            <View key={tax.id} style={styles.customTaxRow}>
-              <Text style={styles.customTaxLabel}>
-                {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
-              </Text>
-              <Text style={styles.customTaxValue}>{tax.amount.toFixed(2)} {currencySymbol}</Text>
-            </View>
-          ))}
+          {customTaxes
+            .filter((tax) => {
+              // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
+              if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
+                return false;
+              }
+              return true;
+            })
+            .map((tax) => (
+              <View key={tax.id} style={styles.customTaxRow}>
+                <Text style={styles.customTaxLabel}>
+                  {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
+                </Text>
+                <Text style={styles.customTaxValue}>{tax.amount.toFixed(2)} {currencySymbol}</Text>
+              </View>
+            ))}
           
           <View style={styles.grandTotal}>
             <Text style={styles.grandTotalText}>TOTAL TTC:</Text>

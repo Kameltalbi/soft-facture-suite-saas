@@ -10,11 +10,13 @@ export function InvoiceDisplaySettings() {
   const { globalSettings, saveGlobalSettings, loading } = useSettings();
   const { toast } = useToast();
   const [showDiscount, setShowDiscount] = useState(false);
+  const [showFiscalStamp, setShowFiscalStamp] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (globalSettings) {
       setShowDiscount(globalSettings.show_discount ?? false);
+      setShowFiscalStamp(globalSettings.show_fiscal_stamp ?? true);
     }
   }, [globalSettings]);
 
@@ -23,7 +25,8 @@ export function InvoiceDisplaySettings() {
     try {
       await saveGlobalSettings({
         ...globalSettings,
-        show_discount: showDiscount
+        show_discount: showDiscount,
+        show_fiscal_stamp: showFiscalStamp
       });
       toast({
         title: 'Succès',
@@ -80,6 +83,22 @@ export function InvoiceDisplaySettings() {
               id="show-discount"
               checked={showDiscount}
               onCheckedChange={setShowDiscount}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="show-fiscal-stamp" className="text-base">
+                Timbre Fiscal
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Afficher le timbre fiscal dans les factures PDF quand il est activé
+              </p>
+            </div>
+            <Switch
+              id="show-fiscal-stamp"
+              checked={showFiscalStamp}
+              onCheckedChange={setShowFiscalStamp}
             />
           </div>
         </div>

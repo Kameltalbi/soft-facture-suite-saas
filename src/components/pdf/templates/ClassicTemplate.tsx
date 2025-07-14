@@ -185,8 +185,15 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
       return sum + (item.total * item.vatRate / 100);
     }, 0);
     
-    // Ajout des taxes personnalisées
-    const customTaxesTotal = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+    // Ajout des taxes personnalisées filtrées selon le paramètre showFiscalStamp
+    const filteredCustomTaxes = customTaxes.filter((tax) => {
+      // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
+      if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
+        return false;
+      }
+      return true;
+    });
+    const customTaxesTotal = filteredCustomTaxes.reduce((sum, tax) => sum + tax.amount, 0);
     const totalTTC = subtotalHT + totalVAT + customTaxesTotal;
 
     return { subtotalHT, totalVAT, totalTTC, customTaxesTotal };
@@ -272,12 +279,20 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({
             <Text>TVA :</Text>
             <Text>{totalVAT.toFixed(2)} €</Text>
           </View>
-          {customTaxes.length > 0 && customTaxes.map((tax, index) => (
-            <View key={index} style={styles.totalRow}>
-              <Text>{tax.name} :</Text>
-              <Text>{tax.amount.toFixed(2)} €</Text>
-            </View>
-          ))}
+          {customTaxes.length > 0 && customTaxes
+            .filter((tax) => {
+              // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
+              if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
+                return false;
+              }
+              return true;
+            })
+            .map((tax, index) => (
+              <View key={index} style={styles.totalRow}>
+                <Text>{tax.name} :</Text>
+                <Text>{tax.amount.toFixed(2)} €</Text>
+              </View>
+            ))}
           <View style={styles.totalFinal}>
             <Text>TOTAL TTC :</Text>
             <Text>{totalTTC.toFixed(2)} €</Text>

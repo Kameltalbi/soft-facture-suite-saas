@@ -71,5 +71,6 @@ export interface GlobalSettings {
   delivery_note_template?: string;
   credit_template?: string;
   show_discount?: boolean;
+  show_fiscal_stamp?: boolean;
   tenant_id: string;
 }

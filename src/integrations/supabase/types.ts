@@ -575,6 +575,7 @@ export type Database = {
           primary_currency: string | null
           quote_template: string | null
           show_discount: boolean | null
+          show_fiscal_stamp: boolean | null
           unified_template: string | null
           updated_at: string
           use_unified_template: boolean | null
@@ -591,6 +592,7 @@ export type Database = {
           primary_currency?: string | null
           quote_template?: string | null
           show_discount?: boolean | null
+          show_fiscal_stamp?: boolean | null
           unified_template?: string | null
           updated_at?: string
           use_unified_template?: boolean | null
@@ -607,6 +609,7 @@ export type Database = {
           primary_currency?: string | null
           quote_template?: string | null
           show_discount?: boolean | null
+          show_fiscal_stamp?: boolean | null
           unified_template?: string | null
           updated_at?: string
           use_unified_template?: boolean | null
@@ -787,6 +790,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      numbering_sequences: {
+        Row: {
+          created_at: string
+          current_number: number
+          document_type: string
+          id: string
+          month: number | null
+          organization_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          current_number?: number
+          document_type: string
+          id?: string
+          month?: number | null
+          organization_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          current_number?: number
+          document_type?: string
+          id?: string
+          month?: number | null
+          organization_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
       }
       organization_history: {
         Row: {
@@ -1563,6 +1599,16 @@ export type Database = {
           category: string
           total_amount: number
         }[]
+      }
+      get_next_document_number: {
+        Args: {
+          p_organization_id: string
+          p_document_type: string
+          p_reset_frequency: string
+          p_prefix: string
+          p_format: string
+        }
+        Returns: string
       }
       get_recouvrement_data: {
         Args: { sel_year: number; sel_month: number }

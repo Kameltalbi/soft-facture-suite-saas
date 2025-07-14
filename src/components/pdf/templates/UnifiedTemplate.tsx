@@ -309,7 +309,15 @@ export const UnifiedTemplate = ({
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0) : 0;
     
-    const totalCustomTaxes = customTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+    // Calculer les taxes personnalisées en tenant compte du paramètre showFiscalStamp
+    const filteredCustomTaxes = customTaxes.filter((tax) => {
+      // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
+      if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
+        return false;
+      }
+      return true;
+    });
+    const totalCustomTaxes = filteredCustomTaxes.reduce((sum, tax) => sum + tax.amount, 0);
     const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
     return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC };
@@ -471,14 +479,23 @@ export const UnifiedTemplate = ({
             )}
             
             {/* Custom taxes */}
-            {customTaxes.map((tax) => (
-              <View key={tax.id} style={styles.customTaxRow}>
-                <Text style={styles.totalLabel}>
-                  {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
-                </Text>
-                <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
-              </View>
-            ))}
+            {customTaxes
+              .filter((tax) => {
+                // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
+                if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
+                  return false;
+                }
+                return true;
+              })
+              .map((tax) => (
+                <View key={tax.id} style={styles.customTaxRow}>
+                  <Text style={styles.totalLabel}>
+                    {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
+                  </Text>
+                  <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                </View>
+              ))}
+            
             
             <View style={styles.grandTotal}>
               <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
