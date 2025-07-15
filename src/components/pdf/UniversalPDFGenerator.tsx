@@ -23,6 +23,14 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
   const [pdfData, setPdfData] = useState(null);
 
   useEffect(() => {
+    console.log('🚀 UniversalPDFGenerator - Début génération:', {
+      documentNumber: document?.invoice_number || document?.quote_number,
+      customTaxes: customTaxes?.length,
+      customTaxesUsed: document?.custom_taxes_used,
+      hasAdvance: document?.has_advance,
+      advanceAmount: document?.advance_amount
+    });
+
     const generatePDFData = async () => {
       // Map line items based on document type
       let lineItems = [];
@@ -162,7 +170,9 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
           date: document.date,
           dueDate: getDueDate(),
           subject: document.subject || '',
-          notes: document.notes || ''
+          notes: document.notes || '',
+          hasAdvance: document.has_advance,
+          advanceAmount: document.advance_amount
         },
         lineItems,
         client,
@@ -182,6 +192,14 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         isSigned: document.is_signed || false,
         documentType
       };
+
+      console.log('📄 PDF Generator - Données finales envoyées au template:', {
+        documentNumber: data.documentData.number,
+        hasAdvance: data.documentData.hasAdvance,
+        advanceAmount: data.documentData.advanceAmount,
+        customTaxes: data.customTaxes?.length,
+        showFiscalStamp: data.settings.showFiscalStamp
+      });
 
       setPdfData(data);
     };

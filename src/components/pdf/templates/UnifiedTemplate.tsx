@@ -511,6 +511,20 @@ export const UnifiedTemplate = ({
               <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
               <Text style={styles.grandTotalText}>{totalTTC.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
             </View>
+
+            {/* Advance payment section */}
+            {documentData.hasAdvance && documentData.advanceAmount > 0 && (
+              <>
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>Acompte versé:</Text>
+                  <Text style={styles.totalValue}>-{documentData.advanceAmount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                </View>
+                <View style={styles.grandTotal}>
+                  <Text style={styles.grandTotalText}>RESTE À PAYER:</Text>
+                  <Text style={styles.grandTotalText}>{(totalTTC - documentData.advanceAmount).toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                </View>
+              </>
+            )}
           </View>
         )}
 
