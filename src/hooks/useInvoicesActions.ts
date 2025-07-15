@@ -10,6 +10,12 @@ export function useInvoicesActions() {
 
   const handleSaveInvoice = async (invoiceData: any, editingInvoice?: any) => {
     try {
+      console.log('🔍 handleSaveInvoice - Données reçues:', {
+        invoiceData,
+        editingInvoice,
+        organizationId: organization?.id
+      });
+
       if (!organization?.id) {
         toast({
           title: "Erreur",
@@ -70,30 +76,37 @@ export function useInvoicesActions() {
         });
       } else {
         // Création d'une nouvelle facture
+        const invoicePayload = {
+          invoice_number: invoiceData.number,
+          date: invoiceData.date,
+          due_date: invoiceData.dueDate,
+          client_id: invoiceData.client?.id,
+          organization_id: organization.id,
+          status: 'draft',
+          subtotal: invoiceData.totals.subtotalHT,
+          tax_amount: invoiceData.totals.totalVAT,
+          total_amount: invoiceData.totals.totalTTC,
+          notes: invoiceData.notes,
+          use_vat: invoiceData.invoiceSettings?.useVat,
+          custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
+          has_advance: invoiceData.invoiceSettings?.hasAdvance,
+          advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
+          currency_id: invoiceData.currencyId || null,
+          sales_channel: invoiceData.invoiceSettings?.salesChannel || 'local'
+        };
+
+        console.log('🔍 Payload pour créer la facture:', invoicePayload);
+
         const { data: newInvoice, error: invoiceError } = await supabase
           .from('invoices')
-          .insert({
-            invoice_number: invoiceData.number,
-            date: invoiceData.date,
-            due_date: invoiceData.dueDate,
-            client_id: invoiceData.client?.id,
-            organization_id: organization.id,
-            status: 'draft',
-            subtotal: invoiceData.totals.subtotalHT,
-            tax_amount: invoiceData.totals.totalVAT,
-            total_amount: invoiceData.totals.totalTTC,
-            notes: invoiceData.notes,
-            use_vat: invoiceData.invoiceSettings?.useVat,
-            custom_taxes_used: invoiceData.invoiceSettings?.customTaxesUsed || [],
-            has_advance: invoiceData.invoiceSettings?.hasAdvance,
-            advance_amount: invoiceData.invoiceSettings?.advanceAmount || 0,
-            currency_id: invoiceData.currencyId || null,
-            sales_channel: invoiceData.invoiceSettings?.salesChannel || 'local'
-          })
+          .insert(invoicePayload)
           .select()
           .single();
 
-        if (invoiceError) throw invoiceError;
+        if (invoiceError) {
+          console.error('❌ Erreur lors de la création de la facture:', invoiceError);
+          throw invoiceError;
+        }
 
         // Créer les éléments de facture
         if (invoiceData.items && invoiceData.items.length > 0) {
@@ -122,10 +135,16 @@ export function useInvoicesActions() {
       // Rafraîchir la liste des factures
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
+      console.error('❌ Erreur complète lors de la sauvegarde:', error);
+      console.error('❌ Détails de l\'erreur:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       toast({
         title: "Erreur",
-        description: "Erreur lors de la sauvegarde de la facture",
+        description: `Erreur lors de la sauvegarde: ${error.message || 'Erreur inconnue'}`,
         variant: "destructive"
       });
     }
