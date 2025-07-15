@@ -115,9 +115,22 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         vat_number: document.clients?.vat_number || document.client?.vat_number || ''
       };
 
-      // Calculate custom taxes if applicable
+      // Calculate custom taxes if applicable - only use taxes that are enabled for this specific document
       const subtotal = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
-      const customTaxCalculations = calculateCustomTaxes(subtotal, customTaxes, documentType.toLowerCase());
+      
+      // Filter custom taxes to only include those enabled for this document
+      const enabledCustomTaxes = customTaxes.filter(tax => 
+        document.custom_taxes_used && document.custom_taxes_used.includes(tax.id)
+      );
+      
+      console.log('🔍 PDF Generator - Taxes personnalisées pour cette facture:', {
+        documentNumber: document.invoice_number,
+        customTaxesUsed: document.custom_taxes_used,
+        allCustomTaxes: customTaxes.map(t => ({ id: t.id, name: t.name })),
+        enabledCustomTaxes: enabledCustomTaxes.map(t => ({ id: t.id, name: t.name }))
+      });
+      
+      const customTaxCalculations = calculateCustomTaxes(subtotal, enabledCustomTaxes, documentType.toLowerCase());
 
       // Get document number based on type
       const getDocumentNumber = () => {
@@ -157,7 +170,10 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         settings: {
           showVat: document.use_vat ?? globalSettings?.use_vat ?? true,
           showDiscount: globalSettings?.show_discount ?? true,
-          showFiscalStamp: globalSettings?.show_fiscal_stamp ?? true,
+          // showFiscalStamp est basé sur les taxes personnalisées utilisées dans cette facture
+          showFiscalStamp: (enabledCustomTaxes.some(tax => 
+            tax.name.toLowerCase().includes('timbre')
+          )) || (globalSettings?.show_fiscal_stamp ?? true),
           footer_content: globalSettings?.footer_content || '',
           footer_display: globalSettings?.footer_display || 'all'
         },
