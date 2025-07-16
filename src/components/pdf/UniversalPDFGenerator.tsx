@@ -211,7 +211,8 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         documentNumber: data.documentData.number,
         hasAdvance: data.documentData.hasAdvance,
         advanceAmount: data.documentData.advanceAmount,
-        customTaxes: data.customTaxes?.length,
+        customTaxes: data.customTaxes,
+        customTaxesLength: data.customTaxes?.length,
         showFiscalStamp: data.settings.showFiscalStamp
       });
 
