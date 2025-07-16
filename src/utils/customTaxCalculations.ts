@@ -40,7 +40,7 @@ export function calculateCustomTaxes(
     }))
   });
 
-  return applicableTaxes.map(tax => {
+  const result = applicableTaxes.map(tax => {
     const amount = tax.type === 'percentage' 
       ? (subtotal * tax.value) / 100
       : tax.value;
@@ -53,6 +53,13 @@ export function calculateCustomTaxes(
       amount: Number(amount.toFixed(2))
     };
   });
+
+  console.log('🧮 calculateCustomTaxes - Résultat final:', {
+    result,
+    resultLength: result.length
+  });
+
+  return result;
 }
 
 export function getTotalCustomTaxAmount(taxCalculations: TaxCalculation[]): number {
