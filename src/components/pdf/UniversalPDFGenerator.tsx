@@ -138,7 +138,21 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         enabledCustomTaxes: enabledCustomTaxes.map(t => ({ id: t.id, name: t.name }))
       });
       
-      const customTaxCalculations = calculateCustomTaxes(subtotal, enabledCustomTaxes, documentType.toLowerCase());
+      const customTaxCalculations = calculateCustomTaxes(subtotal, enabledCustomTaxes, documentType);
+      
+      console.log('🧮 PDF Generator - Calcul des taxes personnalisées:', {
+        documentType,
+        subtotal,
+        enabledCustomTaxes: enabledCustomTaxes.map(t => ({
+          id: t.id,
+          name: t.name,
+          type: t.type,
+          value: t.value,
+          applicable_documents: t.applicable_documents,
+          active: t.active
+        })),
+        customTaxCalculations
+      });
 
       // Get document number based on type
       const getDocumentNumber = () => {
