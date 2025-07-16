@@ -532,7 +532,12 @@ export const UnifiedTemplate = ({
         {(documentType === 'FACTURE' || documentType === 'AVOIR') && config.showTotal && (
           <View style={styles.amountInWords}>
             <Text style={{ fontSize: 10, color: '#666666', fontStyle: 'italic' }}>
-              {numberToWords(totalTTC, currencyCode)}
+              {numberToWords(
+                documentData.hasAdvance && documentData.advanceAmount > 0 
+                  ? totalTTC - documentData.advanceAmount 
+                  : totalTTC, 
+                currencyCode
+              )}
             </Text>
           </View>
         )}

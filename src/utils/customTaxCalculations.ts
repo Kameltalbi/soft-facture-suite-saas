@@ -14,9 +14,31 @@ export function calculateCustomTaxes(
   customTaxes: CustomTax[],
   documentType: string
 ): TaxCalculation[] {
+  console.log('🧮 calculateCustomTaxes - Début:', {
+    subtotal,
+    documentType,
+    customTaxes: customTaxes.map(t => ({
+      id: t.id,
+      name: t.name,
+      type: t.type,
+      value: t.value,
+      active: t.active,
+      applicable_documents: t.applicable_documents
+    }))
+  });
+
   const applicableTaxes = customTaxes.filter(tax => 
     tax.active && tax.applicable_documents.includes(documentType)
   );
+
+  console.log('🧮 calculateCustomTaxes - Taxes applicables:', {
+    documentType,
+    applicableTaxes: applicableTaxes.map(t => ({
+      id: t.id,
+      name: t.name,
+      applicable_documents: t.applicable_documents
+    }))
+  });
 
   return applicableTaxes.map(tax => {
     const amount = tax.type === 'percentage' 
