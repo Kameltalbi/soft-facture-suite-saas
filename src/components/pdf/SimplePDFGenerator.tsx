@@ -16,6 +16,18 @@ export const SimplePDFGenerator: React.FC<SimplePDFGeneratorProps> = ({
   globalSettings,
   currency
 }) => {
+  console.log('🔥 SimplePDFGenerator - Début rendu:', {
+    invoiceNumber: invoice?.invoice_number,
+    invoiceId: invoice?.id,
+    hasAdvance: invoice?.has_advance,
+    advanceAmount: invoice?.advance_amount,
+    customTaxesUsed: invoice?.custom_taxes_used,
+    customTaxesLength: customTaxes?.length,
+    organizationId: organization?.id,
+    globalSettingsId: globalSettings?.id,
+    currencyCode: currency?.code
+  });
+
   return (
     <UniversalPDFGenerator
       document={invoice}
