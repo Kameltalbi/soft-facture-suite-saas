@@ -45,7 +45,13 @@ export default function Invoices() {
     const matchesYear = invoiceDate.getFullYear() === selectedYear;
     const matchesMonth = invoiceDate.getMonth() + 1 === selectedMonth;
     
-    return matchesSearch && matchesYear && matchesMonth;
+    // Si on fait une recherche spécifique, ignorer les filtres de date
+    if (searchTerm.trim() !== '') {
+      return matchesSearch;
+    }
+    
+    // Sinon, appliquer les filtres de date
+    return matchesYear && matchesMonth;
   });
 
   const handleNewInvoice = () => {
