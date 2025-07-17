@@ -420,8 +420,7 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         value={invoiceNumber}
                         onChange={(e) => setInvoiceNumber(e.target.value)}
                         className="w-40"
-                        placeholder={numberLoading ? "Génération..." : "FAC-2025-001"}
-                        disabled={numberLoading}
+                        placeholder="FAC-2025-001"
                       />
                     </div>
                     <div>
