@@ -478,33 +478,15 @@ export const UnifiedTemplate = ({
               </View>
             )}
             
-            {/* Custom taxes */}
-            {(() => {
-              console.log('🔍 UnifiedTemplate - Debug timbre fiscal:', {
-                showFiscalStamp: settings?.showFiscalStamp,
-                customTaxes: customTaxes.length,
-                allTaxes: customTaxes.map(tax => ({ name: tax.name, amount: tax.amount })),
-                settings
-              });
-              
-              return customTaxes
-                .filter((tax) => {
-                  // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
-                  if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
-                    console.log('🚫 Filtrage du timbre fiscal:', tax.name);
-                    return false;
-                  }
-                  return true;
-                })
-                .map((tax) => (
-                  <View key={tax.id} style={styles.customTaxRow}>
-                    <Text style={styles.totalLabel}>
-                      {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
-                    </Text>
-                    <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
-                  </View>
-                ));
-            })()}
+            {/* Custom taxes - Always show all custom taxes that are applied to this document */}
+            {customTaxes.map((tax) => (
+              <View key={tax.id} style={styles.customTaxRow}>
+                <Text style={styles.totalLabel}>
+                  {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
+                </Text>
+                <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+              </View>
+            ))}
             
             
             <View style={styles.grandTotal}>
