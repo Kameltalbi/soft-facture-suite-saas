@@ -27,6 +27,7 @@ interface InvoicesTableProps {
   onSignInvoice: (invoice: any) => void;
   onPaymentRecorded: (paymentData: any) => void;
   onEmailSent: (emailData: any) => void;
+  onPreviewInvoice: (invoice: any, settings: any) => void;
 }
 
 export function InvoicesTable({
@@ -43,7 +44,8 @@ export function InvoicesTable({
   onValidateInvoice,
   onSignInvoice,
   onPaymentRecorded,
-  onEmailSent
+  onEmailSent,
+  onPreviewInvoice
 }: InvoicesTableProps) {
   const formatCurrency = (amount: number, invoiceCurrency = null) => {
     const currencyToUse = invoiceCurrency || currency;
@@ -117,7 +119,12 @@ export function InvoicesTable({
                         invoice={invoice} 
                         organization={organization}
                         customTaxes={customTaxes}
-                        globalSettings={globalSettings}
+                        globalSettings={{
+                          ...globalSettings,
+                          // Utiliser les paramètres spécifiques de la facture s'ils existent
+                          show_discount: invoice.invoiceSettings?.useDiscount ?? globalSettings?.show_discount,
+                          use_vat: invoice.use_vat ?? globalSettings?.use_vat
+                        }}
                         currency={currency}
                       />
                     }

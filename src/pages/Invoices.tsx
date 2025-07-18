@@ -30,6 +30,10 @@ export default function Invoices() {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   
+  // États pour gérer les paramètres dynamiques du PDF
+  const [activeInvoiceData, setActiveInvoiceData] = useState<any>(null);
+  const [activeInvoiceSettings, setActiveInvoiceSettings] = useState<any>(null);
+  
   // Date filters
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
@@ -96,6 +100,12 @@ export default function Invoices() {
     setShowInvoiceModal(false);
   };
 
+  // Fonction pour gérer l'ouverture du menu d'actions avec les bons paramètres
+  const handleOpenInvoiceActions = (invoice: any, settings: any) => {
+    setActiveInvoiceData(invoice);
+    setActiveInvoiceSettings(settings);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F7F9FA] p-6">
@@ -137,6 +147,7 @@ export default function Invoices() {
         onSignInvoice={handleSignInvoice}
         onPaymentRecorded={handlePaymentRecorded}
         onEmailSent={handleEmailSent}
+        onPreviewInvoice={handleOpenInvoiceActions}
       />
 
       <InvoiceModal
