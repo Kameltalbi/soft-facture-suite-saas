@@ -305,6 +305,7 @@ export type Database = {
           created_at: string
           currency_id: string | null
           id: string
+          is_fiscal_stamp: boolean
           name: string
           organization_id: string
           type: string
@@ -317,6 +318,7 @@ export type Database = {
           created_at?: string
           currency_id?: string | null
           id?: string
+          is_fiscal_stamp?: boolean
           name: string
           organization_id: string
           type: string
@@ -329,6 +331,7 @@ export type Database = {
           created_at?: string
           currency_id?: string | null
           id?: string
+          is_fiscal_stamp?: boolean
           name?: string
           organization_id?: string
           type?: string

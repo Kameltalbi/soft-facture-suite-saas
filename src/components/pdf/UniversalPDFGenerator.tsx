@@ -196,7 +196,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
           showDiscount: globalSettings?.show_discount ?? true,
           // showFiscalStamp est basé sur les taxes personnalisées utilisées dans cette facture
           showFiscalStamp: (enabledCustomTaxes.some(tax => 
-            tax.name.toLowerCase().includes('timbre')
+            tax.is_fiscal_stamp
           )) || (globalSettings?.show_fiscal_stamp ?? true),
           footer_content: globalSettings?.footer_content || '',
           footer_display: globalSettings?.footer_display || 'all'

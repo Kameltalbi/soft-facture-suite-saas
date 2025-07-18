@@ -121,11 +121,12 @@ export function CustomTaxSettings() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nom de la taxe</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Valeur</TableHead>
-                    <TableHead>Documents concernés</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                     <TableHead>Nom de la taxe</TableHead>
+                     <TableHead>Type</TableHead>
+                     <TableHead>Valeur</TableHead>
+                     <TableHead>Documents concernés</TableHead>
+                     <TableHead>Timbre fiscal</TableHead>
+                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -140,15 +141,26 @@ export function CustomTaxSettings() {
                       <TableCell className="font-semibold">
                         {formatValue(tax)}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {tax.applicable_documents.map((docType) => (
-                            <Badge key={docType} variant="outline" className="text-xs">
-                              {documentTypeLabels[docType] || docType}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
+                       <TableCell>
+                         <div className="flex flex-wrap gap-1">
+                           {tax.applicable_documents.map((docType) => (
+                             <Badge key={docType} variant="outline" className="text-xs">
+                               {documentTypeLabels[docType] || docType}
+                             </Badge>
+                           ))}
+                         </div>
+                       </TableCell>
+                       <TableCell>
+                         {tax.is_fiscal_stamp ? (
+                           <Badge variant="outline" className="text-orange-600 border-orange-600">
+                             Oui
+                           </Badge>
+                         ) : (
+                           <Badge variant="outline" className="text-gray-600">
+                             Non
+                           </Badge>
+                         )}
+                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button

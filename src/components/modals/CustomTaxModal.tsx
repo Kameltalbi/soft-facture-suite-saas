@@ -38,6 +38,7 @@ export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxM
     value: editingTax?.value || 0,
     currency_id: editingTax?.currency_id || '',
     applicable_documents: editingTax?.applicable_documents || [],
+    is_fiscal_stamp: editingTax?.is_fiscal_stamp || false,
   });
   const [loading, setLoading] = useState(false);
 
@@ -66,6 +67,7 @@ export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxM
       value: 0,
       currency_id: '',
       applicable_documents: [],
+      is_fiscal_stamp: false,
     });
     onClose();
   };
@@ -186,6 +188,19 @@ export function CustomTaxModal({ open, onClose, onSave, editingTax }: CustomTaxM
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_fiscal_stamp"
+              checked={formData.is_fiscal_stamp}
+              onCheckedChange={(checked) => 
+                setFormData(prev => ({ ...prev, is_fiscal_stamp: checked as boolean }))
+              }
+            />
+            <Label htmlFor="is_fiscal_stamp" className="text-sm font-normal">
+              Cette taxe est un timbre fiscal
+            </Label>
           </div>
 
           <DialogFooter>
