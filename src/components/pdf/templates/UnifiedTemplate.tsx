@@ -299,18 +299,15 @@ export const UnifiedTemplate = ({
 
   const config = getDocumentConfig();
   
-  // Calculer les taxes personnalisées filtrées en tenant compte du paramètre showFiscalStamp
-  const filteredCustomTaxes = customTaxes.filter((tax) => {
-    // Si showFiscalStamp est false, filtrer les timbres fiscaux basés sur is_fiscal_stamp
-    if (settings?.showFiscalStamp === false && tax.is_fiscal_stamp) {
-      return false;
-    }
-    return true;
-  });
-
   const calculateTotals = () => {
     if (!config.showPrices) {
-      return { subtotalHT: 0, totalVAT: 0, totalCustomTaxes: 0, totalTTC: 0 };
+      return { 
+        subtotalHT: 0, 
+        totalVAT: 0, 
+        totalCustomTaxes: 0, 
+        totalTTC: 0,
+        filteredCustomTaxes: []
+      };
     }
 
     const subtotalHT = lineItems.reduce((sum, item) => sum + (item.total || 0), 0);
@@ -318,13 +315,22 @@ export const UnifiedTemplate = ({
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0) : 0;
     
+    // Calculer les taxes personnalisées filtrées en tenant compte du paramètre showFiscalStamp
+    const filteredCustomTaxes = customTaxes.filter((tax) => {
+      // Si showFiscalStamp est false, filtrer les timbres fiscaux basés sur is_fiscal_stamp
+      if (settings?.showFiscalStamp === false && tax.is_fiscal_stamp) {
+        return false;
+      }
+      return true;
+    });
+    
     const totalCustomTaxes = filteredCustomTaxes.reduce((sum, tax) => sum + tax.amount, 0);
     const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
-    return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC };
+    return { subtotalHT, totalVAT, totalCustomTaxes, totalTTC, filteredCustomTaxes };
   };
 
-  const { subtotalHT, totalVAT, totalCustomTaxes, totalTTC } = calculateTotals();
+  const { subtotalHT, totalVAT, totalCustomTaxes, totalTTC, filteredCustomTaxes } = calculateTotals();
 
   return (
     <Document>
