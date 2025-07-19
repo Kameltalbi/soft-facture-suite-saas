@@ -246,12 +246,6 @@ export const UnifiedTemplate = ({
     currencyCode,
     decimalPlaces
   });
-
-  console.log('📄 Template PDF - Subject reçu:', {
-    documentDataSubject: documentData?.subject,
-    documentDataComplete: documentData,
-    hasSubject: !!(documentData?.subject && documentData.subject.trim())
-  });
   
   // Document type specific configurations
   const getDocumentConfig = () => {
@@ -381,17 +375,16 @@ export const UnifiedTemplate = ({
               <Text style={styles.documentDate}>
                 {config.dateLabel} {new Date(documentData?.date || Date.now()).toLocaleDateString('fr-FR')}
               </Text>
-              {/* AFFICHER LA RÉFÉRENCE ICI DANS LE HEADER */}
               {documentData?.subject && documentData.subject.trim() && (
-                <Text style={[styles.documentDate, { marginTop: 8, fontWeight: 'bold', color: '#3B82F6' }]}>
-                  Réf: {documentData.subject}
+                <Text style={[styles.documentDate, { marginTop: 10, fontWeight: 'bold' }]}>
+                  Référence: {documentData.subject}
                 </Text>
               )}
             </View>
           </View>
         </View>
 
-        {/* Client and Reference Section */}
+        {/* Client and Subject Section */}
         <View style={{ flexDirection: 'row', marginBottom: 20, gap: 20 }}>
           {/* Client Section */}
           <View style={[styles.clientSection, { flex: 1 }]}>
@@ -412,15 +405,13 @@ export const UnifiedTemplate = ({
             )}
           </View>
 
-          {/* Reference Section - Only visible when reference exists */}
-          {documentData?.subject && documentData.subject.trim() && (
-            <View style={[styles.clientSection, { flex: 1 }]}>
-              <Text style={styles.sectionTitle}>RÉFÉRENCE :</Text>
-              <Text style={[styles.clientInfo, { fontWeight: 'bold', fontSize: 11 }]}>
-                {documentData.subject}
-              </Text>
-            </View>
-          )}
+          {/* Subject Section - Always visible */}
+          <View style={[styles.clientSection, { flex: 1 }]}>
+            <Text style={styles.sectionTitle}>RÉFÉRENCE :</Text>
+            <Text style={styles.clientInfo}>
+              {documentData?.subject || ''}
+            </Text>
+          </View>
         </View>
 
         {/* Table */}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UnifiedTemplate } from './templates/UnifiedTemplate';
 import { imageUrlToBase64 } from '@/utils/imageToBase64';
@@ -26,10 +25,6 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
   useEffect(() => {
     console.log('🚀 UniversalPDFGenerator - Début génération:', {
       documentNumber: document?.invoice_number || document?.quote_number,
-      documentSubject: document?.subject,
-      documentSubjectType: typeof document?.subject,
-      documentSubjectLength: document?.subject?.length,
-      documentComplete: document,
       customTaxes: customTaxes?.length,
       customTaxesUsed: document?.custom_taxes_used,
       hasAdvance: document?.has_advance,
@@ -182,21 +177,11 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         finalCurrency: documentCurrency
       });
 
-      // CORRECTION: Récupérer le subject depuis les bonnes propriétés
-      const documentSubject = document?.subject || document?.reference || '';
-      
-      console.log('📝 PDF Generator - Récupération du subject:', {
-        rawSubject: document?.subject,
-        rawReference: document?.reference,
-        finalSubject: documentSubject,
-        documentKeys: Object.keys(document || {})
-      });
-
       const data = {
         documentData: {
           number: getDocumentNumber(),
           date: document.date,
-          subject: documentSubject, // Utiliser la valeur correcte
+          subject: document.subject || '',
           notes: document.notes || '',
           hasAdvance: document.has_advance,
           advanceAmount: document.advance_amount
@@ -222,8 +207,6 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
 
       console.log('📄 PDF Generator - Données finales envoyées au template:', {
         documentNumber: data.documentData.number,
-        documentSubject: data.documentData.subject,
-        documentSubjectFinal: documentSubject,
         hasAdvance: data.documentData.hasAdvance,
         advanceAmount: data.documentData.advanceAmount,
         customTaxes: data.customTaxes,
