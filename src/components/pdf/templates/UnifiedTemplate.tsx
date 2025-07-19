@@ -232,8 +232,17 @@ export const UnifiedTemplate = ({
   isSigned = false,
   documentType = 'FACTURE'
 }: UnifiedTemplateProps) => {
+  // Utiliser la devise passée en paramètre, avec des valeurs par défaut si nécessaire
   const currencySymbol = currency?.symbol || '€';
   const currencyCode = currency?.code || 'EUR';
+  const decimalPlaces = currency?.decimal_places || 2;
+  
+  console.log('🔍 Template PDF - Devise reçue:', {
+    currency,
+    currencySymbol,
+    currencyCode,
+    decimalPlaces
+  });
   
   // Document type specific configurations
   const getDocumentConfig = () => {
@@ -449,7 +458,7 @@ export const UnifiedTemplate = ({
               </Text>
               {config.showPrices && (
                 <Text style={[styles.tableCell, settings?.showDiscount ? styles.colUnitPriceWithDiscount : styles.colUnitPrice]}>
-                  {(item.unitPrice || 0).toFixed(currency?.decimal_places || 2)} {currencySymbol}
+                  {(item.unitPrice || 0).toFixed(decimalPlaces)} {currencySymbol}
                 </Text>
               )}
               {settings?.showDiscount && config.showPrices && (
@@ -464,7 +473,7 @@ export const UnifiedTemplate = ({
               )}
               {config.showPrices && (
                 <Text style={[styles.tableCell, settings?.showDiscount ? styles.colTotalWithDiscount : styles.colTotal]}>
-                  {(item.total || 0).toFixed(currency?.decimal_places || 2)} {currencySymbol}
+                  {(item.total || 0).toFixed(decimalPlaces)} {currencySymbol}
                 </Text>
               )}
             </View>
@@ -476,12 +485,12 @@ export const UnifiedTemplate = ({
           <View style={styles.totalsSection}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Sous-total HT:</Text>
-              <Text style={styles.totalValue}>{subtotalHT.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+              <Text style={styles.totalValue}>{subtotalHT.toFixed(decimalPlaces)} {currencySymbol}</Text>
             </View>
             {config.showVat && (
               <View style={styles.totalRow}>
                 <Text style={styles.totalLabel}>TVA:</Text>
-                <Text style={styles.totalValue}>{totalVAT.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                <Text style={styles.totalValue}>{totalVAT.toFixed(decimalPlaces)} {currencySymbol}</Text>
               </View>
             )}
             
@@ -491,14 +500,14 @@ export const UnifiedTemplate = ({
                 <Text style={styles.totalLabel}>
                   {tax.is_fiscal_stamp ? '🔖 ' : ''}{tax.is_fiscal_stamp ? tax.name.replace(/\s*\([^)]*\)\s*$/g, '') : tax.name}{tax.is_fiscal_stamp ? ':' : ` (${tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):`}
                 </Text>
-                <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                <Text style={styles.totalValue}>{tax.amount.toFixed(decimalPlaces)} {currencySymbol}</Text>
               </View>
             ))}
             
             
             <View style={styles.grandTotal}>
               <Text style={styles.grandTotalText}>TOTAL TTC:</Text>
-              <Text style={styles.grandTotalText}>{totalTTC.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+              <Text style={styles.grandTotalText}>{totalTTC.toFixed(decimalPlaces)} {currencySymbol}</Text>
             </View>
 
             {/* Advance payment section */}
@@ -506,11 +515,11 @@ export const UnifiedTemplate = ({
               <>
                 <View style={styles.totalRow}>
                   <Text style={styles.totalLabel}>Acompte versé:</Text>
-                  <Text style={styles.totalValue}>-{documentData.advanceAmount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                  <Text style={styles.totalValue}>-{documentData.advanceAmount.toFixed(decimalPlaces)} {currencySymbol}</Text>
                 </View>
                 <View style={styles.grandTotal}>
                   <Text style={styles.grandTotalText}>RESTE À PAYER:</Text>
-                  <Text style={styles.grandTotalText}>{(totalTTC - documentData.advanceAmount).toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
+                  <Text style={styles.grandTotalText}>{(totalTTC - documentData.advanceAmount).toFixed(decimalPlaces)} {currencySymbol}</Text>
                 </View>
               </>
             )}
