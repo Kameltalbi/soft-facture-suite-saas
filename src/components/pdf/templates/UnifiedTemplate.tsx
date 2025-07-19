@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { TaxCalculation } from '@/utils/customTaxCalculations';
@@ -69,6 +70,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#666666',
     marginBottom: 3,
+  },
+  documentReference: {
+    fontSize: 10,
+    color: '#3B82F6',
+    marginTop: 5,
+    fontWeight: 'bold',
   },
   clientSection: {
     marginBottom: 20,
@@ -246,6 +253,11 @@ export const UnifiedTemplate = ({
     currencyCode,
     decimalPlaces
   });
+
+  console.log('📋 Template PDF - Référence reçue:', {
+    subject: documentData?.subject,
+    documentData: documentData
+  });
   
   // Document type specific configurations
   const getDocumentConfig = () => {
@@ -375,8 +387,9 @@ export const UnifiedTemplate = ({
               <Text style={styles.documentDate}>
                 {config.dateLabel} {new Date(documentData?.date || Date.now()).toLocaleDateString('fr-FR')}
               </Text>
+              {/* Afficher la référence si elle existe */}
               {documentData?.subject && documentData.subject.trim() && (
-                <Text style={[styles.documentDate, { marginTop: 10, fontWeight: 'bold' }]}>
+                <Text style={styles.documentReference}>
                   Référence: {documentData.subject}
                 </Text>
               )}
@@ -405,13 +418,15 @@ export const UnifiedTemplate = ({
             )}
           </View>
 
-          {/* Subject Section - Always visible */}
-          <View style={[styles.clientSection, { flex: 1 }]}>
-            <Text style={styles.sectionTitle}>RÉFÉRENCE :</Text>
-            <Text style={styles.clientInfo}>
-              {documentData?.subject || ''}
-            </Text>
-          </View>
+          {/* Subject Section - Afficher uniquement si une référence existe */}
+          {documentData?.subject && documentData.subject.trim() && (
+            <View style={[styles.clientSection, { flex: 1 }]}>
+              <Text style={styles.sectionTitle}>RÉFÉRENCE :</Text>
+              <Text style={styles.clientInfo}>
+                {documentData.subject}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Table */}
