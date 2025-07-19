@@ -405,7 +405,7 @@ export const UnifiedTemplate = ({
             )}
           </View>
 
-          {/* Subject Section - Always visible */}
+          {/* Reference Section - Only visible when reference exists */}
           {documentData?.subject && documentData.subject.trim() && (
             <View style={[styles.clientSection, { flex: 1 }]}>
               <Text style={styles.sectionTitle}>RÉFÉRENCE :</Text>

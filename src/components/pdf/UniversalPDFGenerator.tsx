@@ -25,6 +25,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
   useEffect(() => {
     console.log('🚀 UniversalPDFGenerator - Début génération:', {
       documentNumber: document?.invoice_number || document?.quote_number,
+      documentSubject: document?.subject,
       customTaxes: customTaxes?.length,
       customTaxesUsed: document?.custom_taxes_used,
       hasAdvance: document?.has_advance,
@@ -181,7 +182,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         documentData: {
           number: getDocumentNumber(),
           date: document.date,
-          subject: document.subject || '',
+          subject: document.subject || '', // S'assurer que le subject est bien transmis
           notes: document.notes || '',
           hasAdvance: document.has_advance,
           advanceAmount: document.advance_amount
@@ -207,6 +208,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
 
       console.log('📄 PDF Generator - Données finales envoyées au template:', {
         documentNumber: data.documentData.number,
+        documentSubject: data.documentData.subject,
         hasAdvance: data.documentData.hasAdvance,
         advanceAmount: data.documentData.advanceAmount,
         customTaxes: data.customTaxes,
