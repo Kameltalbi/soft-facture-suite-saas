@@ -69,6 +69,7 @@ export default function Invoices() {
       ...invoice,
       number: invoice.invoice_number,
       client: invoice.clients,
+      subject: invoice.subject, // Ajouter le mapping du subject
       items: invoice.invoice_items?.map((item: any) => ({
         id: item.id,
         description: item.description,
