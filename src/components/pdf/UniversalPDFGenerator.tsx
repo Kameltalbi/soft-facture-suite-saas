@@ -177,6 +177,12 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         finalCurrency: documentCurrency
       });
 
+      console.log('🔍 DEBUG SUBJECT - Document reçu:', {
+        documentSubject: document.subject,
+        documentNumber: getDocumentNumber(),
+        allDocumentFields: Object.keys(document)
+      });
+
       const data = {
         documentData: {
           number: getDocumentNumber(),

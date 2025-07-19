@@ -233,6 +233,10 @@ export const UnifiedTemplate = ({
   isSigned = false,
   documentType = 'FACTURE'
 }: UnifiedTemplateProps) => {
+  console.log('🔍 DEBUG SUBJECT TEMPLATE - Données reçues:', {
+    documentDataSubject: documentData?.subject,
+    documentData: documentData
+  });
   // Utiliser la devise passée en paramètre, avec des valeurs par défaut si nécessaire
   const finalCurrency = ensureCurrency(currency);
   const currencySymbol = finalCurrency.symbol;
