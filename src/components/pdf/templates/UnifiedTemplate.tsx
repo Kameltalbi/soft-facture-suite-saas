@@ -379,11 +379,6 @@ export const UnifiedTemplate = ({
               <Text style={styles.documentDate}>
                 {config.dateLabel} {new Date(documentData?.date || Date.now()).toLocaleDateString('fr-FR')}
               </Text>
-              {documentData?.subject && documentData.subject.trim() && (
-                <Text style={[styles.documentDate, { marginTop: 10, fontWeight: 'bold' }]}>
-                  Référence: {documentData.subject}
-                </Text>
-              )}
             </View>
           </View>
         </View>
