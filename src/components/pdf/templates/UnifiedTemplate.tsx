@@ -486,7 +486,7 @@ export const UnifiedTemplate = ({
             )}
             
             {/* Custom taxes - Show filtered custom taxes based on settings */}
-            {filteredCustomTaxes.map((tax) => (
+            {filteredCustomTaxes?.map((tax) => (
               <View key={tax.id} style={tax.is_fiscal_stamp ? {...styles.customTaxRow, backgroundColor: '#F8F9FA'} : styles.customTaxRow}>
                 <Text style={styles.totalLabel}>
                   {tax.is_fiscal_stamp ? '🔖 ' : ''}{tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
