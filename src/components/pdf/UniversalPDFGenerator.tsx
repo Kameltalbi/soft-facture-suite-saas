@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UnifiedTemplate } from './templates/UnifiedTemplate';
 import { imageUrlToBase64 } from '@/utils/imageToBase64';
@@ -24,9 +23,8 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
   const [pdfData, setPdfData] = useState(null);
 
   useEffect(() => {
-    console.log('🚀 UniversalPDFGenerator - Document reçu:', {
+    console.log('🚀 UniversalPDFGenerator - Début génération:', {
       documentNumber: document?.invoice_number || document?.quote_number,
-      subject: document?.subject,
       customTaxes: customTaxes?.length,
       customTaxesUsed: document?.custom_taxes_used,
       hasAdvance: document?.has_advance,
@@ -135,8 +133,8 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         document.custom_taxes_used && document.custom_taxes_used.includes(tax.id)
       );
       
-      console.log('🔍 PDF Generator - Taxes personnalisées pour ce document:', {
-        documentNumber: document.invoice_number || document.quote_number,
+      console.log('🔍 PDF Generator - Taxes personnalisées pour cette facture:', {
+        documentNumber: document.invoice_number,
         customTaxesUsed: document.custom_taxes_used,
         allCustomTaxes: customTaxes.map(t => ({ id: t.id, name: t.name })),
         enabledCustomTaxes: enabledCustomTaxes.map(t => ({ id: t.id, name: t.name }))
@@ -179,18 +177,11 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         finalCurrency: documentCurrency
       });
 
-      // S'assurer que la référence (subject) est bien transmise
-      const documentSubject = document.subject || '';
-      console.log('📋 PDF Generator - Référence du document:', {
-        subject: documentSubject,
-        originalSubject: document.subject
-      });
-
       const data = {
         documentData: {
           number: getDocumentNumber(),
           date: document.date,
-          subject: documentSubject, // S'assurer que subject est bien passé
+          subject: document.subject || '',
           notes: document.notes || '',
           hasAdvance: document.has_advance,
           advanceAmount: document.advance_amount
@@ -201,7 +192,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         settings: {
           showVat: document.use_vat ?? globalSettings?.use_vat ?? true,
           showDiscount: globalSettings?.show_discount ?? true,
-          // showFiscalStamp est basé sur les taxes personnalisées utilisées dans ce document
+          // showFiscalStamp est basé sur les taxes personnalisées utilisées dans cette facture
           showFiscalStamp: (enabledCustomTaxes.some(tax => 
             tax.is_fiscal_stamp
           )) || (globalSettings?.show_fiscal_stamp ?? true),
@@ -216,7 +207,6 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
 
       console.log('📄 PDF Generator - Données finales envoyées au template:', {
         documentNumber: data.documentData.number,
-        subject: data.documentData.subject,
         hasAdvance: data.documentData.hasAdvance,
         advanceAmount: data.documentData.advanceAmount,
         customTaxes: data.customTaxes,
