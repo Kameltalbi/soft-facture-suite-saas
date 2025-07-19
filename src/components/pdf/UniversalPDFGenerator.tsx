@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { UnifiedTemplate } from './templates/UnifiedTemplate';
 import { imageUrlToBase64 } from '@/utils/imageToBase64';
@@ -28,7 +29,9 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
       customTaxes: customTaxes?.length,
       customTaxesUsed: document?.custom_taxes_used,
       hasAdvance: document?.has_advance,
-      advanceAmount: document?.advance_amount
+      advanceAmount: document?.advance_amount,
+      documentCurrency: document?.currencies,
+      contextCurrency: currency
     });
 
     const generatePDFData = async () => {
@@ -178,6 +181,15 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         }
       };
 
+      // Utiliser la devise spécifique du document si elle existe, sinon la devise du contexte
+      const documentCurrency = document.currencies || currency;
+      
+      console.log('💱 PDF Generator - Devise utilisée:', {
+        documentCurrency,
+        contextCurrency: currency,
+        finalCurrency: documentCurrency
+      });
+
       const data = {
         documentData: {
           number: getDocumentNumber(),
@@ -201,7 +213,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
           footer_content: globalSettings?.footer_content || '',
           footer_display: globalSettings?.footer_display || 'all'
         },
-        currency: currency, // Utiliser la devise du contexte qui contient decimal_places
+        currency: documentCurrency, // Utiliser la devise du document
         customTaxes: customTaxCalculations,
         isSigned: document.is_signed || false,
         documentType
@@ -213,7 +225,8 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         advanceAmount: data.documentData.advanceAmount,
         customTaxes: data.customTaxes,
         customTaxesLength: data.customTaxes?.length,
-        showFiscalStamp: data.settings.showFiscalStamp
+        showFiscalStamp: data.settings.showFiscalStamp,
+        finalCurrency: data.currency
       });
 
       setPdfData(data);
