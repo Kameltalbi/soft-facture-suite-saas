@@ -489,7 +489,7 @@ export const UnifiedTemplate = ({
             {filteredCustomTaxes?.map((tax) => (
               <View key={tax.id} style={tax.is_fiscal_stamp ? {...styles.customTaxRow, backgroundColor: '#F8F9FA'} : styles.customTaxRow}>
                 <Text style={styles.totalLabel}>
-                  {tax.is_fiscal_stamp ? '🔖 ' : ''}{tax.name}{tax.is_fiscal_stamp ? ':' : ` (${tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):`}
+                  {tax.is_fiscal_stamp ? '🔖 ' : ''}{tax.is_fiscal_stamp ? tax.name.replace(/\s*\([^)]*\)\s*$/g, '') : tax.name}{tax.is_fiscal_stamp ? ':' : ` (${tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):`}
                 </Text>
                 <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
               </View>
