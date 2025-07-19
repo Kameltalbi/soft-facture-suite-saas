@@ -31,6 +31,16 @@ export function useCustomTaxes() {
         type: item.type as 'percentage' | 'fixed'
       }));
       
+      console.log('📊 useCustomTaxes - Taxes chargées depuis la DB:', {
+        count: typedData.length,
+        taxes: typedData.map(t => ({
+          id: t.id,
+          name: t.name,
+          is_fiscal_stamp: t.is_fiscal_stamp,
+          applicable_documents: t.applicable_documents
+        }))
+      });
+      
       setCustomTaxes(typedData);
     } catch (error) {
       console.error('Error fetching custom taxes:', error);

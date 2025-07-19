@@ -299,6 +299,15 @@ export const UnifiedTemplate = ({
 
   const config = getDocumentConfig();
   
+  // Calculer les taxes personnalisées filtrées en tenant compte du paramètre showFiscalStamp
+  const filteredCustomTaxes = customTaxes.filter((tax) => {
+    // Si showFiscalStamp est false, filtrer les timbres fiscaux basés sur is_fiscal_stamp
+    if (settings?.showFiscalStamp === false && tax.is_fiscal_stamp) {
+      return false;
+    }
+    return true;
+  });
+
   const calculateTotals = () => {
     if (!config.showPrices) {
       return { subtotalHT: 0, totalVAT: 0, totalCustomTaxes: 0, totalTTC: 0 };
@@ -309,14 +318,6 @@ export const UnifiedTemplate = ({
       return sum + ((item.total || 0) * (item.vatRate || 0) / 100);
     }, 0) : 0;
     
-    // Calculer les taxes personnalisées en tenant compte du paramètre showFiscalStamp
-    const filteredCustomTaxes = customTaxes.filter((tax) => {
-      // Si showFiscalStamp est false, filtrer les taxes contenant "timbre" dans le nom
-      if (settings?.showFiscalStamp === false && tax.name.toLowerCase().includes('timbre')) {
-        return false;
-      }
-      return true;
-    });
     const totalCustomTaxes = filteredCustomTaxes.reduce((sum, tax) => sum + tax.amount, 0);
     const totalTTC = subtotalHT + totalVAT + totalCustomTaxes;
 
@@ -478,11 +479,11 @@ export const UnifiedTemplate = ({
               </View>
             )}
             
-            {/* Custom taxes - Always show all custom taxes that are applied to this document */}
-            {customTaxes.map((tax) => (
-              <View key={tax.id} style={styles.customTaxRow}>
+            {/* Custom taxes - Show filtered custom taxes based on settings */}
+            {filteredCustomTaxes.map((tax) => (
+              <View key={tax.id} style={tax.is_fiscal_stamp ? {...styles.customTaxRow, backgroundColor: '#F8F9FA'} : styles.customTaxRow}>
                 <Text style={styles.totalLabel}>
-                  {tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
+                  {tax.is_fiscal_stamp ? '🔖 ' : ''}{tax.name} ({tax.type === 'percentage' ? `${tax.value}%` : `${tax.value} ${currencySymbol}`}):
                 </Text>
                 <Text style={styles.totalValue}>{tax.amount.toFixed(currency?.decimal_places || 2)} {currencySymbol}</Text>
               </View>
