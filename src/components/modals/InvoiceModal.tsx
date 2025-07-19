@@ -57,7 +57,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   // Form state variables
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dueDate, setDueDate] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
   const [subject, setSubject] = useState('');
@@ -86,7 +85,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       console.log('Mise à jour des états avec les données de la facture:', invoice);
       setInvoiceNumber(invoice.number || '');
       setInvoiceDate(invoice.date || new Date().toISOString().split('T')[0]);
-      setDueDate(invoice.dueDate || '');
       setSelectedClient(invoice.client || null);
       setSubject(invoice.subject || '');
       setNotes(invoice.notes || '');
@@ -108,7 +106,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
       // Réinitialiser pour une nouvelle facture
       setInvoiceNumber('');
       setInvoiceDate(new Date().toISOString().split('T')[0]);
-      setDueDate('');
       setSelectedClient(null);
       setSubject('');
       setNotes('');
@@ -301,15 +298,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
   
   const { subtotalHT, totalDiscount, totalVAT, totalCustomTaxes, totalTTC, customTaxCalculations, advanceAmount, balanceDue } = calculateTotals();
   
-  // Set default due date (30 days from now) if not set
-  React.useEffect(() => {
-    if (!dueDate) {
-      const defaultDate = new Date();
-      defaultDate.setDate(defaultDate.getDate() + 30);
-      setDueDate(defaultDate.toISOString().split('T')[0]);
-    }
-  }, [dueDate]);
-  
   // Handle save as draft action
   const handleSaveAsDraft = async () => {
     // If new invoice and number not modified, generate new unique number
@@ -321,7 +309,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     const invoiceData = {
       number: finalInvoiceNumber,
       date: invoiceDate,
-      dueDate,
       client: selectedClient,
       subject,
       items: invoiceItems,
@@ -347,7 +334,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
     const invoiceData = {
       number: finalInvoiceNumber,
       date: invoiceDate,
-      dueDate,
       client: selectedClient,
       subject,
       items: invoiceItems,
@@ -430,16 +416,6 @@ export function InvoiceModal({ open, onClose, invoice, onSave }: InvoiceModalPro
                         type="date"
                         value={invoiceDate}
                         onChange={(e) => setInvoiceDate(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="dueDate">Échéance</Label>
-                      <Input
-                        id="dueDate"
-                        type="date"
-                        value={dueDate}
-                        onChange={(e) => setDueDate(e.target.value)}
                         className="w-40"
                       />
                     </div>

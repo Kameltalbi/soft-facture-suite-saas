@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UnifiedTemplate } from './templates/UnifiedTemplate';
 import { imageUrlToBase64 } from '@/utils/imageToBase64';
@@ -169,19 +168,7 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         }
       };
 
-      // Get due date based on type
-      const getDueDate = () => {
-        switch (documentType) {
-          case 'DEVIS': return document.valid_until;
-          case 'BON DE LIVRAISON': return document.expected_delivery_date;
-          case 'BON DE COMMANDE': return document.expected_delivery_date;
-          case 'FACTURE':
-          case 'AVOIR':
-          default: return document.due_date;
-        }
-      };
-
-      // Utiliser la devise spécifique du document si elle existe, sinon la devise du contexte
+      // Utiliser la devise du document ou celle du contexte
       const documentCurrency = document.currencies || currency;
       
       console.log('💱 PDF Generator - Devise utilisée:', {
@@ -194,7 +181,6 @@ export const UniversalPDFGenerator: React.FC<UniversalPDFGeneratorProps> = ({
         documentData: {
           number: getDocumentNumber(),
           date: document.date,
-          dueDate: getDueDate(),
           subject: document.subject || '',
           notes: document.notes || '',
           hasAdvance: document.has_advance,

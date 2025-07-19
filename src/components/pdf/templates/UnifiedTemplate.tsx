@@ -2,6 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { TaxCalculation } from '@/utils/customTaxCalculations';
 import { numberToWords } from '@/utils/numberToWords';
+import { ensureCurrency } from '@/utils/currencyFormatter';
 
 const styles = StyleSheet.create({
   page: {
@@ -233,12 +234,14 @@ export const UnifiedTemplate = ({
   documentType = 'FACTURE'
 }: UnifiedTemplateProps) => {
   // Utiliser la devise passée en paramètre, avec des valeurs par défaut si nécessaire
-  const currencySymbol = currency?.symbol || '€';
-  const currencyCode = currency?.code || 'EUR';
-  const decimalPlaces = currency?.decimal_places || 2;
+  const finalCurrency = ensureCurrency(currency);
+  const currencySymbol = finalCurrency.symbol;
+  const currencyCode = finalCurrency.code;
+  const decimalPlaces = finalCurrency.decimal_places;
   
   console.log('🔍 Template PDF - Devise reçue:', {
     currency,
+    finalCurrency,
     currencySymbol,
     currencyCode,
     decimalPlaces
@@ -298,7 +301,6 @@ export const UnifiedTemplate = ({
           clientLabel: 'FACTURER À :',
           numberLabel: 'N°',
           dateLabel: 'Date:',
-          dueDateLabel: 'Échéance:',
           showPrices: true,
           showVat: settings?.showVat ?? true,
           showTotal: true
@@ -373,11 +375,6 @@ export const UnifiedTemplate = ({
               <Text style={styles.documentDate}>
                 {config.dateLabel} {new Date(documentData?.date || Date.now()).toLocaleDateString('fr-FR')}
               </Text>
-              {documentData?.dueDate && (
-                <Text style={styles.documentDate}>
-                  {config.dueDateLabel} {new Date(documentData.dueDate).toLocaleDateString('fr-FR')}
-                </Text>
-              )}
               {documentData?.subject && documentData.subject.trim() && (
                 <Text style={[styles.documentDate, { marginTop: 10, fontWeight: 'bold' }]}>
                   Référence: {documentData.subject}
