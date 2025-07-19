@@ -34,6 +34,7 @@ export function useInvoicesActions() {
             date: invoiceData.date,
             due_date: invoiceData.dueDate,
             client_id: invoiceData.client?.id,
+            subject: invoiceData.subject, // Ajouter le subject
             subtotal: invoiceData.totals.subtotalHT,
             tax_amount: invoiceData.totals.totalVAT,
             total_amount: invoiceData.totals.totalTTC,
@@ -82,6 +83,7 @@ export function useInvoicesActions() {
           due_date: invoiceData.dueDate,
           client_id: invoiceData.client?.id,
           organization_id: organization.id,
+          subject: invoiceData.subject, // Ajouter le subject
           status: 'draft',
           subtotal: invoiceData.totals.subtotalHT,
           tax_amount: invoiceData.totals.totalVAT,
