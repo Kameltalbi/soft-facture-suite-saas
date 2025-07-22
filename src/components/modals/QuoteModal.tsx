@@ -109,8 +109,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     const maxAttempts = 10;
     
     while (attempts < maxAttempts) {
-      const timestamp = Date.now() + attempts;
-      const newNumber = `DEVIS-${new Date().getFullYear()}-${timestamp.toString().slice(-6)}`;
+      const randomSuffix = Math.floor(Math.random() * 900000) + 100000; // 6 chiffres aléatoires
+      const newNumber = `DEVIS-${new Date().getFullYear()}-${randomSuffix}`;
       
       // Vérifier si ce numéro existe déjà
       const { data: existingQuote } = await supabase
@@ -345,7 +345,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
 
       // Si c'est un nouveau devis, s'assurer d'avoir un numéro unique
       let finalQuoteNumber = quoteNumber;
-      if (!quote) {
+      if (!quote && !finalQuoteNumber) {
         finalQuoteNumber = await generateUniqueQuoteNumber();
         setQuoteNumber(finalQuoteNumber);
       }
