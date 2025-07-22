@@ -275,7 +275,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       if (item.id === itemId) {
         return {
           ...item,
-          description: product.name,
+          description: product.description || product.name,
           unitPrice: unitPrice,
           vatRate: taxRate,
           total: unitPrice,
