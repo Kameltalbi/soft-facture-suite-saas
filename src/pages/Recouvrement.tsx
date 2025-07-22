@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { PaymentModal } from '@/components/modals/PaymentModal';
 import { usePayments } from '@/hooks/usePayments';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { Calendar, CreditCard, Download, History, Plus } from 'lucide-react';
+import { Calendar, CreditCard, Download, History, Plus, Check, DollarSign } from 'lucide-react';
 
 const Recouvrement = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
@@ -99,6 +99,18 @@ const Recouvrement = () => {
       setShowPaymentModal(false);
       setSelectedInvoice(null);
     }
+  };
+
+  const handleFullPayment = async (invoice: any, method: 'cheque' | 'virement') => {
+    const paymentData = {
+      invoice_id: invoice.id,
+      amount: invoice.remaining_balance,
+      payment_method: method,
+      payment_date: new Date().toISOString().split('T')[0],
+      notes: `Paiement total par ${method}`
+    };
+    
+    await createPayment(paymentData);
   };
 
   const handleExport = () => {
@@ -334,6 +346,30 @@ const Recouvrement = () => {
                           <Plus size={16} className="mr-1" />
                           Paiement
                         </Button>
+                        
+                        {invoice.remaining_balance > 0 && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                              onClick={() => handleFullPayment(invoice, 'cheque')}
+                            >
+                              <Check size={16} className="mr-1" />
+                              Chèque
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                              onClick={() => handleFullPayment(invoice, 'virement')}
+                            >
+                              <DollarSign size={16} className="mr-1" />
+                              Virement
+                            </Button>
+                          </>
+                        )}
+                        
                         <Button
                           size="sm"
                           variant="outline"
