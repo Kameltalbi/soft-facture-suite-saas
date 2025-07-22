@@ -273,9 +273,14 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     
     setQuoteItems(quoteItems.map(item => {
       if (item.id === itemId) {
+        // Combiner le nom et la description du produit
+        const description = product.description && product.description.trim() 
+          ? `${product.name} - ${product.description}`
+          : product.name;
+        
         return {
           ...item,
-          description: product.description || product.name,
+          description: description,
           unitPrice: unitPrice,
           vatRate: taxRate,
           total: unitPrice,
