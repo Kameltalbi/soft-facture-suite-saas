@@ -82,7 +82,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const [showDiscount, setShowDiscount] = useState(true);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
-  // Form state
+  // Form state - Utilise maintenant le hook useDocumentNumber
   const [quoteNumber, setQuoteNumber] = useState(quote?.quote_number || '');
   const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
