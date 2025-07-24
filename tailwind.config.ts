@@ -26,26 +26,39 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#6A9C89',
+					DEFAULT: '#4A90E2', // Bleu du logo
 					foreground: '#FFFFFF',
-					hover: '#5A8A75'
+					hover: '#3A7BC8'
 				},
 				secondary: {
-					DEFAULT: '#D96C4F',
+					DEFAULT: '#BFA2DB', // Violet pastel
 					foreground: '#FFFFFF',
-					hover: '#C25A43'
+					hover: '#A688C7'
 				},
-				sage: {
-					50: '#F5F8F6',
-					100: '#E8F0ED',
-					200: '#C8DAD1',
-					300: '#A8C4B5',
-					400: '#88AE99',
-					500: '#6A9C89',
-					600: '#5A8A75',
-					700: '#4A7261',
-					800: '#3A5A4D',
-					900: '#2A4239'
+				// Nouvelle palette avec les 3 couleurs demandées
+				blue: {
+					DEFAULT: '#4A90E2', // Bleu du logo
+					50: '#F0F7FF',
+					100: '#E1EFFF',
+					500: '#4A90E2',
+					600: '#3A7BC8',
+					700: '#2A66AE'
+				},
+				purple: {
+					DEFAULT: '#BFA2DB', // Violet pastel
+					50: '#F9F5FD',
+					100: '#F3EBFB',
+					500: '#BFA2DB',
+					600: '#A688C7',
+					700: '#8D6EB3'
+				},
+				green: {
+					DEFAULT: '#74C69D', // Vert complémentaire
+					50: '#F0FBF6',
+					100: '#E1F7ED',
+					500: '#74C69D',
+					600: '#5FB086',
+					700: '#4A9A6F'
 				},
 				terracotta: {
 					50: '#FDF5F3',
