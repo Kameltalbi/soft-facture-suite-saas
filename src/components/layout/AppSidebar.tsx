@@ -121,7 +121,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
             <img 
               src="/lovable-uploads/08d9951e-3fa8-43fa-a62f-a57515e31a4a.png" 
               alt="Soft Facture Logo" 
-              className="h-20 w-auto"
+              className="h-24 w-auto"
             />
           ) : (
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#6A9C89] text-white">
