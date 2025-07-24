@@ -201,24 +201,11 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" />
                   <YAxis 
+                    domain={[-100, 100]}
                     tickFormatter={(value) => `${value}%`}
-                    domain={['dataMin - 10', 'dataMax + 10']}
                   />
                   <Tooltip 
-                    formatter={(value: number, name: string) => {
-                      if (name === 'growthPercentage') {
-                        return [`${value.toFixed(1)}%`, 'Croissance'];
-                      }
-                      return [formatCurrency(value), name === 'currentYear' ? selectedYear.toString() : (selectedYear - 1).toString()];
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="growthPercentage" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    name="Croissance"
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Croissance']}
                   />
                   {/* Ligne de référence à 0% */}
                   <Line 
@@ -228,6 +215,14 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
                     strokeWidth={1}
                     strokeDasharray="2 2"
                     dot={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="growthPercentage" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    name="Croissance"
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
                   />
                 </LineChart>
               </ResponsiveContainer>

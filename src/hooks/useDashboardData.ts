@@ -453,9 +453,16 @@ export const useDashboardData = (selectedYear: number) => {
 
     // 4. Données pour la courbe de croissance
     const growthData = monthlyComparison.map(data => {
-      const growthPercentage = data.previousYear > 0 
-        ? ((data.currentYear - data.previousYear) / data.previousYear) * 100 
-        : data.currentYear > 0 ? 100 : 0;
+      let growthPercentage = 0;
+      
+      if (data.previousYear > 0) {
+        // Formule correcte : (CA 2025 / CA 2024) - 1) * 100
+        growthPercentage = ((data.currentYear / data.previousYear) - 1) * 100;
+      } else if (data.currentYear > 0) {
+        // Si pas de CA l'année précédente mais CA cette année = 100% de croissance
+        growthPercentage = 100;
+      }
+      // Si les deux sont 0, la croissance reste à 0%
 
       return {
         month: data.month,
