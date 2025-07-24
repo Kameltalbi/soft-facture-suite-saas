@@ -53,7 +53,7 @@ export const usePayments = () => {
           amount_paid,
           status,
           currency_id,
-          clients!inner(name),
+          clients!inner(name, company),
           currencies(code, symbol, name, decimal_places)
         `)
         .not('status', 'eq', 'paid');
@@ -79,7 +79,7 @@ export const usePayments = () => {
         id: invoice.id,
         invoice_number: invoice.invoice_number,
         client_id: invoice.client_id,
-        client_name: (invoice.clients as any)?.name || 'Client inconnu',
+        client_name: (invoice.clients as any)?.company || (invoice.clients as any)?.name || 'Client inconnu',
         date: invoice.date,
         total_amount: invoice.total_amount,
         amount_paid: invoice.amount_paid || 0,
