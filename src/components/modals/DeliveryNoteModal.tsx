@@ -590,16 +590,18 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
           </div>
 
           {/* Montant en lettres */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Montant en lettres</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm font-medium text-green-700 italic">
-                {numberToWords(Math.round(totalTTC))} euros
-              </p>
-            </CardContent>
-          </Card>
+          {totalTTC > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Montant en lettres</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium text-green-700 italic">
+                  {numberToWords(Math.round(totalTTC))} euros
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Notes */}
           <Card>
