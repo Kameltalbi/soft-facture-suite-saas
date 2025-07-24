@@ -34,7 +34,7 @@ export function Header() {
             <img 
               src="/lovable-uploads/2b124516-26e1-430e-bebe-d62d8026a377.png"
               alt="Soft Facture Logo"
-              className="h-[4rem] w-auto"
+              className="h-[5rem] w-auto"
             />
           </button>
           
@@ -87,7 +87,7 @@ export function Header() {
             <img 
               src="/lovable-uploads/2b124516-26e1-430e-bebe-d62d8026a377.png"
               alt="Soft Facture Logo"
-              className="h-[5rem] w-auto"
+              className="h-[6rem] w-auto"
             />
           </button>
           
