@@ -456,8 +456,8 @@ export const useDashboardData = (selectedYear: number) => {
       let growthPercentage = 0;
       
       if (data.previousYear > 0) {
-        // Formule correcte : (CA 2025 / CA 2024) - 1) * 100
-        growthPercentage = ((data.currentYear / data.previousYear) - 1) * 100;
+        // Formule taux de croissance : (CA2025 - CA2024) / CA2024 × 100
+        growthPercentage = ((data.currentYear - data.previousYear) / data.previousYear) * 100;
       } else if (data.currentYear > 0) {
         // Si pas de CA l'année précédente mais CA cette année = 100% de croissance
         growthPercentage = 100;
