@@ -32,7 +32,7 @@ export function Header() {
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
+              src="/lovable-uploads/2b124516-26e1-430e-bebe-d62d8026a377.png"
               alt="Soft Facture Logo"
               className="h-[4rem] w-auto"
             />
@@ -85,7 +85,7 @@ export function Header() {
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <img 
-              src="/lovable-uploads/1cb71d3d-89ac-4291-9697-fa30833d05ec.png"
+              src="/lovable-uploads/2b124516-26e1-430e-bebe-d62d8026a377.png"
               alt="Soft Facture Logo"
               className="h-[5rem] w-auto"
             />
