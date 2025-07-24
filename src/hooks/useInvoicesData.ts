@@ -33,13 +33,27 @@ export function useInvoicesData() {
           )
         `)
         .eq('organization_id', organization.id)
-        .order('invoice_number', { ascending: false });
+        .order('created_at', { ascending: false });
+
+      // Tri personnalisé par numéro de facture (partie numérique) de Z à A
+      const sortedData = data?.sort((a, b) => {
+        // Extraire la partie numérique du numéro de facture
+        const getNumericPart = (invoiceNumber: string) => {
+          const match = invoiceNumber.match(/\d+$/);
+          return match ? parseInt(match[0], 10) : 0;
+        };
+        
+        const numA = getNumericPart(a.invoice_number);
+        const numB = getNumericPart(b.invoice_number);
+        
+        return numB - numA; // Ordre décroissant (Z à A)
+      });
 
       if (error) {
         console.error('Error fetching invoices:', error);
         throw error;
       }
-      return data || [];
+      return sortedData || [];
     },
     enabled: !!organization?.id
   });
