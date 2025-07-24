@@ -12,13 +12,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { numberToWords } from '@/utils/numberToWords';
 
 interface DeliveryItem {
   id: string;
   description: string;
   quantity: number;
-  deliveredQuantity?: number;
-  status: 'pending' | 'delivered' | 'partial';
+  unitPrice: number;
+  vatRate: number;
+  discount: number;
+  total: number;
   productId?: string;
 }
 
@@ -55,7 +58,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   
   // Delivery items
   const [deliveryItems, setDeliveryItems] = useState<DeliveryItem[]>(deliveryNote?.items || [
-    { id: '1', description: '', quantity: 1, deliveredQuantity: 0, status: 'pending' }
+    { id: '1', description: '', quantity: 1, unitPrice: 0, vatRate: 20, discount: 0, total: 0 }
   ]);
   
   // Product search inline
@@ -105,11 +108,15 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   const selectProduct = (itemId: string, product: Product) => {
     setDeliveryItems(deliveryItems.map(item => {
       if (item.id === itemId) {
-        return {
+        const updated = {
           ...item,
           description: product.name,
-          productId: product.id
+          productId: product.id,
+          unitPrice: product.price,
+          vatRate: product.tax_rate || 20
         };
+        updated.total = calculateItemTotal(updated);
+        return updated;
       }
       return item;
     }));
@@ -135,8 +142,10 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
       id: Date.now().toString(),
       description: '',
       quantity: 1,
-      deliveredQuantity: 0,
-      status: 'pending'
+      unitPrice: 0,
+      vatRate: 20,
+      discount: 0,
+      total: 0
     };
     setDeliveryItems([...deliveryItems, newItem]);
   };
@@ -145,18 +154,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     setDeliveryItems(deliveryItems.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
-        // Update status based on delivered quantity
-        if (field === 'deliveredQuantity' || field === 'quantity') {
-          const delivered = field === 'deliveredQuantity' ? value : item.deliveredQuantity || 0;
-          const total = field === 'quantity' ? value : item.quantity;
-          if (delivered === 0) {
-            updated.status = 'pending';
-          } else if (delivered >= total) {
-            updated.status = 'delivered';
-          } else {
-            updated.status = 'partial';
-          }
-        }
+        updated.total = calculateItemTotal(updated);
         return updated;
       }
       return item;
@@ -175,18 +173,19 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     setDeliveryAddress(formattedAddress);
   };
   
-  const getStatusBadge = (status: DeliveryItem['status']) => {
-    const variants = {
-      pending: { label: 'En attente', variant: 'secondary' as const },
-      delivered: { label: 'Livré', variant: 'default' as const },
-      partial: { label: 'Partiel', variant: 'outline' as const }
-    };
-    return (
-      <Badge variant={variants[status].variant}>
-        {variants[status].label}
-      </Badge>
-    );
+  // Calculations
+  const calculateItemTotal = (item: DeliveryItem) => {
+    const subtotal = item.quantity * item.unitPrice;
+    const discountAmount = subtotal * (item.discount / 100);
+    return subtotal - discountAmount;
   };
+
+  const totalHT = deliveryItems.reduce((sum, item) => sum + item.total, 0);
+  const totalVAT = deliveryItems.reduce((sum, item) => {
+    const vatAmount = item.total * (item.vatRate / 100);
+    return sum + vatAmount;
+  }, 0);
+  const totalTTC = totalHT + totalVAT;
   
   // Handle save as draft action
   const handleSaveAsDraft = () => {
@@ -415,11 +414,12 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[40%]">Description</TableHead>
-                    <TableHead className="w-[15%] text-center">Qté commandée</TableHead>
-                    <TableHead className="w-[15%] text-center">Qté livrée</TableHead>
-                    <TableHead className="w-[15%] text-center">Statut</TableHead>
-                    <TableHead className="w-[10%] text-center">État</TableHead>
+                    <TableHead className="w-[35%]">Description</TableHead>
+                    <TableHead className="w-[12%] text-center">Quantité</TableHead>
+                    <TableHead className="w-[12%] text-right">Prix unitaire HT</TableHead>
+                    <TableHead className="w-[10%] text-center">Remise %</TableHead>
+                    <TableHead className="w-[10%] text-center">TVA</TableHead>
+                    <TableHead className="w-[12%] text-right">Total HT</TableHead>
                     <TableHead className="w-[5%]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -515,20 +515,36 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                       <TableCell>
                         <Input
                           type="number"
-                          value={item.deliveredQuantity || 0}
-                          onChange={(e) => updateDeliveryItem(item.id, 'deliveredQuantity', parseInt(e.target.value) || 0)}
-                          className="text-center"
+                          value={item.unitPrice}
+                          onChange={(e) => updateDeliveryItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                          className="text-right"
                           min="0"
-                          max={item.quantity}
+                          step="0.01"
                         />
                       </TableCell>
-                      <TableCell className="text-center">
-                        <span className="text-sm">
-                          {item.deliveredQuantity || 0}/{item.quantity}
-                        </span>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.discount}
+                          onChange={(e) => updateDeliveryItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                        />
                       </TableCell>
-                      <TableCell className="text-center">
-                        {getStatusBadge(item.status)}
+                      <TableCell>
+                        <Input
+                          type="number"
+                          value={item.vatRate}
+                          onChange={(e) => updateDeliveryItem(item.id, 'vatRate', parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                          min="0"
+                          step="0.01"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.total)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -547,26 +563,41 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
             </CardContent>
           </Card>
 
-          {/* Section signatures (pour impression) */}
+          {/* Totaux */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div></div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Totaux</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Total HT:</span>
+                  <span className="font-medium">{formatCurrency(totalHT)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>TVA:</span>
+                  <span className="font-medium">{formatCurrency(totalVAT)}</span>
+                </div>
+                <div className="border-t pt-2">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total TTC:</span>
+                    <span className="text-green-600">{formatCurrency(totalTTC)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Montant en lettres */}
           <Card>
             <CardHeader>
-              <CardTitle>Signatures</CardTitle>
+              <CardTitle>Montant en lettres</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <Label className="font-medium">Signature du livreur :</Label>
-                  <div className="h-20 border-2 border-dashed border-gray-300 rounded-lg mt-2 flex items-center justify-center text-gray-500">
-                    Zone de signature
-                  </div>
-                </div>
-                <div>
-                  <Label className="font-medium">Signature du client :</Label>
-                  <div className="h-20 border-2 border-dashed border-gray-300 rounded-lg mt-2 flex items-center justify-center text-gray-500">
-                    Zone de signature
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm font-medium text-green-700 italic">
+                {numberToWords(Math.round(totalTTC))} euros
+              </p>
             </CardContent>
           </Card>
 
