@@ -29,9 +29,11 @@ interface DashboardChartData {
     currentYear: number;
     previousYear: number;
   }>;
-  invoicesPerMonth: Array<{
+  growthData: Array<{
     month: string;
-    count: number;
+    growthPercentage: number;
+    currentYear: number;
+    previousYear: number;
   }>;
   top20Clients: Array<{
     name: string;
@@ -66,7 +68,7 @@ export const useDashboardData = (selectedYear: number) => {
     caByCategory: [],
     caByProduct: [],
     monthlyComparison: [],
-    invoicesPerMonth: [],
+    growthData: [],
     top20Clients: [],
     salesChannelDistribution: [],
     invoiceStatusDistribution: []
@@ -265,7 +267,7 @@ export const useDashboardData = (selectedYear: number) => {
         caByCategory: [],
         caByProduct: [],
         monthlyComparison: [],
-        invoicesPerMonth: [],
+        growthData: [],
         top20Clients: [],
         salesChannelDistribution: [],
         invoiceStatusDistribution: []
@@ -300,7 +302,7 @@ export const useDashboardData = (selectedYear: number) => {
         caByCategory: [],
         caByProduct: [],
         monthlyComparison: [],
-        invoicesPerMonth: [],
+        growthData: [],
         top20Clients: [],
         salesChannelDistribution: [],
         invoiceStatusDistribution: []
@@ -449,18 +451,19 @@ export const useDashboardData = (selectedYear: number) => {
       };
     });
 
-    // 4. Nombre de factures par mois
-    const invoicesPerMonthMap = new Map<string, number>();
-    invoicesWithItems?.forEach(invoice => {
-      const month = new Date(invoice.date).getMonth();
-      const monthName = months[month];
-      const current = invoicesPerMonthMap.get(monthName) || 0;
-      invoicesPerMonthMap.set(monthName, current + 1);
+    // 4. Données pour la courbe de croissance
+    const growthData = monthlyComparison.map(data => {
+      const growthPercentage = data.previousYear > 0 
+        ? ((data.currentYear - data.previousYear) / data.previousYear) * 100 
+        : data.currentYear > 0 ? 100 : 0;
+
+      return {
+        month: data.month,
+        growthPercentage,
+        currentYear: data.currentYear,
+        previousYear: data.previousYear
+      };
     });
-    const invoicesPerMonth = months.map(month => ({
-      month,
-      count: invoicesPerMonthMap.get(month) || 0
-    }));
 
     // 5. Top 20 clients par CA avec conversion
     const clientRevenueMap = new Map<string, number>();
@@ -537,7 +540,7 @@ export const useDashboardData = (selectedYear: number) => {
       caByCategory: caByCategory.length,
       caByProduct: caByProduct.length,
       monthlyComparison: monthlyComparison.length,
-      invoicesPerMonth: invoicesPerMonth.length,
+      growthData: growthData.length,
       top20Clients: top20Clients.length,
       salesChannelDistribution: salesChannelDistribution.length,
       invoiceStatusDistribution: invoiceStatusDistribution.length
@@ -547,7 +550,7 @@ export const useDashboardData = (selectedYear: number) => {
       caByCategory,
       caByProduct,
       monthlyComparison,
-      invoicesPerMonth,
+      growthData,
       top20Clients,
       salesChannelDistribution,
       invoiceStatusDistribution

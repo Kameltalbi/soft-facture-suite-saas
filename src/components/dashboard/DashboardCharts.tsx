@@ -19,9 +19,11 @@ interface DashboardChartsProps {
       currentYear: number;
       previousYear: number;
     }>;
-    invoicesPerMonth: Array<{
+    growthData: Array<{
       month: string;
-      count: number;
+      growthPercentage: number;
+      currentYear: number;
+      previousYear: number;
     }>;
     top20Clients: Array<{
       name: string;
@@ -187,21 +189,47 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
           </CardContent>
         </Card>
 
-        {/* 4. Nombre de factures par mois */}
+        {/* 4. Courbe de croissance du CA */}
         <Card>
           <CardHeader>
-            <CardTitle>Factures par mois</CardTitle>
+            <CardTitle>Croissance du CA vs {selectedYear - 1} (%)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.invoicesPerMonth}>
+                <LineChart data={data.growthData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#00ff00" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <YAxis 
+                    tickFormatter={(value) => `${value}%`}
+                    domain={['dataMin - 10', 'dataMax + 10']}
+                  />
+                  <Tooltip 
+                    formatter={(value: number, name: string) => {
+                      if (name === 'growthPercentage') {
+                        return [`${value.toFixed(1)}%`, 'Croissance'];
+                      }
+                      return [formatCurrency(value), name === 'currentYear' ? selectedYear.toString() : (selectedYear - 1).toString()];
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="growthPercentage" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    name="Croissance"
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
+                  />
+                  {/* Ligne de référence à 0% */}
+                  <Line 
+                    type="monotone" 
+                    dataKey={() => 0}
+                    stroke="#64748b" 
+                    strokeWidth={1}
+                    strokeDasharray="2 2"
+                    dot={false}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
