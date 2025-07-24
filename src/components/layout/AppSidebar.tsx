@@ -119,7 +119,7 @@ export function AppSidebar({ activeModule, onModuleChange }: AppSidebarProps) {
         <div className="flex items-center justify-center">
           {!isCollapsed ? (
             <img 
-              src="/lovable-uploads/8a09e3e9-4ee2-47e9-83ad-d5ae4f2fee23.png" 
+              src="/lovable-uploads/08d9951e-3fa8-43fa-a62f-a57515e31a4a.png" 
               alt="Soft Facture Logo" 
               className="h-20 w-auto"
             />
