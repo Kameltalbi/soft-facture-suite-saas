@@ -19,11 +19,9 @@ interface DashboardChartsProps {
       currentYear: number;
       previousYear: number;
     }>;
-    growthData: Array<{
+    invoicesPerMonth: Array<{
       month: string;
-      growthPercentage: number;
-      currentYear: number;
-      previousYear: number;
+      count: number;
     }>;
     top20Clients: Array<{
       name: string;
@@ -189,42 +187,21 @@ export function DashboardCharts({ data, selectedYear, loading }: DashboardCharts
           </CardContent>
         </Card>
 
-        {/* 4. Courbe de croissance du CA */}
+        {/* 4. Nombre de factures par mois */}
         <Card>
           <CardHeader>
-            <CardTitle>Croissance du CA vs {selectedYear - 1} (%)</CardTitle>
+            <CardTitle>Factures par mois</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.growthData}>
+                <BarChart data={data.invoicesPerMonth}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="month" />
-                  <YAxis 
-                    domain={[-100, 100]}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Croissance']}
-                  />
-                  {/* Ligne de référence à 0% */}
-                  <Line 
-                    type="monotone" 
-                    dataKey={() => 0}
-                    stroke="#64748b" 
-                    strokeWidth={1}
-                    strokeDasharray="2 2"
-                    dot={false}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="growthPercentage" 
-                    stroke="#10b981" 
-                    strokeWidth={3}
-                    name="Croissance"
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 5 }}
-                  />
-                </LineChart>
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#00ff00" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
