@@ -24,13 +24,11 @@ import {
   Printer, 
   Mail, 
   Repeat, 
-  CreditCard, 
   Edit, 
   Trash2,
   PenTool
 } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-import { PaymentModal } from '@/components/modals/PaymentModal';
 import { EmailModal } from '@/components/modals/EmailModal';
 
 interface InvoiceActionsMenuProps {
@@ -48,7 +46,7 @@ interface InvoiceActionsMenuProps {
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
-  onPaymentRecorded: (paymentData: any) => void;
+  
   onEmailSent: (emailData: any) => void;
   onSign: () => void;
   hasSignature: boolean;
@@ -61,31 +59,18 @@ export function InvoiceActionsMenu({
   onEdit,
   onDuplicate,
   onDelete,
-  onPaymentRecorded,
   onEmailSent,
   onSign,
   hasSignature
 }: InvoiceActionsMenuProps) {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const isFullyPaid = invoice.status === 'paid' || (invoice.paidAmount && invoice.paidAmount >= invoice.amount);
-  const canRecordPayment = !isFullyPaid;
   const canValidate = invoice.status === 'draft' || invoice.status === 'sent';
   const canModify = invoice.status === 'draft';
   const canSign = hasSignature && invoice.status !== 'draft';
   const isSigned = invoice.is_signed;
-
-  const handlePaymentSave = (paymentData: any) => {
-    // Passer les données avec le montant total de la facture pour la validation
-    const paymentDataWithTotal = {
-      ...paymentData,
-      totalAmount: invoice.amount
-    };
-    onPaymentRecorded(paymentDataWithTotal);
-    setShowPaymentModal(false);
-  };
 
   const handleEmailSend = (emailData: any) => {
     onEmailSent(emailData);
@@ -144,15 +129,6 @@ export function InvoiceActionsMenu({
 
           <DropdownMenuSeparator />
 
-          {canRecordPayment && (
-            <DropdownMenuItem onClick={() => setShowPaymentModal(true)}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              Enregistrer un paiement
-            </DropdownMenuItem>
-          )}
-
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem 
             onClick={onEdit}
             disabled={!canModify}
@@ -171,14 +147,6 @@ export function InvoiceActionsMenu({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      {/* Payment Modal */}
-      <PaymentModal
-        open={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        invoice={invoice}
-        onSave={handlePaymentSave}
-      />
 
       {/* Email Modal */}
       <EmailModal

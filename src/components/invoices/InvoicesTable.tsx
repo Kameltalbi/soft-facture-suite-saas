@@ -132,7 +132,6 @@ export function InvoicesTable({
                     onEdit={() => onEditInvoice(invoice)}
                     onDuplicate={() => onDuplicateInvoice(invoice)}
                     onDelete={() => onDeleteInvoice(invoice)}
-                    onPaymentRecorded={onPaymentRecorded}
                     onEmailSent={onEmailSent}
                     onSign={() => onSignInvoice(invoice)}
                     hasSignature={!!organization?.signature_url}

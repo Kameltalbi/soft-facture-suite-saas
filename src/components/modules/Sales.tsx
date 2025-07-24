@@ -410,7 +410,6 @@ export function Sales() {
                       onEdit={() => handleEditDocument(document)}
                       onDuplicate={() => handleDuplicateDocument(document)}
                       onDelete={() => handleDeleteDocument(document)}
-                      onPaymentRecorded={handlePaymentRecorded}
                       onEmailSent={handleEmailSent}
                       onSign={() => {}}
                       hasSignature={false}
