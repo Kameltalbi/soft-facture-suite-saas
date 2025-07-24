@@ -47,7 +47,7 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
   // Form state
   const [deliveryNumber, setDeliveryNumber] = useState(deliveryNote?.number || 'BL-2025-001');
   const [deliveryDate, setDeliveryDate] = useState(deliveryNote?.date || new Date().toISOString().split('T')[0]);
-  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState(deliveryNote?.expectedDeliveryDate || '');
+  
   const [clientSearch, setClientSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState(deliveryNote?.client || null);
   const [notes, setNotes] = useState(deliveryNote?.notes || '');
@@ -193,7 +193,6 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     const deliveryData = {
       number: deliveryNumber,
       date: deliveryDate,
-      expectedDeliveryDate,
       client: selectedClient,
       deliveryAddress,
       items: deliveryItems,
@@ -209,7 +208,6 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
     const deliveryData = {
       number: deliveryNumber,
       date: deliveryDate,
-      expectedDeliveryDate,
       client: selectedClient,
       deliveryAddress,
       items: deliveryItems,
@@ -278,16 +276,6 @@ export function DeliveryNoteModal({ open, onClose, deliveryNote, onSave }: Deliv
                         type="date"
                         value={deliveryDate}
                         onChange={(e) => setDeliveryDate(e.target.value)}
-                        className="w-40"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="expectedDeliveryDate">Livraison prévue</Label>
-                      <Input
-                        id="expectedDeliveryDate"
-                        type="date"
-                        value={expectedDeliveryDate}
-                        onChange={(e) => setExpectedDeliveryDate(e.target.value)}
                         className="w-40"
                       />
                     </div>
