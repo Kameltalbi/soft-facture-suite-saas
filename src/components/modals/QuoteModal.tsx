@@ -14,6 +14,7 @@ import { UniversalPDFGenerator } from '@/components/pdf/UniversalPDFGenerator';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
+import { useDocumentNumber } from '@/hooks/useDocumentNumber';
 import { useCurrencies } from '@/hooks/useCurrencies';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -65,6 +66,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { currency } = useCurrency();
   const { customTaxes } = useCustomTaxes();
   const { currencies } = useCurrencies();
+  const { generateDocumentNumber } = useDocumentNumber();
   
   // State for clients and products
   const [clients, setClients] = useState<Client[]>([]);
@@ -80,8 +82,8 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const [showDiscount, setShowDiscount] = useState(true);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
-  // Form state - Générer un numéro unique basé sur timestamp
-  const [quoteNumber, setQuoteNumber] = useState(quote?.number || `DEVIS-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`);
+  // Form state
+  const [quoteNumber, setQuoteNumber] = useState(quote?.quote_number || '');
   const [quoteDate, setQuoteDate] = useState(quote?.date || new Date().toISOString().split('T')[0]);
   const [validUntil, setValidUntil] = useState(quote?.validUntil || '');
   const [clientSearch, setClientSearch] = useState('');
@@ -100,37 +102,6 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Générer un numéro de devis unique
-  const generateUniqueQuoteNumber = async () => {
-    if (!organization?.id) return `DEVIS-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
-    
-    let attempts = 0;
-    const maxAttempts = 10;
-    
-    while (attempts < maxAttempts) {
-      const randomSuffix = Math.floor(Math.random() * 900000) + 100000; // 6 chiffres aléatoires
-      const newNumber = `DEVIS-${new Date().getFullYear()}-${randomSuffix}`;
-      
-      // Vérifier si ce numéro existe déjà
-      const { data: existingQuote } = await supabase
-        .from('quotes')
-        .select('id')
-        .eq('organization_id', organization.id)
-        .eq('quote_number', newNumber)
-        .single();
-      
-      if (!existingQuote) {
-        return newNumber;
-      }
-      
-      attempts++;
-      await new Promise(resolve => setTimeout(resolve, 10)); // Petite pause
-    }
-    
-    // Fallback avec timestamp complet
-    return `DEVIS-${new Date().getFullYear()}-${Date.now()}`;
-  };
 
   // Fetch clients from Supabase
   const fetchClients = async () => {
@@ -181,14 +152,14 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       fetchClients();
       fetchProducts();
       
-      // Si c'est un nouveau devis, générer un numéro unique
-      if (!quote) {
-        generateUniqueQuoteNumber().then(newNumber => {
+      // Si c'est un nouveau devis sans numéro, générer un numéro via les paramètres
+      if (!quote && !quoteNumber) {
+        generateDocumentNumber('quote').then(newNumber => {
           setQuoteNumber(newNumber);
         });
       }
     }
-  }, [open, organization?.id, quote]);
+  }, [open, organization?.id, quote, quoteNumber]);
   
   
   const filteredClients = clients.filter(client =>
@@ -343,10 +314,10 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
     try {
       setSaving(true);
 
-      // Si c'est un nouveau devis, s'assurer d'avoir un numéro unique
+      // Si c'est un nouveau devis, s'assurer d'avoir un numéro via les paramètres
       let finalQuoteNumber = quoteNumber;
       if (!quote && !finalQuoteNumber) {
-        finalQuoteNumber = await generateUniqueQuoteNumber();
+        finalQuoteNumber = await generateDocumentNumber('quote');
         setQuoteNumber(finalQuoteNumber);
       }
 
