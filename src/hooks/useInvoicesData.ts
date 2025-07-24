@@ -33,7 +33,7 @@ export function useInvoicesData() {
           )
         `)
         .eq('organization_id', organization.id)
-        .order('created_at', { ascending: false });
+        .order('invoice_number', { ascending: false });
 
       if (error) {
         console.error('Error fetching invoices:', error);
