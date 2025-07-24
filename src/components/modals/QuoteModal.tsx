@@ -14,7 +14,7 @@ import { UniversalPDFGenerator } from '@/components/pdf/UniversalPDFGenerator';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useCustomTaxes } from '@/hooks/useCustomTaxes';
-import { useDocumentNumber } from '@/hooks/useDocumentNumber';
+import { useQuoteNumber } from '@/hooks/useQuoteNumber';
 import { useCurrencies } from '@/hooks/useCurrencies';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,7 +66,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
   const { currency } = useCurrency();
   const { customTaxes } = useCustomTaxes();
   const { currencies } = useCurrencies();
-  const { generateDocumentNumber } = useDocumentNumber();
+  const { generateQuoteNumber } = useQuoteNumber();
   
   // State for clients and products
   const [clients, setClients] = useState<Client[]>([]);
@@ -154,7 +154,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       
       // Si c'est un nouveau devis sans numéro, générer un numéro via les paramètres
       if (!quote && !quoteNumber) {
-        generateDocumentNumber('quote').then(newNumber => {
+        generateQuoteNumber().then(newNumber => {
           setQuoteNumber(newNumber);
         });
       }
@@ -317,7 +317,7 @@ export function QuoteModal({ open, onClose, quote, onSave }: QuoteModalProps) {
       // Si c'est un nouveau devis, s'assurer d'avoir un numéro via les paramètres
       let finalQuoteNumber = quoteNumber;
       if (!quote && !finalQuoteNumber) {
-        finalQuoteNumber = await generateDocumentNumber('quote');
+        finalQuoteNumber = await generateQuoteNumber();
         setQuoteNumber(finalQuoteNumber);
       }
 
