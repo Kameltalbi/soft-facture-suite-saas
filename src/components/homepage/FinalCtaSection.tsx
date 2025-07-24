@@ -10,7 +10,7 @@ export function FinalCtaSection() {
             Rejoignez les pros qui gagnent du temps chaque jour
           </h2>
           <p className="text-xl opacity-90">
-            Une solution <span className="text-blue-500 font-semibold">simplifiée et professionnelle</span> pour votre facturation
+            Une solution <span className="text-blue-300 font-bold">simplifiée et professionnelle</span> pour votre facturation
           </p>
           <Button 
             size="lg"
